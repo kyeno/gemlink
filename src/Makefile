@@ -321,8 +321,8 @@ am_libbitcoin_server_a_OBJECTS =  \
 	libbitcoin_server_a-pow.$(OBJEXT) \
 	libbitcoin_server_a-rest.$(OBJEXT) \
 	rpc/libbitcoin_server_a-blockchain.$(OBJEXT) \
-	libbitcoin_server_a-rpcmasternode.$(OBJEXT) \
-	libbitcoin_server_a-rpcmasternode-budget.$(OBJEXT) \
+	rpc/libbitcoin_server_a-masternode.$(OBJEXT) \
+	rpc/libbitcoin_server_a-masternode-budget.$(OBJEXT) \
 	rpc/libbitcoin_server_a-mining.$(OBJEXT) \
 	rpc/libbitcoin_server_a-misc.$(OBJEXT) \
 	rpc/libbitcoin_server_a-net.$(OBJEXT) \
@@ -807,8 +807,6 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_server_a-paymentdisclosuredb.Po \
 	./$(DEPDIR)/libbitcoin_server_a-pow.Po \
 	./$(DEPDIR)/libbitcoin_server_a-rest.Po \
-	./$(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Po \
-	./$(DEPDIR)/libbitcoin_server_a-rpcmasternode.Po \
 	./$(DEPDIR)/libbitcoin_server_a-sendalert.Po \
 	./$(DEPDIR)/libbitcoin_server_a-sporkdb.Po \
 	./$(DEPDIR)/libbitcoin_server_a-timedata.Po \
@@ -907,6 +905,8 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo \
 	rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po \
 	rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po \
+	rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po \
+	rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Po \
 	rpc/$(DEPDIR)/libbitcoin_server_a-mining.Po \
 	rpc/$(DEPDIR)/libbitcoin_server_a-misc.Po \
 	rpc/$(DEPDIR)/libbitcoin_server_a-net.Po \
@@ -1730,8 +1730,8 @@ libbitcoin_server_a_SOURCES = \
   pow.cpp \
   rest.cpp \
   rpc/blockchain.cpp \
-  rpcmasternode.cpp \
-  rpcmasternode-budget.cpp \
+  rpc/masternode.cpp \
+  rpc/masternode-budget.cpp \
   rpc/mining.cpp \
   rpc/misc.cpp \
   rpc/net.cpp \
@@ -2341,6 +2341,10 @@ policy/libbitcoin_server_a-fees.$(OBJEXT): policy/$(am__dirstamp) \
 	policy/$(DEPDIR)/$(am__dirstamp)
 rpc/libbitcoin_server_a-blockchain.$(OBJEXT): rpc/$(am__dirstamp) \
 	rpc/$(DEPDIR)/$(am__dirstamp)
+rpc/libbitcoin_server_a-masternode.$(OBJEXT): rpc/$(am__dirstamp) \
+	rpc/$(DEPDIR)/$(am__dirstamp)
+rpc/libbitcoin_server_a-masternode-budget.$(OBJEXT):  \
+	rpc/$(am__dirstamp) rpc/$(DEPDIR)/$(am__dirstamp)
 rpc/libbitcoin_server_a-mining.$(OBJEXT): rpc/$(am__dirstamp) \
 	rpc/$(DEPDIR)/$(am__dirstamp)
 rpc/libbitcoin_server_a-misc.$(OBJEXT): rpc/$(am__dirstamp) \
@@ -2796,8 +2800,6 @@ include ./$(DEPDIR)/libbitcoin_server_a-paymentdisclosure.Po # am--include-marke
 include ./$(DEPDIR)/libbitcoin_server_a-paymentdisclosuredb.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-pow.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-rest.Po # am--include-marker
-include ./$(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Po # am--include-marker
-include ./$(DEPDIR)/libbitcoin_server_a-rpcmasternode.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-sendalert.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-sporkdb.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-timedata.Po # am--include-marker
@@ -2896,6 +2898,8 @@ include primitives/$(DEPDIR)/libbitcoin_common_a-transaction.Po # am--include-ma
 include primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po # am--include-marker
+include rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po # am--include-marker
+include rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Po # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_server_a-mining.Po # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_server_a-misc.Po # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_server_a-net.Po # am--include-marker
@@ -3923,33 +3927,33 @@ rpc/libbitcoin_server_a-blockchain.obj: rpc/blockchain.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o rpc/libbitcoin_server_a-blockchain.obj `if test -f 'rpc/blockchain.cpp'; then $(CYGPATH_W) 'rpc/blockchain.cpp'; else $(CYGPATH_W) '$(srcdir)/rpc/blockchain.cpp'; fi`
 
-libbitcoin_server_a-rpcmasternode.o: rpcmasternode.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-rpcmasternode.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-rpcmasternode.Tpo -c -o libbitcoin_server_a-rpcmasternode.o `test -f 'rpcmasternode.cpp' || echo '$(srcdir)/'`rpcmasternode.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-rpcmasternode.Tpo $(DEPDIR)/libbitcoin_server_a-rpcmasternode.Po
-#	$(AM_V_CXX)source='rpcmasternode.cpp' object='libbitcoin_server_a-rpcmasternode.o' libtool=no \
+rpc/libbitcoin_server_a-masternode.o: rpc/masternode.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT rpc/libbitcoin_server_a-masternode.o -MD -MP -MF rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Tpo -c -o rpc/libbitcoin_server_a-masternode.o `test -f 'rpc/masternode.cpp' || echo '$(srcdir)/'`rpc/masternode.cpp
+	$(AM_V_at)$(am__mv) rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Tpo rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Po
+#	$(AM_V_CXX)source='rpc/masternode.cpp' object='rpc/libbitcoin_server_a-masternode.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-rpcmasternode.o `test -f 'rpcmasternode.cpp' || echo '$(srcdir)/'`rpcmasternode.cpp
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o rpc/libbitcoin_server_a-masternode.o `test -f 'rpc/masternode.cpp' || echo '$(srcdir)/'`rpc/masternode.cpp
 
-libbitcoin_server_a-rpcmasternode.obj: rpcmasternode.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-rpcmasternode.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-rpcmasternode.Tpo -c -o libbitcoin_server_a-rpcmasternode.obj `if test -f 'rpcmasternode.cpp'; then $(CYGPATH_W) 'rpcmasternode.cpp'; else $(CYGPATH_W) '$(srcdir)/rpcmasternode.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-rpcmasternode.Tpo $(DEPDIR)/libbitcoin_server_a-rpcmasternode.Po
-#	$(AM_V_CXX)source='rpcmasternode.cpp' object='libbitcoin_server_a-rpcmasternode.obj' libtool=no \
+rpc/libbitcoin_server_a-masternode.obj: rpc/masternode.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT rpc/libbitcoin_server_a-masternode.obj -MD -MP -MF rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Tpo -c -o rpc/libbitcoin_server_a-masternode.obj `if test -f 'rpc/masternode.cpp'; then $(CYGPATH_W) 'rpc/masternode.cpp'; else $(CYGPATH_W) '$(srcdir)/rpc/masternode.cpp'; fi`
+	$(AM_V_at)$(am__mv) rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Tpo rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Po
+#	$(AM_V_CXX)source='rpc/masternode.cpp' object='rpc/libbitcoin_server_a-masternode.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-rpcmasternode.obj `if test -f 'rpcmasternode.cpp'; then $(CYGPATH_W) 'rpcmasternode.cpp'; else $(CYGPATH_W) '$(srcdir)/rpcmasternode.cpp'; fi`
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o rpc/libbitcoin_server_a-masternode.obj `if test -f 'rpc/masternode.cpp'; then $(CYGPATH_W) 'rpc/masternode.cpp'; else $(CYGPATH_W) '$(srcdir)/rpc/masternode.cpp'; fi`
 
-libbitcoin_server_a-rpcmasternode-budget.o: rpcmasternode-budget.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-rpcmasternode-budget.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Tpo -c -o libbitcoin_server_a-rpcmasternode-budget.o `test -f 'rpcmasternode-budget.cpp' || echo '$(srcdir)/'`rpcmasternode-budget.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Tpo $(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Po
-#	$(AM_V_CXX)source='rpcmasternode-budget.cpp' object='libbitcoin_server_a-rpcmasternode-budget.o' libtool=no \
+rpc/libbitcoin_server_a-masternode-budget.o: rpc/masternode-budget.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT rpc/libbitcoin_server_a-masternode-budget.o -MD -MP -MF rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Tpo -c -o rpc/libbitcoin_server_a-masternode-budget.o `test -f 'rpc/masternode-budget.cpp' || echo '$(srcdir)/'`rpc/masternode-budget.cpp
+	$(AM_V_at)$(am__mv) rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Tpo rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po
+#	$(AM_V_CXX)source='rpc/masternode-budget.cpp' object='rpc/libbitcoin_server_a-masternode-budget.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-rpcmasternode-budget.o `test -f 'rpcmasternode-budget.cpp' || echo '$(srcdir)/'`rpcmasternode-budget.cpp
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o rpc/libbitcoin_server_a-masternode-budget.o `test -f 'rpc/masternode-budget.cpp' || echo '$(srcdir)/'`rpc/masternode-budget.cpp
 
-libbitcoin_server_a-rpcmasternode-budget.obj: rpcmasternode-budget.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-rpcmasternode-budget.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Tpo -c -o libbitcoin_server_a-rpcmasternode-budget.obj `if test -f 'rpcmasternode-budget.cpp'; then $(CYGPATH_W) 'rpcmasternode-budget.cpp'; else $(CYGPATH_W) '$(srcdir)/rpcmasternode-budget.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Tpo $(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Po
-#	$(AM_V_CXX)source='rpcmasternode-budget.cpp' object='libbitcoin_server_a-rpcmasternode-budget.obj' libtool=no \
+rpc/libbitcoin_server_a-masternode-budget.obj: rpc/masternode-budget.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT rpc/libbitcoin_server_a-masternode-budget.obj -MD -MP -MF rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Tpo -c -o rpc/libbitcoin_server_a-masternode-budget.obj `if test -f 'rpc/masternode-budget.cpp'; then $(CYGPATH_W) 'rpc/masternode-budget.cpp'; else $(CYGPATH_W) '$(srcdir)/rpc/masternode-budget.cpp'; fi`
+	$(AM_V_at)$(am__mv) rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Tpo rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po
+#	$(AM_V_CXX)source='rpc/masternode-budget.cpp' object='rpc/libbitcoin_server_a-masternode-budget.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-rpcmasternode-budget.obj `if test -f 'rpcmasternode-budget.cpp'; then $(CYGPATH_W) 'rpcmasternode-budget.cpp'; else $(CYGPATH_W) '$(srcdir)/rpcmasternode-budget.cpp'; fi`
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o rpc/libbitcoin_server_a-masternode-budget.obj `if test -f 'rpc/masternode-budget.cpp'; then $(CYGPATH_W) 'rpc/masternode-budget.cpp'; else $(CYGPATH_W) '$(srcdir)/rpc/masternode-budget.cpp'; fi`
 
 rpc/libbitcoin_server_a-mining.o: rpc/mining.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT rpc/libbitcoin_server_a-mining.o -MD -MP -MF rpc/$(DEPDIR)/libbitcoin_server_a-mining.Tpo -c -o rpc/libbitcoin_server_a-mining.o `test -f 'rpc/mining.cpp' || echo '$(srcdir)/'`rpc/mining.cpp
@@ -6796,8 +6800,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-paymentdisclosuredb.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-pow.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-rest.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_server_a-rpcmasternode.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-sendalert.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-sporkdb.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-timedata.Po
@@ -6896,6 +6898,8 @@ distclean: distclean-recursive
 	-rm -f primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo
 	-rm -f rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po
+	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po
+	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-mining.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-misc.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-net.Po
@@ -7083,8 +7087,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-paymentdisclosuredb.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-pow.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-rest.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_server_a-rpcmasternode-budget.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_server_a-rpcmasternode.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-sendalert.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-sporkdb.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-timedata.Po
@@ -7183,6 +7185,8 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo
 	-rm -f rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po
+	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po
+	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-masternode.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-mining.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-misc.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-net.Po
