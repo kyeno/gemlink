@@ -89,32 +89,30 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-pc-linux-gnu
-host_triplet = x86_64-unknown-linux-gnu
+host_triplet = x86_64-w64-mingw32
 am__append_1 = -I$(srcdir)/leveldb/include \
 	-I$(srcdir)/leveldb/helpers/memenv
 am__append_2 = $(builddir)/leveldb/libleveldb.a
 am__append_3 = $(builddir)/leveldb/libmemenv.a
-am__append_4 = MULTICORE=1
-#am__append_5 = PLATFORM=darwin
 bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
 noinst_PROGRAMS = $(am__EXEEXT_3)
 TESTS = $(am__EXEEXT_3)
-am__append_6 = snowgemd
-am__append_7 = snowgem-cli snowgem-tx
-am__append_8 = \
+am__append_4 = snowgemd
+am__append_5 = snowgem-cli snowgem-tx
+am__append_6 = \
   -DEQUIHASH_TROMP_ATOMIC
 
-am__append_9 = \
+am__append_7 = \
   ${EQUIHASH_TROMP_SOURCES}
 
-#am__append_10 = compat/glibc_compat.cpp
-#am__append_11 = bitcoind-res.rc
-#am__append_12 = bitcoin-cli-res.rc
-#am__append_13 = bitcoin-tx-res.rc
-##am__append_14 = compat/glibc_compat.cpp
-am__append_15 = test/test_bitcoin snowgem-gtest
-am__append_16 = test/test_bitcoin snowgem-gtest
-am__append_17 = \
+#am__append_8 = compat/glibc_compat.cpp
+am__append_9 = bitcoind-res.rc
+am__append_10 = bitcoin-cli-res.rc
+am__append_11 = bitcoin-tx-res.rc
+##am__append_12 = compat/glibc_compat.cpp
+am__append_13 = test/test_bitcoin snowgem-gtest
+am__append_14 = test/test_bitcoin snowgem-gtest
+am__append_15 = \
 	test/bctest.py \
 	test/bitcoin-util-test.py \
 	test/data/bitcoin-util-test.json \
@@ -127,26 +125,26 @@ am__append_17 = \
 	test/data/txcreate2.hex \
 	test/data/txcreatesign.hex
 
-am__append_18 = \
+am__append_16 = \
   test/accounting_tests.cpp \
   wallet/test/wallet_tests.cpp \
   test/rpc_wallet_tests.cpp
 
-am__append_19 = $(LIBBITCOIN_WALLET)
-am__append_20 = $(ZMQ_LIBS)
-#am__append_21 = $(PROTON_LIBS)
-am__append_22 = $(CLEAN_BITCOIN_TEST)
+am__append_17 = $(LIBBITCOIN_WALLET)
+am__append_18 = $(ZMQ_LIBS)
+#am__append_19 = $(PROTON_LIBS)
+am__append_20 = $(CLEAN_BITCOIN_TEST)
 # These tests are order-dependent, because they
 # depend on global state (see #1539)
-am__append_23 = \
+am__append_21 = \
 	wallet/gtest/test_wallet_zkeys.cpp
 
-am__append_24 = \
+am__append_22 = \
 	wallet/gtest/test_wallet.cpp
 
-am__append_25 = $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
-am__append_26 = $(LIBBITCOIN_WALLET)
-#am__append_27 = $(LIBBITCOIN_PROTON) $(PROTON_LIBS)
+am__append_23 = $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
+am__append_24 = $(LIBBITCOIN_WALLET)
+#am__append_25 = $(LIBBITCOIN_PROTON) $(PROTON_LIBS)
 subdir = src
 SUBDIRS =
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -160,11 +158,8 @@ am__aclocal_m4_deps = $(top_srcdir)/build-aux/m4/ax_boost_base.m4 \
 	$(top_srcdir)/build-aux/m4/ax_check_compile_flag.m4 \
 	$(top_srcdir)/build-aux/m4/ax_check_link_flag.m4 \
 	$(top_srcdir)/build-aux/m4/ax_check_preproc_flag.m4 \
-	$(top_srcdir)/build-aux/m4/ax_compiler_vendor.m4 \
 	$(top_srcdir)/build-aux/m4/ax_cxx_compile_stdcxx.m4 \
-	$(top_srcdir)/build-aux/m4/ax_gcc_archflag.m4 \
 	$(top_srcdir)/build-aux/m4/ax_gcc_func_attribute.m4 \
-	$(top_srcdir)/build-aux/m4/ax_gcc_x86_cpuid.m4 \
 	$(top_srcdir)/build-aux/m4/ax_openmp.m4 \
 	$(top_srcdir)/build-aux/m4/ax_pthread.m4 \
 	$(top_srcdir)/build-aux/m4/bitcoin_find_bdb.m4 \
@@ -500,7 +495,7 @@ libzcashconsensus_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 #am_libzcashconsensus_la_rpath = -rpath \
 #	$(libdir)
 am__snowgem_cli_SOURCES_DIST = bitcoin-cli.cpp bitcoin-cli-res.rc
-#am__objects_5 = bitcoin-cli-res.$(OBJEXT)
+am__objects_5 = bitcoin-cli-res.$(OBJEXT)
 am_snowgem_cli_OBJECTS = snowgem_cli-bitcoin-cli.$(OBJEXT) \
 	$(am__objects_5)
 snowgem_cli_OBJECTS = $(am_snowgem_cli_OBJECTS)
@@ -508,7 +503,7 @@ am__DEPENDENCIES_1 =
 snowgem_cli_DEPENDENCIES = $(LIBBITCOIN_CLI) $(LIBUNIVALUE) \
 	$(LIBBITCOIN_UTIL) $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) $(libzcash) \
-	$(LIBSNARK) $(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_1)
+	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_1)
 snowgem_cli_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgem_cli_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgem_cli_LDFLAGS) $(LDFLAGS) -o $@
@@ -525,8 +520,7 @@ am__snowgem_gtest_SOURCES_DIST = gtest/main.cpp gtest/utils.cpp \
 	gtest/test_rpc.cpp gtest/test_sapling_note.cpp \
 	gtest/test_transaction.cpp gtest/test_transaction_builder.cpp \
 	gtest/test_upgrades.cpp gtest/test_validation.cpp \
-	gtest/test_circuit.cpp gtest/test_txid.cpp \
-	gtest/test_libzcash_utils.cpp gtest/test_proofs.cpp \
+	gtest/test_txid.cpp gtest/test_libzcash_utils.cpp \
 	gtest/test_paymentdisclosure.cpp gtest/test_pedersen_hash.cpp \
 	gtest/test_checkblock.cpp gtest/test_zip32.cpp \
 	wallet/gtest/test_wallet.cpp
@@ -559,10 +553,8 @@ am_snowgem_gtest_OBJECTS =  \
 	gtest/snowgem_gtest-test_transaction_builder.$(OBJEXT) \
 	gtest/snowgem_gtest-test_upgrades.$(OBJEXT) \
 	gtest/snowgem_gtest-test_validation.$(OBJEXT) \
-	gtest/snowgem_gtest-test_circuit.$(OBJEXT) \
 	gtest/snowgem_gtest-test_txid.$(OBJEXT) \
 	gtest/snowgem_gtest-test_libzcash_utils.$(OBJEXT) \
-	gtest/snowgem_gtest-test_proofs.$(OBJEXT) \
 	gtest/snowgem_gtest-test_paymentdisclosure.$(OBJEXT) \
 	gtest/snowgem_gtest-test_pedersen_hash.$(OBJEXT) \
 	gtest/snowgem_gtest-test_checkblock.$(OBJEXT) \
@@ -583,42 +575,40 @@ snowgem_gtest_DEPENDENCIES = $(LIBBITCOIN_SERVER) \
 	$(LIBUNIVALUE) $(am__DEPENDENCIES_2) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(LIBSECP256K1) \
-	$(am__DEPENDENCIES_4) $(am__append_26) \
+	$(am__DEPENDENCIES_4) $(am__append_24) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(libzcash) \
-	$(LIBSNARK) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_5)
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_5)
 snowgem_gtest_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) $(snowgem_gtest_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__snowgem_tx_SOURCES_DIST = bitcoin-tx.cpp bitcoin-tx-res.rc
-#am__objects_8 = bitcoin-tx-res.$(OBJEXT)
+am__objects_8 = bitcoin-tx-res.$(OBJEXT)
 am_snowgem_tx_OBJECTS = snowgem_tx-bitcoin-tx.$(OBJEXT) \
 	$(am__objects_8)
 snowgem_tx_OBJECTS = $(am_snowgem_tx_OBJECTS)
 snowgem_tx_DEPENDENCIES = $(LIBUNIVALUE) $(LIBBITCOIN_COMMON) \
-	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(libzcash) $(LIBSNARK) \
+	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(libzcash) \
 	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 snowgem_tx_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgem_tx_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgem_tx_LDFLAGS) $(LDFLAGS) -o $@
 am__snowgemd_SOURCES_DIST = bitcoind.cpp bitcoind-res.rc
-#am__objects_9 = bitcoind-res.$(OBJEXT)
+am__objects_9 = bitcoind-res.$(OBJEXT)
 am_snowgemd_OBJECTS = snowgemd-bitcoind.$(OBJEXT) $(am__objects_9)
 snowgemd_OBJECTS = $(am_snowgemd_OBJECTS)
 snowgemd_DEPENDENCIES = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) \
 	$(LIBBITCOIN_COMMON) $(LIBUNIVALUE) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_ZMQ) $(LIBBITCOIN_PROTON) $(LIBBITCOIN_CRYPTO) \
-	$(libzcash) $(LIBSNARK) $(am__DEPENDENCIES_2) \
-	$(am__DEPENDENCIES_3) $(LIBSECP256K1) $(am__DEPENDENCIES_1) \
+	$(libzcash) $(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3) \
+	$(LIBSECP256K1) $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(LIBBITCOIN_CRYPTO) \
-	$(am__DEPENDENCIES_1)
+	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_1)
 snowgemd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgemd_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgemd_LDFLAGS) $(LDFLAGS) -o $@
@@ -735,7 +725,7 @@ am__DEPENDENCIES_6 =  \
 	$(am__DEPENDENCIES_1)
 #am__DEPENDENCIES_7 =  \
 #	$(am__DEPENDENCIES_1)
-test_test_bitcoin_DEPENDENCIES = $(am__append_19) \
+test_test_bitcoin_DEPENDENCIES = $(am__append_17) \
 	$(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) \
 	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
@@ -744,9 +734,8 @@ test_test_bitcoin_DEPENDENCIES = $(am__append_19) \
 	$(LIBSECP256K1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(libzcash) $(LIBSNARK) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_6) \
-	$(am__DEPENDENCIES_7)
+	$(libzcash) $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_6) $(am__DEPENDENCIES_7)
 test_test_bitcoin_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(test_test_bitcoin_CXXFLAGS) $(CXXFLAGS) \
@@ -872,7 +861,6 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-main.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_checktransaction.Po \
-	gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_deprecation.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_equihash.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_foundersreward.Po \
@@ -889,7 +877,6 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_paymentdisclosure.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_pedersen_hash.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_pow.Po \
-	gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_random.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_rpc.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_sapling_note.Po \
@@ -1268,7 +1255,7 @@ am__set_TESTS_bases = \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
 TEST_SUITE_LOG = test-suite.log
-TEST_EXTENSIONS =  .test
+TEST_EXTENSIONS = .exe .test
 LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 LOG_COMPILE = $(LOG_COMPILER) $(AM_LOG_FLAGS) $(LOG_FLAGS)
 am__set_b = \
@@ -1282,7 +1269,7 @@ am__set_b = \
       b='$*';; \
   esac
 am__test_logs1 = $(TESTS:=.log)
-am__test_logs2 = $(am__test_logs1:.log=.log)
+am__test_logs2 = $(am__test_logs1:.exe.log=.log)
 TEST_LOGS = $(am__test_logs2:.test.log=.log)
 TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
@@ -1320,7 +1307,7 @@ am__relativize = \
 ACLOCAL = ${SHELL} /mnt/d/github/gemlink/gemlink/build-aux/missing aclocal-1.16
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 0
-AR = ar
+AR = /usr/bin/x86_64-w64-mingw32-ar
 ARFLAGS = cr
 AUTOCONF = ${SHELL} /mnt/d/github/gemlink/gemlink/build-aux/missing autoconf
 AUTOHEADER = ${SHELL} /mnt/d/github/gemlink/gemlink/build-aux/missing autoheader
@@ -1332,38 +1319,38 @@ BITCOIN_CLI_NAME = snowgem-cli
 BITCOIN_DAEMON_NAME = snowgemd
 BITCOIN_TX_NAME = snowgem-tx
 BOOST_CHRONO_LIB = -lboost_chrono
-BOOST_CPPFLAGS = -pthread -I/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../include
+BOOST_CPPFLAGS = -mthreads -I/mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../include
 BOOST_FILESYSTEM_LIB = -lboost_filesystem
-BOOST_LDFLAGS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib
-BOOST_LIBS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
+BOOST_LDFLAGS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib
+BOOST_LIBS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
 BOOST_PROGRAM_OPTIONS_LIB = -lboost_program_options
 BOOST_SYSTEM_LIB = -lboost_system
 BOOST_THREAD_LIB = -lboost_thread
 BOOST_UNIT_TEST_FRAMEWORK_LIB = -lboost_unit_test_framework
 BREW = 
-CC = /mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../native/bin/ccache gcc -m64
-CCACHE = /mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../native/bin/ccache
+CC = /mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache x86_64-w64-mingw32-gcc-posix
+CCACHE = /mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache
 CCDEPMODE = depmode=gcc3
-CFLAGS = -pipe -O1 
+CFLAGS = -pipe -std=c11 -O2 
 CLIENT_VERSION_BUILD = 50
 CLIENT_VERSION_IS_RELEASE = true
 CLIENT_VERSION_MAJOR = 3
 CLIENT_VERSION_MINOR = 1
 CLIENT_VERSION_REVISION = 4
 COPYRIGHT_YEAR = 2021
-CPP = gcc -m64 -E
-CPPFILT = /usr/bin/c++filt
-CPPFLAGS = -I/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS -DMULTICORE
-CRYPTO_CFLAGS = -I/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-CRYPTO_LIBS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -lcrypto -ldl -pthread
-CXX = /mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../native/bin/ccache g++ -m64 -std=c++17
-CXXCPP = g++ -m64 -std=c++17 -E
+CPP = x86_64-w64-mingw32-gcc-posix -E
+CPPFILT = /usr/bin/x86_64-w64-mingw32-c++filt
+CPPFLAGS = -I/mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -D_FILE_OFFSET_BITS=64 -DMULTICORE
+CRYPTO_CFLAGS = 
+CRYPTO_LIBS = -lcrypto
+CXX = /mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache x86_64-w64-mingw32-g++-posix -std=c++17
+CXXCPP = x86_64-w64-mingw32-g++-posix -std=c++17 -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -pipe -O1 -g -fopenmp -fwrapv -fno-strict-aliasing -Wno-builtin-declaration-mismatch
+CXXFLAGS = -pipe -std=c11 -std=c++17 -O2 -g -fopenmp -fwrapv -fno-strict-aliasing -Wno-builtin-declaration-mismatch
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-DLLTOOL = false
+DLLTOOL = x86_64-w64-mingw32-dlltool
 DSYMUTIL = 
 DUMPBIN = 
 ECHO_C = 
@@ -1371,22 +1358,20 @@ ECHO_N = -n
 ECHO_T = 
 EGREP = /usr/bin/grep -E
 ERROR_CXXFLAGS = 
-EVENT_CFLAGS = -I/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-EVENT_LIBS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -levent
-EVENT_PTHREADS_CFLAGS = -pthread -I/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-EVENT_PTHREADS_LIBS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -levent_pthreads -levent
-EXEEXT = 
+EVENT_CFLAGS = 
+EVENT_LIBS = -levent
+EVENT_PTHREADS_CFLAGS = 
+EVENT_PTHREADS_LIBS = 
+EXEEXT = .exe
 FGREP = /usr/bin/grep -F
-GCOV = /usr/bin/gcov
+GCOV = /usr/bin/x86_64-w64-mingw32-gcov
 GENHTML = 
 GENISOIMAGE = 
 GIT = /usr/bin/git
-GMPXX_LIBS = -lgmpxx
-GMP_LIBS = -lgmp
 GREP = /usr/bin/grep
 HARDENED_CPPFLAGS =  -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
 HARDENED_CXXFLAGS =  -Wformat -Wformat-security -Wstack-protector -fstack-protector-all
-HARDENED_LDFLAGS =  -Wl,-z,relro -Wl,-z,now -pie
+HARDENED_LDFLAGS =  -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va
 HAVE_CXX17 = 1
 HEXDUMP = /usr/bin/hexdump
 INSTALL = /usr/bin/install -c
@@ -1396,33 +1381,31 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LCOV = 
-LD = /usr/bin/ld -m elf_x86_64
-LDFLAGS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib 
+LD = /usr/bin/x86_64-w64-mingw32-ld
+LDFLAGS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib 
 LEVELDB_CPPFLAGS =  $(am__append_1)
-LEVELDB_TARGET_FLAGS = 
+LEVELDB_TARGET_FLAGS = TARGET_OS=OS_WINDOWS_CROSSCOMPILE
 LIBLEVELDB =  $(am__append_2)
 LIBMEMENV =  $(am__append_3)
 LIBOBJS = 
-LIBS = -lanl 
-LIBSNARK_DEPINST = /mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/..
-LIBSNARK_OPTFLAGS = -O2 -march=core2
+LIBS = -lssp -lcrypt32 -liphlpapi -lshlwapi -lmswsock -lws2_32 -ladvapi32 -lrpcrt4 -luuid -loleaut32 -lole32 -lcomctl32 -lshell32 -lwinmm -lwinspool -lcomdlg32 -lgdi32 -luser32 -lkernel32 -lmingwthrd 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_APP_LDFLAGS = 
+LIBTOOL_APP_LDFLAGS =  -all-static
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
 LT_SYS_LIBRARY_PATH = 
 MAINT = 
 MAKEINFO = ${SHELL} /mnt/d/github/gemlink/gemlink/build-aux/missing makeinfo
-MAKENSIS = 
+MAKENSIS = none
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
-NM = nm
+NM = x86_64-w64-mingw32-nm
 NMEDIT = 
-OBJCXX = g++ -m64
+OBJCXX = x86_64-w64-mingw32-g++-posix
 OBJCXXDEPMODE = depmode=gcc3
 OBJCXXFLAGS = 
-OBJDUMP = objdump
+OBJDUMP = x86_64-w64-mingw32-objdump
 OBJEXT = o
 OTOOL = 
 OTOOL64 = 
@@ -1434,35 +1417,34 @@ PACKAGE_TARNAME = snowgem
 PACKAGE_URL = 
 PACKAGE_VERSION = 3.1.4
 PATH_SEPARATOR = :
-PIC_FLAGS = -fPIC
-PIE_FLAGS = -fPIE
+PIC_FLAGS = 
+PIE_FLAGS = 
 PKG_CONFIG = /usr/bin/pkg-config --static
-PKG_CONFIG_LIBDIR = /mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib/pkgconfig
-PKG_CONFIG_PATH = /mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../share/pkgconfig
+PKG_CONFIG_LIBDIR = /mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib/pkgconfig
+PKG_CONFIG_PATH = /mnt/d/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../share/pkgconfig
 PORT = 
 PROTON_LIBS = 
-PRTDIAG = 
-PTHREAD_CC = gcc -m64
+PTHREAD_CC = x86_64-w64-mingw32-gcc-posix
 PTHREAD_CFLAGS = -pthread
 PTHREAD_LIBS = 
-RANLIB = ranlib
-READELF = /usr/bin/readelf
+RANLIB = /usr/bin/x86_64-w64-mingw32-ranlib
+READELF = /usr/bin/x86_64-w64-mingw32-readelf
 RELDFLAGS = 
 SAN_CXXFLAGS = 
 SAN_LDFLAGS = 
 SED = /usr/bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
-SSL_CFLAGS = -I/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-SSL_LIBS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -lssl -lcrypto -ldl -pthread
-STRIP = /usr/bin/strip
+SSL_CFLAGS = 
+SSL_LIBS = -lssl
+STRIP = /usr/bin/x86_64-w64-mingw32-strip
 TESTDEFS = 
 VERSION = 3.1.4
-WINDOWS_BITS = 
-WINDRES = 
+WINDOWS_BITS = 64
+WINDRES = /usr/bin/x86_64-w64-mingw32-windres
 XGETTEXT = 
-ZMQ_CFLAGS = -I/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-ZMQ_LIBS = -L/mnt/d/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -lzmq -lstdc++ -lpthread -lrt
+ZMQ_CFLAGS =  -DZMQ_STATIC
+ZMQ_LIBS = -lzmq
 abs_builddir = /mnt/d/github/gemlink/gemlink/src
 abs_srcdir = /mnt/d/github/gemlink/gemlink/src
 abs_top_builddir = /mnt/d/github/gemlink/gemlink
@@ -1490,18 +1472,18 @@ datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = x86_64-unknown-linux-gnu
-host_alias = x86_64-unknown-linux-gnu
+host = x86_64-w64-mingw32
+host_alias = x86_64-w64-mingw32
 host_cpu = x86_64
-host_os = linux-gnu
-host_vendor = unknown
+host_os = mingw32
+host_vendor = w64
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
 install_sh = ${SHELL} /mnt/d/github/gemlink/gemlink/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
-libzcash_LIBS = -lgmp -lgmpxx -lboost_system -lcrypto -lsodium -lrustzcash -ldl
+libzcash_LIBS = -lboost_system -lcrypto -lsodium -lrustzcash
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
 mandir = ${datarootdir}/man
@@ -1515,7 +1497,7 @@ runstatedir = ${localstatedir}/run
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
 srcdir = .
-subdirs =  src/secp256k1 src/snark src/univalue
+subdirs =  src/secp256k1 src/univalue
 sysconfdir = ${prefix}/etc
 target_alias = 
 top_build_prefix = ../
@@ -1535,26 +1517,20 @@ EXTRA_LIBRARIES = $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UTIL) \
 BITCOIN_CONFIG_INCLUDES = -I$(builddir)/config
 BITCOIN_INCLUDES = -I$(builddir) -I$(builddir)/obj $(BDB_CPPFLAGS) \
 	$(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) \
-	$(SSL_CFLAGS) -I$(srcdir)/secp256k1/include -I$(srcdir)/snark \
-	-I$(srcdir)/snark/libsnark -I$(srcdir)/univalue/include
+	$(SSL_CFLAGS) -I$(srcdir)/secp256k1/include \
+	-I$(srcdir)/univalue/include
 LIBBITCOIN_SERVER = libbitcoin_server.a
 LIBBITCOIN_COMMON = libbitcoin_common.a
 LIBBITCOIN_CLI = libbitcoin_cli.a
 LIBBITCOIN_UTIL = libbitcoin_util.a
 LIBBITCOIN_CRYPTO = crypto/libbitcoin_crypto.a
 LIBSECP256K1 = secp256k1/libsecp256k1.la
-LIBSNARK = snark/libsnark.a
 LIBUNIVALUE = univalue/libunivalue.la
 libzcash = libzcash.a
 LIBBITCOIN_ZMQ = libbitcoin_zmq.a
 #LIBBITCOIN_PROTON = libbitcoin_proton.a
 #LIBZCASH_CONSENSUS = libzcashconsensus.la
 LIBBITCOIN_WALLET = libbitcoin_wallet.a
-LIBSNARK_CXXFLAGS = $(AM_CXXFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT -DNO_PT_COMPRESSION=1 -fstack-protector-all
-LIBSNARK_CONFIG_FLAGS = CURVE=ALT_BN128 NO_PROCPS=1 NO_DOCS=1 STATIC=1 \
-	NO_SUPERCOP=1 FEATUREFLAGS=-DMONTGOMERY_OUTPUT \
-	NO_COPY_DEPINST=1 NO_COMPILE_LIBGTEST=1 $(am__append_4) \
-	$(am__append_5)
 lib_LTLIBRARIES = $(LIBZCASH_CONSENSUS)
 libzcash_H = \
   zcash/IncrementalMerkleTree.hpp \
@@ -1806,7 +1782,7 @@ libbitcoin_wallet_a_SOURCES = \
 
 # crypto primitives library
 crypto_libbitcoin_crypto_a_CPPFLAGS = $(AM_CPPFLAGS) \
-	$(BITCOIN_CONFIG_INCLUDES) $(am__append_8)
+	$(BITCOIN_CONFIG_INCLUDES) $(am__append_6)
 crypto_libbitcoin_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 crypto_libbitcoin_crypto_a_SOURCES = crypto/common.h \
 	crypto/equihash.cpp crypto/equihash.h crypto/equihash.tcc \
@@ -1814,7 +1790,7 @@ crypto_libbitcoin_crypto_a_SOURCES = crypto/common.h \
 	crypto/hmac_sha512.cpp crypto/hmac_sha512.h \
 	crypto/ripemd160.cpp crypto/ripemd160.h crypto/sha1.cpp \
 	crypto/sha1.h crypto/sha256.cpp crypto/sha256.h \
-	crypto/sha512.cpp crypto/sha512.h $(am__append_9)
+	crypto/sha512.cpp crypto/sha512.h $(am__append_7)
 EQUIHASH_TROMP_SOURCES = \
   pow/tromp/equi_miner.h \
   pow/tromp/equi.h \
@@ -1867,7 +1843,7 @@ libbitcoin_util_a_SOURCES = support/pagelocker.cpp chainparamsbase.cpp \
 	compat/glibcxx_sanity.cpp compat/strnlen.cpp random.cpp \
 	rpc/protocol.cpp support/cleanse.cpp sync.cpp uint256.cpp \
 	util.cpp utilmoneystr.cpp utilstrencodings.cpp utiltime.cpp \
-	$(BITCOIN_CORE_H) $(libzcash_H) $(am__append_10)
+	$(BITCOIN_CORE_H) $(libzcash_H) $(am__append_8)
 
 # cli: snowgem-cli
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
@@ -1881,21 +1857,20 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
-snowgemd_SOURCES = bitcoind.cpp $(am__append_11)
+snowgemd_SOURCES = bitcoind.cpp $(am__append_9)
 snowgemd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 snowgemd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgemd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 snowgemd_LDADD = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) \
 	$(LIBBITCOIN_COMMON) $(LIBUNIVALUE) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_ZMQ) $(LIBBITCOIN_PROTON) $(LIBBITCOIN_CRYPTO) \
-	$(libzcash) $(LIBSNARK) $(LIBLEVELDB) $(LIBMEMENV) \
-	$(LIBSECP256K1) $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) \
-	$(CRYPTO_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) \
-	$(ZMQ_LIBS) $(PROTON_LIBS) $(LIBBITCOIN_CRYPTO) \
-	$(libzcash_LIBS)
+	$(libzcash) $(LIBLEVELDB) $(LIBMEMENV) $(LIBSECP256K1) \
+	$(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) \
+	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) \
+	$(PROTON_LIBS) $(LIBBITCOIN_CRYPTO) $(libzcash_LIBS)
 
 # bitcoin-cli binary #
-snowgem_cli_SOURCES = bitcoin-cli.cpp $(am__append_12)
+snowgem_cli_SOURCES = bitcoin-cli.cpp $(am__append_10)
 snowgem_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
 snowgem_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgem_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
@@ -1908,21 +1883,20 @@ snowgem_cli_LDADD = \
   $(CRYPTO_LIBS) \
   $(EVENT_LIBS) \
   $(libzcash) \
-  $(LIBSNARK) \
   $(LIBBITCOIN_CRYPTO) \
   $(libzcash_LIBS)
 
 #
 
 # snowgem-tx binary #
-snowgem_tx_SOURCES = bitcoin-tx.cpp $(am__append_13)
+snowgem_tx_SOURCES = bitcoin-tx.cpp $(am__append_11)
 snowgem_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 snowgem_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgem_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 # FIXME: Is libzcash needed for snowgem_tx?
 snowgem_tx_LDADD = $(LIBUNIVALUE) $(LIBBITCOIN_COMMON) \
-	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(libzcash) $(LIBSNARK) \
+	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(libzcash) \
 	$(LIBBITCOIN_CRYPTO) $(libzcash_LIBS) $(BOOST_LIBS) \
 	$(CRYPTO_LIBS)
 #
@@ -1937,13 +1911,7 @@ libzcash_a_SOURCES = \
   zcash/Note.cpp \
   zcash/prf.cpp \
   zcash/util.cpp \
-  zcash/zip32.cpp \
-  zcash/circuit/commitment.tcc \
-  zcash/circuit/gadget.tcc \
-  zcash/circuit/merkle.tcc \
-  zcash/circuit/note.tcc \
-  zcash/circuit/prfs.tcc \
-  zcash/circuit/utils.tcc
+  zcash/zip32.cpp
 
 libzcash_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT \
 	-DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE \
@@ -1964,7 +1932,7 @@ libzcash_a_LDFLAGS = $(AM_LDFLAGS)
 #	script/snowgemconsensus.cpp \
 #	script/interpreter.cpp \
 #	script/script.cpp uint256.cpp \
-#	utilstrencodings.cpp $(am__append_14)
+#	utilstrencodings.cpp $(am__append_12)
 #libzcashconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 #libzcashconsensus_la_LIBADD = $(LIBSECP256K1)
 #libzcashconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
@@ -1972,9 +1940,9 @@ libzcash_a_LDFLAGS = $(AM_LDFLAGS)
 
 #
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno \
-	*/*.gcno wallet/*/*.gcno $(am__append_22)
+	*/*.gcno wallet/*/*.gcno $(am__append_20)
 DISTCLEANFILES = obj/build.h
-EXTRA_DIST = leveldb snark $(am__append_17)
+EXTRA_DIST = leveldb $(am__append_15)
 TEST_SRCDIR = test
 TEST_BINARY = test/test_bitcoin$(EXEEXT)
 JSON_TEST_FILES = \
@@ -2044,10 +2012,10 @@ BITCOIN_TESTS = test/arith_uint256_tests.cpp \
 	test/uint256_tests.cpp \
 	test/univalue_tests.cpp test/util_tests.cpp \
 	test/sha256compress_tests.cpp \
-	$(am__append_18)
+	$(am__append_16)
 test_test_bitcoin_SOURCES = $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
 test_test_bitcoin_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -I$(builddir)/test/ $(TESTDEFS) $(EVENT_CFLAGS)
-test_test_bitcoin_LDADD = $(am__append_19) \
+test_test_bitcoin_LDADD = $(am__append_17) \
 	$(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) \
 	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
@@ -2057,8 +2025,8 @@ test_test_bitcoin_LDADD = $(am__append_19) \
 	$(EVENT_PTHREADS_LIBS) \
 	$(libzcash_CONSENSUS) $(BDB_LIBS) \
 	$(SSL_LIBS) $(CRYPTO_LIBS) $(libzcash) \
-	$(LIBSNARK) $(libzcash_LIBS) \
-	$(am__append_20) $(am__append_21)
+	$(libzcash_LIBS) $(am__append_18) \
+	$(am__append_19)
 test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 test_test_bitcoin_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 nodist_test_test_bitcoin_SOURCES = $(GENERATED_TEST_FILES)
@@ -2073,7 +2041,7 @@ snowgem_gtest_SOURCES = gtest/main.cpp \
 	gtest/json_test_vectors.cpp \
 	gtest/json_test_vectors.h \
 	gtest/test_foundersreward.cpp \
-	$(am__append_23) gtest/test_tautology.cpp \
+	$(am__append_21) gtest/test_tautology.cpp \
 	gtest/test_deprecation.cpp \
 	gtest/test_equihash.cpp \
 	gtest/test_httprpc.cpp \
@@ -2090,13 +2058,12 @@ snowgem_gtest_SOURCES = gtest/main.cpp \
 	gtest/test_transaction_builder.cpp \
 	gtest/test_upgrades.cpp \
 	gtest/test_validation.cpp \
-	gtest/test_circuit.cpp gtest/test_txid.cpp \
+	gtest/test_txid.cpp \
 	gtest/test_libzcash_utils.cpp \
-	gtest/test_proofs.cpp \
 	gtest/test_paymentdisclosure.cpp \
 	gtest/test_pedersen_hash.cpp \
 	gtest/test_checkblock.cpp \
-	gtest/test_zip32.cpp $(am__append_24)
+	gtest/test_zip32.cpp $(am__append_22)
 snowgem_gtest_CPPFLAGS = $(AM_CPPFLAGS) -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DSTATIC $(BITCOIN_INCLUDES)
 snowgem_gtest_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgem_gtest_LDADD = -lgtest -lgmock \
@@ -2105,12 +2072,12 @@ snowgem_gtest_LDADD = -lgtest -lgmock \
 	$(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
 	$(LIBLEVELDB) $(LIBMEMENV) $(BOOST_LIBS) \
 	$(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
-	$(LIBSECP256K1) $(am__append_25) \
-	$(am__append_26) $(libzcash_CONSENSUS) \
+	$(LIBSECP256K1) $(am__append_23) \
+	$(am__append_24) $(libzcash_CONSENSUS) \
 	$(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) \
 	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) \
 	$(libzcash) $(LIBSNARK) $(libzcash_LIBS) \
-	$(am__append_27)
+	$(am__append_25)
 snowgem_gtest_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 all: all-recursive
 
@@ -2577,14 +2544,10 @@ gtest/snowgem_gtest-test_upgrades.$(OBJEXT): gtest/$(am__dirstamp) \
 	gtest/$(DEPDIR)/$(am__dirstamp)
 gtest/snowgem_gtest-test_validation.$(OBJEXT): gtest/$(am__dirstamp) \
 	gtest/$(DEPDIR)/$(am__dirstamp)
-gtest/snowgem_gtest-test_circuit.$(OBJEXT): gtest/$(am__dirstamp) \
-	gtest/$(DEPDIR)/$(am__dirstamp)
 gtest/snowgem_gtest-test_txid.$(OBJEXT): gtest/$(am__dirstamp) \
 	gtest/$(DEPDIR)/$(am__dirstamp)
 gtest/snowgem_gtest-test_libzcash_utils.$(OBJEXT):  \
 	gtest/$(am__dirstamp) gtest/$(DEPDIR)/$(am__dirstamp)
-gtest/snowgem_gtest-test_proofs.$(OBJEXT): gtest/$(am__dirstamp) \
-	gtest/$(DEPDIR)/$(am__dirstamp)
 gtest/snowgem_gtest-test_paymentdisclosure.$(OBJEXT):  \
 	gtest/$(am__dirstamp) gtest/$(DEPDIR)/$(am__dirstamp)
 gtest/snowgem_gtest-test_pedersen_hash.$(OBJEXT):  \
@@ -2868,7 +2831,6 @@ include gtest/$(DEPDIR)/snowgem_gtest-json_test_vectors.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-main.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_checktransaction.Po # am--include-marker
-include gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_deprecation.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_equihash.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_foundersreward.Po # am--include-marker
@@ -2885,7 +2847,6 @@ include gtest/$(DEPDIR)/snowgem_gtest-test_noteencryption.Po # am--include-marke
 include gtest/$(DEPDIR)/snowgem_gtest-test_paymentdisclosure.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_pedersen_hash.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_pow.Po # am--include-marker
-include gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_random.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_rpc.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_sapling_note.Po # am--include-marker
@@ -5409,20 +5370,6 @@ gtest/snowgem_gtest-test_validation.obj: gtest/test_validation.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -c -o gtest/snowgem_gtest-test_validation.obj `if test -f 'gtest/test_validation.cpp'; then $(CYGPATH_W) 'gtest/test_validation.cpp'; else $(CYGPATH_W) '$(srcdir)/gtest/test_validation.cpp'; fi`
 
-gtest/snowgem_gtest-test_circuit.o: gtest/test_circuit.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -MT gtest/snowgem_gtest-test_circuit.o -MD -MP -MF gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Tpo -c -o gtest/snowgem_gtest-test_circuit.o `test -f 'gtest/test_circuit.cpp' || echo '$(srcdir)/'`gtest/test_circuit.cpp
-	$(AM_V_at)$(am__mv) gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Tpo gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Po
-#	$(AM_V_CXX)source='gtest/test_circuit.cpp' object='gtest/snowgem_gtest-test_circuit.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -c -o gtest/snowgem_gtest-test_circuit.o `test -f 'gtest/test_circuit.cpp' || echo '$(srcdir)/'`gtest/test_circuit.cpp
-
-gtest/snowgem_gtest-test_circuit.obj: gtest/test_circuit.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -MT gtest/snowgem_gtest-test_circuit.obj -MD -MP -MF gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Tpo -c -o gtest/snowgem_gtest-test_circuit.obj `if test -f 'gtest/test_circuit.cpp'; then $(CYGPATH_W) 'gtest/test_circuit.cpp'; else $(CYGPATH_W) '$(srcdir)/gtest/test_circuit.cpp'; fi`
-	$(AM_V_at)$(am__mv) gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Tpo gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Po
-#	$(AM_V_CXX)source='gtest/test_circuit.cpp' object='gtest/snowgem_gtest-test_circuit.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -c -o gtest/snowgem_gtest-test_circuit.obj `if test -f 'gtest/test_circuit.cpp'; then $(CYGPATH_W) 'gtest/test_circuit.cpp'; else $(CYGPATH_W) '$(srcdir)/gtest/test_circuit.cpp'; fi`
-
 gtest/snowgem_gtest-test_txid.o: gtest/test_txid.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -MT gtest/snowgem_gtest-test_txid.o -MD -MP -MF gtest/$(DEPDIR)/snowgem_gtest-test_txid.Tpo -c -o gtest/snowgem_gtest-test_txid.o `test -f 'gtest/test_txid.cpp' || echo '$(srcdir)/'`gtest/test_txid.cpp
 	$(AM_V_at)$(am__mv) gtest/$(DEPDIR)/snowgem_gtest-test_txid.Tpo gtest/$(DEPDIR)/snowgem_gtest-test_txid.Po
@@ -5450,20 +5397,6 @@ gtest/snowgem_gtest-test_libzcash_utils.obj: gtest/test_libzcash_utils.cpp
 #	$(AM_V_CXX)source='gtest/test_libzcash_utils.cpp' object='gtest/snowgem_gtest-test_libzcash_utils.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -c -o gtest/snowgem_gtest-test_libzcash_utils.obj `if test -f 'gtest/test_libzcash_utils.cpp'; then $(CYGPATH_W) 'gtest/test_libzcash_utils.cpp'; else $(CYGPATH_W) '$(srcdir)/gtest/test_libzcash_utils.cpp'; fi`
-
-gtest/snowgem_gtest-test_proofs.o: gtest/test_proofs.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -MT gtest/snowgem_gtest-test_proofs.o -MD -MP -MF gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Tpo -c -o gtest/snowgem_gtest-test_proofs.o `test -f 'gtest/test_proofs.cpp' || echo '$(srcdir)/'`gtest/test_proofs.cpp
-	$(AM_V_at)$(am__mv) gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Tpo gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Po
-#	$(AM_V_CXX)source='gtest/test_proofs.cpp' object='gtest/snowgem_gtest-test_proofs.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -c -o gtest/snowgem_gtest-test_proofs.o `test -f 'gtest/test_proofs.cpp' || echo '$(srcdir)/'`gtest/test_proofs.cpp
-
-gtest/snowgem_gtest-test_proofs.obj: gtest/test_proofs.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -MT gtest/snowgem_gtest-test_proofs.obj -MD -MP -MF gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Tpo -c -o gtest/snowgem_gtest-test_proofs.obj `if test -f 'gtest/test_proofs.cpp'; then $(CYGPATH_W) 'gtest/test_proofs.cpp'; else $(CYGPATH_W) '$(srcdir)/gtest/test_proofs.cpp'; fi`
-	$(AM_V_at)$(am__mv) gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Tpo gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Po
-#	$(AM_V_CXX)source='gtest/test_proofs.cpp' object='gtest/snowgem_gtest-test_proofs.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -c -o gtest/snowgem_gtest-test_proofs.obj `if test -f 'gtest/test_proofs.cpp'; then $(CYGPATH_W) 'gtest/test_proofs.cpp'; else $(CYGPATH_W) '$(srcdir)/gtest/test_proofs.cpp'; fi`
 
 gtest/snowgem_gtest-test_paymentdisclosure.o: gtest/test_paymentdisclosure.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_gtest_CPPFLAGS) $(CPPFLAGS) $(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) -MT gtest/snowgem_gtest-test_paymentdisclosure.o -MD -MP -MF gtest/$(DEPDIR)/snowgem_gtest-test_paymentdisclosure.Tpo -c -o gtest/snowgem_gtest-test_paymentdisclosure.o `test -f 'gtest/test_paymentdisclosure.cpp' || echo '$(srcdir)/'`gtest/test_paymentdisclosure.cpp
@@ -6626,13 +6559,13 @@ snowgem-gtest.log: snowgem-gtest$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-#.test$(EXEEXT).log:
-#	@p='$<'; \
-#	$(am__set_b); \
-#	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
-#	--log-file $$b.log --trs-file $$b.trs \
-#	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
-#	"$$tst" $(AM_TESTS_FD_REDIRECT)
+.test$(EXEEXT).log:
+	@p='$<'; \
+	$(am__set_b); \
+	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 
 distdir: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) distdir-am
@@ -6883,7 +6816,6 @@ distclean: distclean-recursive
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-main.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_checktransaction.Po
-	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_deprecation.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_equihash.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_foundersreward.Po
@@ -6900,7 +6832,6 @@ distclean: distclean-recursive
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_paymentdisclosure.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_pedersen_hash.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_pow.Po
-	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_random.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_rpc.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_sapling_note.Po
@@ -7171,7 +7102,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-main.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_checktransaction.Po
-	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_circuit.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_deprecation.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_equihash.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_foundersreward.Po
@@ -7188,7 +7118,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_paymentdisclosure.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_pedersen_hash.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_pow.Po
-	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_proofs.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_random.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_rpc.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_sapling_note.Po
@@ -7362,16 +7291,7 @@ $(LIBLEVELDB) $(LIBMEMENV):
 $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
-$(LIBSNARK): $(wildcard snark/src/*)
-	$(AM_V_at) CC="$(CC)" CXX="$(CXX)" AR="$(AR)" CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="$(LIBSNARK_OPTFLAGS)"
-
-libsnark-tests: $(wildcard snark/src/*)
-	$(AM_V_at) CC="$(CC)" CXX="$(CXX)" AR="$(AR)" CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ check DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="$(LIBSNARK_OPTFLAGS)"
-
-$(LIBUNIVALUE): $(wildcard univalue/lib/*) $(wildcard univalue/include/*)
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
-
-.PHONY: FORCE collate-libsnark check-symbols check-security
+.PHONY: FORCE check-symbols check-security
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
@@ -7382,7 +7302,6 @@ libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 clean-local:
 	-$(MAKE) -C leveldb clean
 	-$(MAKE) -C secp256k1 clean
-	-$(MAKE) -C snark clean
 	-$(MAKE) -C univalue clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
 	-rm -f config.h

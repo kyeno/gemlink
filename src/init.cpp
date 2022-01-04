@@ -66,7 +66,6 @@
 #include <boost/thread.hpp>
 #include <openssl/crypto.h>
 
-#include <libsnark/common/profiling.hpp>
 
 #if ENABLE_ZMQ
 #include "zmq/zmqnotificationinterface.h"
@@ -82,7 +81,7 @@ using namespace std;
 
 extern void ThreadSendAlert();
 
-ZCJoinSplit* psnowgemParams = NULL;
+ZCJoinSplit* pgemlinkParams = NULL;
 
 #ifdef ENABLE_WALLET
 CWallet* pwalletMain = NULL;
@@ -285,8 +284,8 @@ void Shutdown()
     delete pwalletMain;
     pwalletMain = NULL;
 #endif
-    delete psnowgemParams;
-    psnowgemParams = NULL;
+    delete pgemlinkParams;
+    pgemlinkParams = NULL;
     globalVerifyHandle.reset();
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
@@ -729,36 +728,25 @@ static void ZC_LoadParams(
     struct timeval tv_start, tv_end;
     float elapsed;
 
-    boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
-    boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
     boost::filesystem::path sapling_spend = ZC_GetParamsDir() / "sapling-spend.params";
     boost::filesystem::path sapling_output = ZC_GetParamsDir() / "sapling-output.params";
     boost::filesystem::path sprout_groth16 = ZC_GetParamsDir() / "sprout-groth16.params";
 
     if (!(
-            boost::filesystem::exists(pk_path) &&
-            boost::filesystem::exists(vk_path) &&
             boost::filesystem::exists(sapling_spend) &&
             boost::filesystem::exists(sapling_output) &&
             boost::filesystem::exists(sprout_groth16))) {
         uiInterface.ThreadSafeMessageBox(strprintf(
-                                             _("Cannot find the Snowgem network parameters in the following directory:\n"
+                                             _("Cannot find the Zcash network parameters in the following directory:\n"
                                                "%s\n"
-                                               "Please run 'snowgem-fetch-params' or './zcutil/fetch-params.sh' and then restart."),
+                                               "Please run 'zcash-fetch-params' or './zcutil/fetch-params.sh' and then restart."),
                                              ZC_GetParamsDir()),
                                          "", CClientUIInterface::MSG_ERROR);
         StartShutdown();
         return;
     }
 
-    LogPrintf("Loading verifying key from %s\n", vk_path.string().c_str());
-    gettimeofday(&tv_start, 0);
-
-    psnowgemParams = ZCJoinSplit::Prepared(vk_path.string(), pk_path.string());
-
-    gettimeofday(&tv_end, 0);
-    elapsed = float(tv_end.tv_sec - tv_start.tv_sec) + (tv_end.tv_usec - tv_start.tv_usec) / float(1000000);
-    LogPrintf("Loaded verifying key in %fs seconds.\n", elapsed);
+    pgemlinkParams = ZCJoinSplit::Prepared();
 
     static_assert(
         sizeof(boost::filesystem::path::value_type) == sizeof(codeunit),
@@ -1256,8 +1244,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // These must be disabled for now, they are buggy and we probably don't
     // want any of libsnark's profiling in production anyway.
-    libsnark::inhibit_profiling_info = true;
-    libsnark::inhibit_profiling_counters = true;
+    // libsnark::inhibit_profiling_info = true;
+    // libsnark::inhibit_profiling_counters = true;
 
     /* Start the RPC server already.  It will be started in "warmup" mode
      * and not really process calls already (but it will signify connections

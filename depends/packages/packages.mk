@@ -34,7 +34,7 @@ rust_crates := \
   crate_winapi_x86_64_pc_windows_gnu
 rust_packages := rust $(rust_crates) librustzcash
 proton_packages := proton
-snowgem_packages :=libgmp libsodium
+snowgem_packages := libsodium
 packages := boost openssl libevent zeromq $(snowgem_packages) googletest
 native_packages := native_ccache
 

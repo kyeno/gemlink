@@ -16,9 +16,9 @@
 namespace libzcash {
 
 static constexpr size_t GROTH_PROOF_SIZE = (
-    48 + // p_A
-    96 + // p_B
-    48); // p_C
+    48 + // π_A
+    96 + // π_B
+    48); // π_C
 
 typedef std::array<unsigned char, GROTH_PROOF_SIZE> GrothProof;
 typedef boost::variant<PHGRProof, GrothProof> SproutProof;
@@ -56,11 +56,7 @@ class JoinSplit {
 public:
     virtual ~JoinSplit() {}
 
-    static void Generate(const std::string r1csPath,
-                         const std::string vkPath,
-                         const std::string pkPath);
-    static JoinSplit<NumInputs, NumOutputs>* Prepared(const std::string vkPath,
-                                                      const std::string pkPath);
+    static JoinSplit<NumInputs, NumOutputs>* Prepared();
 
     static uint256 h_sig(const uint256& randomSeed,
                          const std::array<uint256, NumInputs>& nullifiers,
@@ -87,19 +83,6 @@ public:
         // Reference as non-const parameter with default value leads to compile error.
         // So use pointer for simplicity.
         uint256 *out_esk = nullptr
-    ) = 0;
-
-    virtual bool verify(
-        const PHGRProof& proof,
-        ProofVerifier& verifier,
-        const uint256& joinSplitPubKey,
-        const uint256& randomSeed,
-        const std::array<uint256, NumInputs>& hmacs,
-        const std::array<uint256, NumInputs>& nullifiers,
-        const std::array<uint256, NumOutputs>& commitments,
-        uint64_t vpub_old,
-        uint64_t vpub_new,
-        const uint256& rt
     ) = 0;
 
 protected:

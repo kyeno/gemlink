@@ -91,24 +91,6 @@ double benchmark_sleep()
     return timer_stop(tv_start);
 }
 
-double benchmark_parameter_loading()
-{
-    // FIXME: this is duplicated with the actual loading code
-    boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
-    boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
-
-    struct timeval tv_start;
-    timer_start(tv_start);
-
-    auto newParams = ZCJoinSplit::Prepared(vk_path.string(), pk_path.string());
-
-    double ret = timer_stop(tv_start);
-
-    delete newParams;
-
-    return ret;
-}
-
 double benchmark_create_joinsplit()
 {
     uint256 joinSplitPubKey;
@@ -119,7 +101,7 @@ double benchmark_create_joinsplit()
     struct timeval tv_start;
     timer_start(tv_start);
     JSDescription jsdesc(
-                         *psnowgemParams,
+                         *pgemlinkParams,
                          joinSplitPubKey,
                          anchor,
                          {JSInput(), JSInput()},
@@ -129,7 +111,7 @@ double benchmark_create_joinsplit()
     double ret = timer_stop(tv_start);
 
     auto verifier = libzcash::ProofVerifier::Strict();
-    assert(jsdesc.Verify(*psnowgemParams, verifier, joinSplitPubKey));
+    assert(jsdesc.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
     return ret;
 }
 
@@ -160,7 +142,7 @@ double benchmark_verify_joinsplit(const JSDescription &joinsplit)
     timer_start(tv_start);
     uint256 joinSplitPubKey;
     auto verifier = libzcash::ProofVerifier::Strict();
-    joinsplit.Verify(*psnowgemParams, verifier, joinSplitPubKey);
+    joinsplit.Verify(*pgemlinkParams, verifier, joinSplitPubKey);
     return timer_stop(tv_start);
 }
 
@@ -289,7 +271,7 @@ double benchmark_try_decrypt_notes(size_t nAddrs)
     }
 
     auto sk = libzcash::SproutSpendingKey::random();
-    auto tx = GetValidReceive(*psnowgemParams, sk, 10, true);
+    auto tx = GetValidReceive(*pgemlinkParams, sk, 10, true);
 
     struct timeval tv_start;
     timer_start(tv_start);
@@ -309,8 +291,8 @@ double benchmark_increment_note_witnesses(size_t nTxs)
     // First block
     CBlock block1;
     for (int i = 0; i < nTxs; i++) {
-        auto wtx = GetValidReceive(*psnowgemParams, sk, 10, true);
-        auto note = GetNote(*psnowgemParams, sk, wtx, 0, 1);
+        auto wtx = GetValidReceive(*pgemlinkParams, sk, 10, true);
+        auto note = GetNote(*pgemlinkParams, sk, wtx, 0, 1);
         auto nullifier = note.nullifier(sk);
 
         mapSproutNoteData_t noteData;
@@ -332,8 +314,8 @@ double benchmark_increment_note_witnesses(size_t nTxs)
     CBlock block2;
     block2.hashPrevBlock = block1.GetHash();
     {
-        auto wtx = GetValidReceive(*psnowgemParams, sk, 10, true);
-        auto note = GetNote(*psnowgemParams, sk, wtx, 0, 1);
+        auto wtx = GetValidReceive(*pgemlinkParams, sk, 10, true);
+        auto note = GetNote(*pgemlinkParams, sk, wtx, 0, 1);
         auto nullifier = note.nullifier(sk);
 
         mapSproutNoteData_t noteData;

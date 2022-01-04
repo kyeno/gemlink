@@ -115,8 +115,8 @@ Simon (91):
       Add z_getbalance and z_gettotalbalance RPC calls to close #1201.
       Fix typo in error message
       Disable proof generation when testmode is enabled in async SendMany operation.
-      Reduce use of global psnowgemParams with private member variable
-      Revert "Reduce use of global psnowgemParams with private member variable"
+      Reduce use of global pgemlinkParams with private member variable
+      Revert "Reduce use of global pgemlinkParams with private member variable"
       Replace snowgemParams_ with global.
       Add tests to try and improve coverage of perform_joinsplit.
       Add GetUnspentNotes to wallet.

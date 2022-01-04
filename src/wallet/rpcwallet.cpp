@@ -2793,7 +2793,7 @@ UniValue zc_sample_joinsplit(const UniValue& params, bool fHelp)
     uint256 joinSplitPubKey;
     uint256 anchor = SproutMerkleTree().root();
     JSDescription samplejoinsplit(
-        *psnowgemParams,
+        *pgemlinkParams,
         joinSplitPubKey,
         anchor,
         {JSInput(), JSInput()},
@@ -2853,7 +2853,7 @@ UniValue zc_benchmark(const UniValue& params, bool fHelp)
         if (benchmarktype == "sleep") {
             sample_times.push_back(benchmark_sleep());
         } else if (benchmarktype == "parameterloading") {
-            sample_times.push_back(benchmark_parameter_loading());
+            // sample_times.push_back(benchmark_parameter_loading());
         } else if (benchmarktype == "createjoinsplit") {
             if (params.size() < 3) {
                 sample_times.push_back(benchmark_create_joinsplit());
@@ -3145,7 +3145,7 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
     mtx.joinSplitPubKey = joinSplitPubKey;
 
     JSDescription jsdesc(
-        *psnowgemParams,
+        *pgemlinkParams,
         joinSplitPubKey,
         anchor,
         {vjsin[0], vjsin[1]},
@@ -3155,7 +3155,7 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
 
     {
         auto verifier = libzcash::ProofVerifier::Strict();
-        assert(jsdesc.Verify(*psnowgemParams, verifier, joinSplitPubKey));
+        assert(jsdesc.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
     }
 
     mtx.vjoinsplit.push_back(jsdesc);
@@ -3188,7 +3188,7 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
         ss2 << ((unsigned char)0x00);
         ss2 << jsdesc.ephemeralKey;
         ss2 << jsdesc.ciphertexts[0];
-        ss2 << jsdesc.h_sig(*psnowgemParams, joinSplitPubKey);
+        ss2 << jsdesc.h_sig(*pgemlinkParams, joinSplitPubKey);
 
         encryptedNote1 = HexStr(ss2.begin(), ss2.end());
     }
@@ -3197,7 +3197,7 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
         ss2 << ((unsigned char)0x01);
         ss2 << jsdesc.ephemeralKey;
         ss2 << jsdesc.ciphertexts[1];
-        ss2 << jsdesc.h_sig(*psnowgemParams, joinSplitPubKey);
+        ss2 << jsdesc.h_sig(*pgemlinkParams, joinSplitPubKey);
 
         encryptedNote2 = HexStr(ss2.begin(), ss2.end());
     }
