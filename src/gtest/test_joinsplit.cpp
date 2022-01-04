@@ -5,16 +5,16 @@
 #include <boost/foreach.hpp>
 #include <boost/variant/get.hpp>
 
-#include "zcash/prf.h"
-#include "util.h"
-#include "streams.h"
-#include "version.h"
-#include "serialize.h"
 #include "primitives/transaction.h"
+#include "serialize.h"
+#include "streams.h"
+#include "util.h"
+#include "version.h"
+#include "zcash/IncrementalMerkleTree.hpp"
 #include "zcash/JoinSplit.hpp"
 #include "zcash/Note.hpp"
 #include "zcash/NoteEncryption.hpp"
-#include "zcash/IncrementalMerkleTree.hpp"
+#include "zcash/prf.h"
 
 #include <array>
 using namespace libzcash;
@@ -25,28 +25,26 @@ typedef std::array<JSDescription, 2> SproutProofs;
 // Make both the PHGR and Groth proof for a Sprout statement,
 // and store the results in JSDescription objects.
 SproutProofs makeSproutProofs(
-        ZCJoinSplit& js,
-        const std::array<JSInput, 2>& inputs,
-        const std::array<JSOutput, 2>& outputs,
-        const uint256& joinSplitPubKey,
-        uint64_t vpub_old,
-        uint64_t vpub_new,
-        const uint256& rt
-){
+    ZCJoinSplit& js,
+    const std::array<JSInput, 2>& inputs,
+    const std::array<JSOutput, 2>& outputs,
+    const uint256& joinSplitPubKey,
+    uint64_t vpub_old,
+    uint64_t vpub_new,
+    const uint256& rt)
+{
     //Making the PHGR proof
     JSDescription phgr(js, joinSplitPubKey, rt, inputs, outputs, vpub_old, vpub_new);
     //Making the Groth proof
     JSDescription groth(js, joinSplitPubKey, rt, inputs, outputs, vpub_old, vpub_new);
 
     return {phgr, groth};
-
 }
 
 bool verifySproutProofs(
-        ZCJoinSplit& js,
-        const SproutProofs& jsdescs,
-        const uint256& joinSplitPubKey
-)
+    ZCJoinSplit& js,
+    const SproutProofs& jsdescs,
+    const uint256& joinSplitPubKey)
 {
     auto verifier = libzcash::ProofVerifier::Strict();
     bool phgrPassed = jsdescs[0].Verify(js, verifier, joinSplitPubKey);
@@ -77,7 +75,7 @@ void test_full_api(ZCJoinSplit* js)
     {
         std::array<JSInput, 2> inputs = {
             JSInput(), // dummy input
-            JSInput() // dummy input
+            JSInput()  // dummy input
         };
 
         std::array<JSOutput, 2> outputs = {
@@ -95,16 +93,14 @@ void test_full_api(ZCJoinSplit* js)
             joinSplitPubKey,
             vpub_old,
             vpub_new,
-            rt
-        );
+            rt);
     }
 
     // Verify both PHGR and Groth Proof:
     ASSERT_TRUE(verifySproutProofs(*js, jsdescs, joinSplitPubKey));
 
     // Run tests using both phgr and groth as basis for field values
-    for (auto jsdesc : jsdescs)
-    {
+    for (auto jsdesc : jsdescs) {
         SproutMerkleTree tree;
         SproutProofs jsdescs2;
         // Recipient should decrypt
@@ -117,8 +113,7 @@ void test_full_api(ZCJoinSplit* js)
             jsdesc.ciphertexts[0],
             jsdesc.ephemeralKey,
             h_sig,
-            0
-        );
+            0);
 
         auto decrypted_note = note_pt.note(recipient_addr);
 
@@ -137,8 +132,7 @@ void test_full_api(ZCJoinSplit* js)
         {
             std::array<JSInput, 2> inputs = {
                 JSInput(), // dummy input
-                JSInput(witness_recipient, decrypted_note, recipient_key)
-            };
+                JSInput(witness_recipient, decrypted_note, recipient_key)};
 
             SproutSpendingKey second_recipient = SproutSpendingKey::random();
             SproutPaymentAddress second_addr = second_recipient.address();
@@ -159,9 +153,7 @@ void test_full_api(ZCJoinSplit* js)
                 joinSplitPubKey2,
                 vpub_old,
                 vpub_new,
-                rt
-            );
-
+                rt);
         }
 
 
@@ -178,8 +170,8 @@ void invokeAPI(
     const std::array<JSOutput, 2>& outputs,
     uint64_t vpub_old,
     uint64_t vpub_new,
-    const uint256& rt
-) {
+    const uint256& rt)
+{
     uint256 ephemeralKey;
     uint256 randomSeed;
     uint256 joinSplitPubKey = random_uint256();
@@ -205,12 +197,11 @@ void invokeAPI(
         vpub_old,
         vpub_new,
         rt,
-        false
-    );
+        false);
 
     // Groth
     proof = js->prove(
-        
+
         inputs,
         outputs,
         output_notes,
@@ -224,8 +215,7 @@ void invokeAPI(
         vpub_old,
         vpub_new,
         rt,
-        false
-    );
+        false);
 }
 
 void invokeAPIFailure(
@@ -235,22 +225,21 @@ void invokeAPIFailure(
     uint64_t vpub_old,
     uint64_t vpub_new,
     const uint256& rt,
-    std::string reason
-)
+    std::string reason)
 {
     try {
         invokeAPI(js, inputs, outputs, vpub_old, vpub_new, rt);
         FAIL() << "It worked, when it shouldn't have!";
-    } catch(std::invalid_argument const & err) {
+    } catch (std::invalid_argument const& err) {
         EXPECT_EQ(err.what(), reason);
-    } catch(...) {
+    } catch (...) {
         FAIL() << "Expected invalid_argument exception.";
     }
 }
 
 TEST(joinsplit, h_sig)
 {
-/*
+    /*
 // by Taylor Hornby
 
 import pyblake2
@@ -282,42 +271,32 @@ for test_input in TEST_VECTORS:
 */
 
     std::vector<std::vector<std::string>> tests = {
-        {
-            "6161616161616161616161616161616161616161616161616161616161616161",
-            "6262626262626262626262626262626262626262626262626262626262626262",
-            "6363636363636363636363636363636363636363636363636363636363636363",
-            "6464646464646464646464646464646464646464646464646464646464646464",
-            "a8cba69f1fa329c055756b4af900f8a00b61e44f4cb8a1824ceb58b90a5b8113"
-        },
-        {
-            "0000000000000000000000000000000000000000000000000000000000000000",
-            "0000000000000000000000000000000000000000000000000000000000000000",
-            "0000000000000000000000000000000000000000000000000000000000000000",
-            "0000000000000000000000000000000000000000000000000000000000000000",
-            "697322276b5dd93b12fb1fcbd2144b2960f24c73aac6c6a0811447be1e7f1e19"
-        },
-        {
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            "4961048919f0ca79d49c9378c36a91a8767060001f4212fe6f7d426f3ccf9f32"
-        },
-        {
-            "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
-            "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
-            "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
-            "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
-            "b61110ec162693bc3d9ca7fb0eec3afd2e278e2f41394b3ff11d7cb761ad4b27"
-        }
-    };
+        {"6161616161616161616161616161616161616161616161616161616161616161",
+         "6262626262626262626262626262626262626262626262626262626262626262",
+         "6363636363636363636363636363636363636363636363636363636363636363",
+         "6464646464646464646464646464646464646464646464646464646464646464",
+         "a8cba69f1fa329c055756b4af900f8a00b61e44f4cb8a1824ceb58b90a5b8113"},
+        {"0000000000000000000000000000000000000000000000000000000000000000",
+         "0000000000000000000000000000000000000000000000000000000000000000",
+         "0000000000000000000000000000000000000000000000000000000000000000",
+         "0000000000000000000000000000000000000000000000000000000000000000",
+         "697322276b5dd93b12fb1fcbd2144b2960f24c73aac6c6a0811447be1e7f1e19"},
+        {"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+         "4961048919f0ca79d49c9378c36a91a8767060001f4212fe6f7d426f3ccf9f32"},
+        {"1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
+         "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
+         "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
+         "1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100",
+         "b61110ec162693bc3d9ca7fb0eec3afd2e278e2f41394b3ff11d7cb761ad4b27"}};
 
-    BOOST_FOREACH(std::vector<std::string>& v, tests) {
+    for (std::vector<std::string>& v : tests) {
         auto expected = ZCJoinSplit::h_sig(
             uint256S(v[0]),
             {uint256S(v[1]), uint256S(v[2])},
-            uint256S(v[3])
-        );
+            uint256S(v[3]));
 
         EXPECT_EQ(expected, uint256S(v[4]));
     }
@@ -326,8 +305,7 @@ for test_input in TEST_VECTORS:
 void increment_note_witnesses(
     const uint256& element,
     std::vector<SproutWitness>& witnesses,
-    SproutMerkleTree& tree
-)
+    SproutMerkleTree& tree)
 {
     tree.append(element);
     for (SproutWitness& w : witnesses) {
@@ -357,182 +335,134 @@ TEST(joinsplit, full_api_test)
 
         // Should work
         invokeAPI(params,
-        {
-            JSInput(),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        0,
-        tree.root());
+                  {JSInput(),
+                   JSInput()},
+                  {JSOutput(),
+                   JSOutput()},
+                  0,
+                  0,
+                  tree.root());
 
         // lhs > MAX_MONEY
         invokeAPIFailure(params,
-        {
-            JSInput(),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        2100000000000001,
-        0,
-        tree.root(),
-        "nonsensical vpub_old value");
+                         {JSInput(),
+                          JSInput()},
+                         {JSOutput(),
+                          JSOutput()},
+                         2100000000000001,
+                         0,
+                         tree.root(),
+                         "nonsensical vpub_old value");
 
         // rhs > MAX_MONEY
         invokeAPIFailure(params,
-        {
-            JSInput(),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        2100000000000001,
-        tree.root(),
-        "nonsensical vpub_new value");
+                         {JSInput(),
+                          JSInput()},
+                         {JSOutput(),
+                          JSOutput()},
+                         0,
+                         2100000000000001,
+                         tree.root(),
+                         "nonsensical vpub_new value");
 
         // input witness for the wrong element
         invokeAPIFailure(params,
-        {
-            JSInput(witnesses[0], note1, sk),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        100,
-        tree.root(),
-        "witness of wrong element for joinsplit input");
+                         {JSInput(witnesses[0], note1, sk),
+                          JSInput()},
+                         {JSOutput(),
+                          JSOutput()},
+                         0,
+                         100,
+                         tree.root(),
+                         "witness of wrong element for joinsplit input");
 
         // input witness doesn't match up with
         // real root
         invokeAPIFailure(params,
-        {
-            JSInput(witnesses[1], note1, sk),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        100,
-        uint256(),
-        "joinsplit not anchored to the correct root");
+                         {JSInput(witnesses[1], note1, sk),
+                          JSInput()},
+                         {JSOutput(),
+                          JSOutput()},
+                         0,
+                         100,
+                         uint256(),
+                         "joinsplit not anchored to the correct root");
 
         // input is in the tree now! this should work
         invokeAPI(params,
-        {
-            JSInput(witnesses[1], note1, sk),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        100,
-        tree.root());
+                  {JSInput(witnesses[1], note1, sk),
+                   JSInput()},
+                  {JSOutput(),
+                   JSOutput()},
+                  0,
+                  100,
+                  tree.root());
 
         // Wrong secret key
         invokeAPIFailure(params,
-        {
-            JSInput(witnesses[1], note1, SproutSpendingKey::random()),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        0,
-        tree.root(),
-        "input note not authorized to spend with given key");
+                         {JSInput(witnesses[1], note1, SproutSpendingKey::random()),
+                          JSInput()},
+                         {JSOutput(),
+                          JSOutput()},
+                         0,
+                         0,
+                         tree.root(),
+                         "input note not authorized to spend with given key");
 
         // Absurd input value
         invokeAPIFailure(params,
-        {
-            JSInput(witnesses[3], note3, sk),
-            JSInput()
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        0,
-        tree.root(),
-        "nonsensical input note value");
+                         {JSInput(witnesses[3], note3, sk),
+                          JSInput()},
+                         {JSOutput(),
+                          JSOutput()},
+                         0,
+                         0,
+                         tree.root(),
+                         "nonsensical input note value");
 
         // Absurd total input value
         invokeAPIFailure(params,
-        {
-            JSInput(witnesses[4], note4, sk),
-            JSInput(witnesses[5], note5, sk)
-        },
-        {
-            JSOutput(),
-            JSOutput()
-        },
-        0,
-        0,
-        tree.root(),
-        "nonsensical left hand size of joinsplit balance");
+                         {JSInput(witnesses[4], note4, sk),
+                          JSInput(witnesses[5], note5, sk)},
+                         {JSOutput(),
+                          JSOutput()},
+                         0,
+                         0,
+                         tree.root(),
+                         "nonsensical left hand size of joinsplit balance");
 
         // Absurd output value
         invokeAPIFailure(params,
-        {
-            JSInput(),
-            JSInput()
-        },
-        {
-            JSOutput(addr, 2100000000000001),
-            JSOutput()
-        },
-        0,
-        0,
-        tree.root(),
-        "nonsensical output value");
+                         {JSInput(),
+                          JSInput()},
+                         {JSOutput(addr, 2100000000000001),
+                          JSOutput()},
+                         0,
+                         0,
+                         tree.root(),
+                         "nonsensical output value");
 
         // Absurd total output value
         invokeAPIFailure(params,
-        {
-            JSInput(),
-            JSInput()
-        },
-        {
-            JSOutput(addr, 1900000000000000),
-            JSOutput(addr, 1900000000000000)
-        },
-        0,
-        0,
-        tree.root(),
-        "nonsensical right hand side of joinsplit balance");
+                         {JSInput(),
+                          JSInput()},
+                         {JSOutput(addr, 1900000000000000),
+                          JSOutput(addr, 1900000000000000)},
+                         0,
+                         0,
+                         tree.root(),
+                         "nonsensical right hand side of joinsplit balance");
 
         // Absurd total output value
         invokeAPIFailure(params,
-        {
-            JSInput(),
-            JSInput()
-        },
-        {
-            JSOutput(addr, 1900000000000000),
-            JSOutput()
-        },
-        0,
-        0,
-        tree.root(),
-        "invalid joinsplit balance");
+                         {JSInput(),
+                          JSInput()},
+                         {JSOutput(addr, 1900000000000000),
+                          JSOutput()},
+                         0,
+                         0,
+                         tree.root(),
+                         "invalid joinsplit balance");
     }
 
     test_full_api(params);
@@ -552,10 +482,9 @@ TEST(joinsplit, note_plaintexts)
     uint256 epk = encryptor.get_epk();
 
     SproutNote note(a_pk,
-              1945813,
-              random_uint256(),
-              random_uint256()
-             );
+                    1945813,
+                    random_uint256(),
+                    random_uint256());
 
     std::array<unsigned char, ZC_MEMO_SIZE> memo;
 
