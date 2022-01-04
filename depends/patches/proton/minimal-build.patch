@@ -21,7 +21,7 @@ index b538ffd..4a5e787 100644
  #
  cmake_minimum_required (VERSION 2.8.7)
  
-+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
  project (Proton C)
  
  # Enable C++ now for examples and bindings subdirectories, but make it optional.
@@ -74,7 +74,7 @@ index 304d899..f4877b4 100644
  # under the License.
  #
  
-+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
  find_package(ProtonCpp REQUIRED)
  
  include_directories(${ProtonCpp_INCLUDE_DIRS})
@@ -212,7 +212,7 @@ index 0cc4024..796fe29 100644
  # under the License.
  #
 -
-+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
  include(cpp.cmake) # Compiler checks
  
  include_directories(

@@ -30,17 +30,19 @@ void UnregisterAllValidationInterfaces();
 /** Push an updated transaction to all registered wallets */
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL);
 
-class CValidationInterface {
+class CValidationInterface
+{
 protected:
-    virtual void UpdatedBlockTip(const CBlockIndex *pindex) {}
-    virtual void SyncTransaction(const CTransaction &tx, const CBlock *pblock) {}
-    virtual void EraseFromWallet(const uint256 &hash) {}
-    virtual void ChainTip(const CBlockIndex *pindex, const CBlock *pblock, SproutMerkleTree sproutTree, SaplingMerkleTree saplingTree, bool added) {}
-    virtual void SetBestChain(const CBlockLocator &locator) {}
-    virtual bool UpdatedTransaction(const uint256 &hash) {}
-    virtual void Inventory(const uint256 &hash) {}
+    virtual void UpdatedBlockTip(const CBlockIndex* pindex) {}
+    virtual void SyncTransaction(const CTransaction& tx, const CBlock* pblock) {}
+    virtual void EraseFromWallet(const uint256& hash) {}
+    virtual void ChainTip(const CBlockIndex* pindex, const CBlock* pblock, SproutMerkleTree sproutTree, SaplingMerkleTree saplingTree, bool added) {}
+    virtual void SetBestChain(const CBlockLocator& locator) {}
+    virtual bool UpdatedTransaction(const uint256& hash) {}
+    virtual void Inventory(const uint256& hash) {}
     virtual void ResendWalletTransactions(int64_t nBestBlockTime) {}
     virtual void BlockChecked(const CBlock&, const CValidationState&) {}
+    virtual void ResetRequestCount(const uint256& hash){};
     friend void ::RegisterValidationInterface(CValidationInterface*);
     friend void ::UnregisterValidationInterface(CValidationInterface*);
     friend void ::UnregisterAllValidationInterfaces();
@@ -48,23 +50,25 @@ protected:
 
 struct CMainSignals {
     /** Notifies listeners of updated block chain tip */
-    boost::signals2::signal<void (const CBlockIndex *)> UpdatedBlockTip;
+    boost::signals2::signal<void(const CBlockIndex*)> UpdatedBlockTip;
     /** Notifies listeners of updated transaction data (transaction, and optionally the block it is found in. */
-    boost::signals2::signal<void (const CTransaction &, const CBlock *)> SyncTransaction;
+    boost::signals2::signal<void(const CTransaction&, const CBlock*)> SyncTransaction;
     /** Notifies listeners of an erased transaction (currently disabled, requires transaction replacement). */
-    boost::signals2::signal<void (const uint256 &)> EraseTransaction;
+    boost::signals2::signal<void(const uint256&)> EraseTransaction;
     /** Notifies listeners of an updated transaction without new data (for now: a coinbase potentially becoming visible). */
-    boost::signals2::signal<void (const uint256 &)> UpdatedTransaction;
+    boost::signals2::signal<void(const uint256&)> UpdatedTransaction;
     /** Notifies listeners of a change to the tip of the active block chain. */
-    boost::signals2::signal<void (const CBlockIndex *, const CBlock *, SproutMerkleTree, SaplingMerkleTree, bool)> ChainTip;
+    boost::signals2::signal<void(const CBlockIndex*, const CBlock*, SproutMerkleTree, SaplingMerkleTree, bool)> ChainTip;
     /** Notifies listeners of a new active block chain. */
-    boost::signals2::signal<void (const CBlockLocator &)> SetBestChain;
+    boost::signals2::signal<void(const CBlockLocator&)> SetBestChain;
     /** Notifies listeners about an inventory item being seen on the network. */
-    boost::signals2::signal<void (const uint256 &)> Inventory;
+    boost::signals2::signal<void(const uint256&)> Inventory;
     /** Tells listeners to broadcast their data. */
-    boost::signals2::signal<void (int64_t nBestBlockTime)> Broadcast;
+    boost::signals2::signal<void(int64_t nBestBlockTime)> Broadcast;
     /** Notifies listeners of a block validation result */
-    boost::signals2::signal<void (const CBlock&, const CValidationState&)> BlockChecked;
+    boost::signals2::signal<void(const CBlock&, const CValidationState&)> BlockChecked;
+    /** Notifies listeners that a block has been successfully mined */
+    boost::signals2::signal<void(const uint256&)> BlockFound;
 };
 
 CMainSignals& GetMainSignals();

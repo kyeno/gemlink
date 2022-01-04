@@ -60,8 +60,9 @@ public:
         READWRITE(vchSig);
     }
 
-    bool CheckAndUpdate(int& nDos, bool fRequireEnabled = true);
+    bool CheckAndUpdate(int& nDos, bool fRequireEnabled = true, bool fCheckSigTimeOnly = false);
     bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
+    bool VerifySignature(CPubKey& pubKeyMasternode, int& nDos);
     void Relay();
 
     uint256 GetHash()
@@ -257,7 +258,8 @@ public:
 
     int GetMasternodeInputAge()
     {
-        if (chainActive.Tip() == NULL) return 0;
+        if (chainActive.Tip() == NULL)
+            return 0;
 
         if (cacheInputAge == 0) {
             cacheInputAge = GetInputAge(vin);
@@ -273,11 +275,16 @@ public:
     {
         std::string strStatus = "ACTIVE";
 
-        if (activeState == CMasternode::MASTERNODE_ENABLED) strStatus = "ENABLED";
-        if (activeState == CMasternode::MASTERNODE_EXPIRED) strStatus = "EXPIRED";
-        if (activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus = "VIN_SPENT";
-        if (activeState == CMasternode::MASTERNODE_REMOVE) strStatus = "REMOVE";
-        if (activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus = "POS_ERROR";
+        if (activeState == CMasternode::MASTERNODE_ENABLED)
+            strStatus = "ENABLED";
+        if (activeState == CMasternode::MASTERNODE_EXPIRED)
+            strStatus = "EXPIRED";
+        if (activeState == CMasternode::MASTERNODE_VIN_SPENT)
+            strStatus = "VIN_SPENT";
+        if (activeState == CMasternode::MASTERNODE_REMOVE)
+            strStatus = "REMOVE";
+        if (activeState == CMasternode::MASTERNODE_POS_ERROR)
+            strStatus = "POS_ERROR";
 
         return strStatus;
     }
@@ -301,7 +308,10 @@ public:
     bool CheckAndUpdate(int& nDoS);
     bool CheckInputsAndAdd(int& nDos);
     bool Sign(CKey& keyCollateralAddress);
+    bool VerifySignature();
     void Relay();
+    std::string GetOldStrMessage();
+    std::string GetNewStrMessage();
 
     ADD_SERIALIZE_METHODS;
 
@@ -330,6 +340,7 @@ public:
     /// Create Masternode broadcast, needs to be relayed manually after that
     static bool Create(CTxIn vin, CService service, CKey keyCollateralAddressNew, CPubKey pubKeyCollateralAddressNew, CKey keyMasternodeNew, CPubKey pubKeyMasternodeNew, std::string& strErrorRet, CMasternodeBroadcast& mnbRet);
     static bool Create(std::string strService, std::string strKey, std::string strTxHash, std::string strOutputIndex, std::string& strErrorRet, CMasternodeBroadcast& mnbRet, bool fOffline = false);
+    static bool CheckDefaultPort(std::string strService, std::string& strErrorRet, std::string strContext);
 };
 
 #endif
