@@ -311,6 +311,7 @@ am_libbitcoin_server_a_OBJECTS =  \
 	libbitcoin_server_a-dbwrapper.$(OBJEXT) \
 	libbitcoin_server_a-main.$(OBJEXT) \
 	libbitcoin_server_a-merkleblock.$(OBJEXT) \
+	libbitcoin_server_a-messagesigner.$(OBJEXT) \
 	libbitcoin_server_a-metrics.$(OBJEXT) \
 	libbitcoin_server_a-miner.$(OBJEXT) \
 	libbitcoin_server_a-net.$(OBJEXT) \
@@ -359,8 +360,8 @@ am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
 	key.h key_io.h keystore.h dbwrapper.h limitedmap.h main.h \
 	memusage.h masternode.h masternode-payments.h \
 	masternode-budget.h masternode-sync.h masternodeman.h \
-	masternodeconfig.h merkleblock.h metrics.h miner.h mruset.h \
-	net.h netbase.h noui.h paymentdisclosure.h \
+	masternodeconfig.h merkleblock.h messagesigner.h metrics.h \
+	miner.h mruset.h net.h netbase.h noui.h paymentdisclosure.h \
 	paymentdisclosuredb.h policy/fees.h pow.h prevector.h \
 	primitives/block.h primitives/transaction.h protocol.h \
 	pubkey.h random.h reverselock.h rpc/client.h rpc/protocol.h \
@@ -799,6 +800,7 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_server_a-init.Po \
 	./$(DEPDIR)/libbitcoin_server_a-main.Po \
 	./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po \
+	./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po \
 	./$(DEPDIR)/libbitcoin_server_a-metrics.Po \
 	./$(DEPDIR)/libbitcoin_server_a-miner.Po \
 	./$(DEPDIR)/libbitcoin_server_a-net.Po \
@@ -1627,6 +1629,7 @@ BITCOIN_CORE_H = \
   masternodeman.h \
   masternodeconfig.h \
   merkleblock.h \
+  messagesigner.h \
   metrics.h \
   miner.h \
   mruset.h \
@@ -1720,6 +1723,7 @@ libbitcoin_server_a_SOURCES = \
   dbwrapper.cpp \
   main.cpp \
   merkleblock.cpp \
+  messagesigner.cpp \
   metrics.cpp \
   miner.cpp \
   net.cpp \
@@ -2792,6 +2796,7 @@ include ./$(DEPDIR)/libbitcoin_server_a-httpserver.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-init.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-main.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po # am--include-marker
+include ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-metrics.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-miner.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-net.Po # am--include-marker
@@ -3786,6 +3791,20 @@ libbitcoin_server_a-merkleblock.obj: merkleblock.cpp
 #	$(AM_V_CXX)source='merkleblock.cpp' object='libbitcoin_server_a-merkleblock.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-merkleblock.obj `if test -f 'merkleblock.cpp'; then $(CYGPATH_W) 'merkleblock.cpp'; else $(CYGPATH_W) '$(srcdir)/merkleblock.cpp'; fi`
+
+libbitcoin_server_a-messagesigner.o: messagesigner.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-messagesigner.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo -c -o libbitcoin_server_a-messagesigner.o `test -f 'messagesigner.cpp' || echo '$(srcdir)/'`messagesigner.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo $(DEPDIR)/libbitcoin_server_a-messagesigner.Po
+#	$(AM_V_CXX)source='messagesigner.cpp' object='libbitcoin_server_a-messagesigner.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-messagesigner.o `test -f 'messagesigner.cpp' || echo '$(srcdir)/'`messagesigner.cpp
+
+libbitcoin_server_a-messagesigner.obj: messagesigner.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-messagesigner.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo -c -o libbitcoin_server_a-messagesigner.obj `if test -f 'messagesigner.cpp'; then $(CYGPATH_W) 'messagesigner.cpp'; else $(CYGPATH_W) '$(srcdir)/messagesigner.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo $(DEPDIR)/libbitcoin_server_a-messagesigner.Po
+#	$(AM_V_CXX)source='messagesigner.cpp' object='libbitcoin_server_a-messagesigner.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-messagesigner.obj `if test -f 'messagesigner.cpp'; then $(CYGPATH_W) 'messagesigner.cpp'; else $(CYGPATH_W) '$(srcdir)/messagesigner.cpp'; fi`
 
 libbitcoin_server_a-metrics.o: metrics.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-metrics.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-metrics.Tpo -c -o libbitcoin_server_a-metrics.o `test -f 'metrics.cpp' || echo '$(srcdir)/'`metrics.cpp
@@ -6792,6 +6811,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-init.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-main.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-metrics.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-miner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-net.Po
@@ -7079,6 +7099,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-init.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-main.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-metrics.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-miner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-net.Po
