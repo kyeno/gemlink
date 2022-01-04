@@ -1487,7 +1487,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
             }
         }
         for (const JSDescription& joinsplit : tx.vjoinsplit) {
-            for (const uint256 &nf: joinsplit.nullifiers) {
+            for (const uint256& nf : joinsplit.nullifiers) {
                 if (pool.nullifierExists(nf, SPROUT)) {
                     return false;
                 }
@@ -6739,7 +6739,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         }
     } else {
         //probably one the extensions
-        obfuScationPool.ProcessMessageObfuscation(pfrom, strCommand, vRecv);
         mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
         budget.ProcessMessage(pfrom, strCommand, vRecv);
         masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);

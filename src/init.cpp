@@ -1993,18 +1993,18 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (nSnowgemSendRounds < 10)
         nSnowgemSendRounds = 10;
 
-    nLiquidityProvider = GetArg("-liquidityprovider", 0); //0-100
-    if (nLiquidityProvider != 0) {
-        obfuScationPool.SetMinBlockSpacing(std::min(nLiquidityProvider, 100) * 15);
-        fEnableSnowgemSend = true;
-        nSnowgemSendRounds = 99999;
-    }
+    // nLiquidityProvider = GetArg("-liquidityprovider", 0); //0-100
+    // if (nLiquidityProvider != 0) {
+    //     obfuScationPool.SetMinBlockSpacing(std::min(nLiquidityProvider, 100) * 15);
+    //     fEnableSnowgemSend = true;
+    //     nSnowgemSendRounds = 99999;
+    // }
 
-    nAnonymizeSnowgemAmount = GetArg("-anonymizesnowgemamount", 0);
-    if (nAnonymizeSnowgemAmount > 999999)
-        nAnonymizeSnowgemAmount = 999999;
-    if (nAnonymizeSnowgemAmount < 2)
-        nAnonymizeSnowgemAmount = 2;
+    // nAnonymizeSnowgemAmount = GetArg("-anonymizesnowgemamount", 0);
+    // if (nAnonymizeSnowgemAmount > 999999)
+    //     nAnonymizeSnowgemAmount = 999999;
+    // if (nAnonymizeSnowgemAmount < 2)
+    //     nAnonymizeSnowgemAmount = 2;
 
     //lite mode disables all Masternode and Obfuscation related functionality
     fLiteMode = GetBoolArg("-litemode", false);
