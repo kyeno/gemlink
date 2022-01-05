@@ -52,7 +52,7 @@ bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, s
 // CBudgetVote - Allow a masternode node to vote and broadcast throughout the network
 //
 
-class CBudgetVote
+class CBudgetVote : public CSignedMessage
 {
 public:
     bool fValid;  //if the vote is currently valid / counted
@@ -61,32 +61,27 @@ public:
     uint256 nProposalHash;
     int nVote;
     int64_t nTime;
-    std::vector<unsigned char> vchSig;
 
     CBudgetVote();
     CBudgetVote(CTxIn vin, uint256 nProposalHash, int nVoteIn);
 
-    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
-    bool SignatureValid(bool fSignatureCheck);
     void Relay();
 
     std::string GetVoteString()
     {
         std::string ret = "ABSTAIN";
-        if (nVote == VOTE_YES) ret = "YES";
-        if (nVote == VOTE_NO) ret = "NO";
+        if (nVote == VOTE_YES)
+            ret = "YES";
+        if (nVote == VOTE_NO)
+            ret = "NO";
         return ret;
     }
+    uint256 GetHash() const;
 
-    uint256 GetHash()
-    {
-        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-        ss << vin;
-        ss << nProposalHash;
-        ss << nVote;
-        ss << nTime;
-        return ss.GetHash();
-    }
+    // override CSignedMessage functions
+    uint256 GetSignatureHash() const override { return GetHash(); }
+    std::string GetStrMessage() const override;
+    const CTxIn GetVin() const override { return vin; };
 
     ADD_SERIALIZE_METHODS;
 
@@ -98,6 +93,11 @@ public:
         READWRITE(nVote);
         READWRITE(nTime);
         READWRITE(vchSig);
+        try {
+            READWRITE(nMessVersion);
+        } catch (...) {
+            nMessVersion = MessageVersion::MESS_VER_STRMESS;
+        }
     }
 };
 
@@ -105,7 +105,7 @@ public:
 // CFinalizedBudgetVote - Allow a masternode node to vote and broadcast throughout the network
 //
 
-class CFinalizedBudgetVote
+class CFinalizedBudgetVote : public CSignedMessage
 {
 public:
     bool fValid;  //if the vote is currently valid / counted
@@ -113,23 +113,17 @@ public:
     CTxIn vin;
     uint256 nBudgetHash;
     int64_t nTime;
-    std::vector<unsigned char> vchSig;
 
     CFinalizedBudgetVote();
     CFinalizedBudgetVote(CTxIn vinIn, uint256 nBudgetHashIn);
 
-    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
-    bool SignatureValid(bool fSignatureCheck);
     void Relay();
+    uint256 GetHash() const;
 
-    uint256 GetHash()
-    {
-        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-        ss << vin;
-        ss << nBudgetHash;
-        ss << nTime;
-        return ss.GetHash();
-    }
+    // override CSignedMessage functions
+    uint256 GetSignatureHash() const override { return GetHash(); }
+    std::string GetStrMessage() const override;
+    const CTxIn GetVin() const override { return vin; };
 
     ADD_SERIALIZE_METHODS;
 
@@ -140,6 +134,11 @@ public:
         READWRITE(nBudgetHash);
         READWRITE(nTime);
         READWRITE(vchSig);
+        try {
+            READWRITE(nMessVersion);
+        } catch (...) {
+            nMessVersion = MessageVersion::MESS_VER_STRMESS;
+        }
     }
 };
 
@@ -342,8 +341,10 @@ public:
         LOCK(cs);
 
         int i = nBlockHeight - GetBlockStart();
-        if (i < 0) return false;
-        if (i > (int)vecBudgetPayments.size() - 1) return false;
+        if (i < 0)
+            return false;
+        if (i > (int)vecBudgetPayments.size() - 1)
+            return false;
         payment = vecBudgetPayments[i];
         return true;
     }
@@ -352,8 +353,10 @@ public:
         LOCK(cs);
 
         int i = nBlockHeight - GetBlockStart();
-        if (i < 0) return false;
-        if (i > (int)vecBudgetPayments.size() - 1) return false;
+        if (i < 0)
+            return false;
+        if (i > (int)vecBudgetPayments.size() - 1)
+            return false;
         payee = vecBudgetPayments[i].payee;
         nAmount = vecBudgetPayments[i].nAmount;
         return true;
@@ -400,9 +403,6 @@ public:
 // FinalizedBudget are cast then sent to peers with this object, which leaves the votes out
 class CFinalizedBudgetBroadcast : public CFinalizedBudget
 {
-private:
-    std::vector<unsigned char> vchSig;
-
 public:
     CFinalizedBudgetBroadcast();
     CFinalizedBudgetBroadcast(const CFinalizedBudget& other);
@@ -490,7 +490,8 @@ public:
     bool IsEstablished()
     {
         // Proposals must be at least a day old to make it into a budget
-        if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60 * 60 * 24));
+        if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN)
+            return (nTime < GetTime() - (60 * 60 * 24));
 
         // For testing purposes - 5 minutes
         return (nTime < GetTime() - (60 * 5));

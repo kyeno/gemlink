@@ -1515,8 +1515,6 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         bool fReset = fReindex;
         std::string strLoadError;
 
-        uiInterface.InitMessage(_("Loading block index..."));
-
         nStart = GetTimeMillis();
         do {
             try {
@@ -1541,9 +1539,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 }
 
                 // SnowGem: load previous sessions sporks if we have them.
-                // uiInterface.InitMessage(_("Loading sporks..."));
-                LoadSporksFromDB();
-
+                uiInterface.InitMessage(_("Loading sporks..."));
+                sporkManager.LoadSporksFromDB();
+                
+                uiInterface.InitMessage(_("Loading block index..."));
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
                     break;
@@ -1555,6 +1554,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
 
                 // Initialize the block index (no-op if non-empty database was already loaded)
+                uiInterface.InitMessage(_("Init block index..."));
                 if (!InitBlockIndex()) {
                     strLoadError = _("Error initializing block database");
                     break;

@@ -9,6 +9,7 @@
 #include "addrman.h"
 #include "consensus/validation.h"
 #include "masternode.h"
+#include "messagesigner.h"
 #include "obfuscation.h"
 #include "spork.h"
 #include "util.h"
@@ -362,7 +363,7 @@ int CMasternodeMan::stable_size()
         if (mn.protocolVersion < nMinProtocol) {
             continue; // Skip obsolete versions
         }
-        if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
+        if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
             nMasternode_Age = GetAdjustedTime() - mn.sigTime;
             if ((nMasternode_Age) < nMasternode_Min_Age) {
                 continue; // Skip masternodes younger than (default) 8000 sec (MUST be > MASTERNODE_REMOVAL_SECONDS)
@@ -647,7 +648,7 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
             continue; // Skip obsolete versions
         }
 
-        if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
+        if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
             nMasternode_Age = GetAdjustedTime() - mn.sigTime;
             if ((nMasternode_Age) < nMasternode_Min_Age) {
                 if (fDebug)
@@ -806,7 +807,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         // make sure the vout that was signed is related to the transaction that spawned the Masternode
         //  - this is expensive, so it's only done once per Masternode
-        if (!obfuScationSigner.IsVinAssociatedWithPubkey(mnb.vin, mnb.pubKeyCollateralAddress)) {
+        if (!mnb.IsInputAssociatedWithPubkey()) {
             LogPrint("masternode", "mnb - Got mismatched pubkey and vin\n");
             Misbehaving(pfrom->GetId(), 33);
             return;
@@ -919,7 +920,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     // Light version for OLD MASSTERNODES - fake pings, no self-activation
     else if (strCommand == "dsee") { //ObfuScation Election Entry
 
-        if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+        if (sporkManager.IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
             return;
 
         CTxIn vin;
@@ -980,9 +981,9 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             return;
         }
 
-        std::string errorMessage = "";
-        if (!obfuScationSigner.VerifyMessage(pubkey, vchSig, strMessage, errorMessage)) {
-            LogPrint("masternode", "dsee - Got bad Masternode address signature\n");
+        std::string strError = "";
+        if (!CMessageSigner::VerifyMessage(pubkey, vchSig, strMessage, strError)) {
+            LogPrint("masternode", "dsee - Got bad Masternode address signature: %s\n", strError);
             Misbehaving(pfrom->GetId(), 100);
             return;
         }
@@ -1038,7 +1039,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         mapSeenDsee.insert(make_pair(vin.prevout, pubkey));
         // make sure the vout that was signed is related to the transaction that spawned the Masternode
         //  - this is expensive, so it's only done once per Masternode
-        if (!obfuScationSigner.IsVinAssociatedWithPubkey(vin, pubkey)) {
+        if (!pmn->IsInputAssociatedWithPubkey()) {
             LogPrint("masternode", "dsee - Got mismatched pubkey and vin\n");
             Misbehaving(pfrom->GetId(), 100);
             return;
@@ -1131,7 +1132,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
     else if (strCommand == "dseep") { //ObfuScation Election Entry Ping
 
-        if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+        if (sporkManager.IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
             return;
 
         CTxIn vin;
@@ -1169,9 +1170,9 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             if (sigTime - pmn->nLastDseep > MASTERNODE_MIN_MNP_SECONDS) {
                 std::string strMessage = pmn->addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
 
-                std::string errorMessage = "";
-                if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {
-                    LogPrint("masternode", "dseep - Got bad Masternode address signature %s \n", vin.prevout.hash.ToString());
+                std::string strError = "";
+                if (!CMessageSigner::VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, strError)) {
+                    LogPrint("masternode","dseep - Got bad Masternode address signature %s, error: %s\n", vin.prevout.hash.ToString(), strError);
                     //Misbehaving(pfrom->GetId(), 100);
                     return;
                 }

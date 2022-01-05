@@ -375,6 +375,12 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             HelpExampleCli("mnbudgetvote", "\"local\" \"ed2f83cedee59a91406f5f47ec4d60bf5a7f9ee6293913c82976bd2d3a658041\" \"yes\"") +
             HelpExampleRpc("mnbudgetvote", "\"local\" \"ed2f83cedee59a91406f5f47ec4d60bf5a7f9ee6293913c82976bd2d3a658041\" \"yes\""));
 
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+
     uint256 hash = ParseHashV(params[1], "parameter 1");
     std::string strVote = params[2].get_str();
 
@@ -399,7 +405,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
         UniValue statusObj(UniValue::VOBJ);
 
         while (true) {
-            if (!obfuScationSigner.SetKey(strMasterNodePrivKey, errorMessage, keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode)) {
                 failed++;
                 statusObj.push_back(Pair("node", "local"));
                 statusObj.push_back(Pair("result", "failed"));
@@ -419,7 +425,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             }
 
             CBudgetVote vote(activeMasternode.vin, hash, nVote);
-            if (!vote.Sign(keyMasternode, pubKeyMasternode)) {
+            if (!vote.Sign(keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("node", "local"));
                 statusObj.push_back(Pair("result", "failed"));
@@ -466,7 +472,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode)) {
                 failed++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
@@ -486,7 +492,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             }
 
             CBudgetVote vote(pmn->vin, hash, nVote);
-            if (!vote.Sign(keyMasternode, pubKeyMasternode)) {
+            if (!vote.Sign(keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
@@ -540,7 +546,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode)) {
                 failed++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
@@ -560,7 +566,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             }
 
             CBudgetVote vote(pmn->vin, hash, nVote);
-            if (!vote.Sign(keyMasternode, pubKeyMasternode)) {
+            if (!vote.Sign(keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
@@ -842,9 +848,9 @@ UniValue mnbudgetrawvote(const UniValue& params, bool fHelp)
 
     CBudgetVote vote(vin, hashProposal, nVote);
     vote.nTime = nTime;
-    vote.vchSig = vchSig;
+    vote.SetVchSig(vchSig);
 
-    if (!vote.SignatureValid(true)) {
+    if (!vote.CheckSignature(true)) {
         return "Failure to verify signature.";
     }
 
@@ -875,6 +881,12 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
             "  show        - Show existing finalized budgets\n"
             "  getvotes     - Get vote information for each finalized budget\n");
 
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+
     if (strCommand == "vote-many") {
         if (params.size() != 2)
             throw runtime_error("Correct usage is 'mnfinalbudget vote-many BUDGET_HASH'");
@@ -899,7 +911,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode)) {
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Masternode signing error, could not set key correctly: " + errorMessage));
@@ -918,7 +930,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
 
             CFinalizedBudgetVote vote(pmn->vin, hash);
-            if (!vote.Sign(keyMasternode, pubKeyMasternode)) {
+            if (!vote.Sign(keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Failure to sign."));
@@ -959,7 +971,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
         CKey keyMasternode;
         std::string errorMessage;
 
-        if (!obfuScationSigner.SetKey(strMasterNodePrivKey, errorMessage, keyMasternode, pubKeyMasternode))
+        if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode))
             return "Error upon calling SetKey";
 
         CMasternode* pmn = mnodeman.Find(activeMasternode.vin);
@@ -968,7 +980,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
         }
 
         CFinalizedBudgetVote vote(activeMasternode.vin, hash);
-        if (!vote.Sign(keyMasternode, pubKeyMasternode)) {
+        if (!vote.Sign(keyMasternode, pubKeyMasternode, fNewSigs)) {
             return "Failure to sign.";
         }
 

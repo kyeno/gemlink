@@ -5,15 +5,15 @@
 
 #include "spork.h"
 #include "base58.h"
+#include "consensus/validation.h"
 #include "key.h"
 #include "main.h"
 #include "masternode-budget.h"
 #include "net.h"
 #include "protocol.h"
-#include "sync.h"
 #include "sporkdb.h"
+#include "sync.h"
 #include "util.h"
-#include "consensus/validation.h"
 #include <boost/lexical_cast.hpp>
 
 using namespace std;
@@ -28,12 +28,13 @@ std::map<uint256, CSporkMessage> mapSporks;
 std::map<int, CSporkMessage> mapSporksActive;
 
 // SnowGem: on startup load spork values from previous session if they exist in the sporkDB
-void LoadSporksFromDB()
+void CSporkManager::LoadSporksFromDB()
 {
     for (int i = SPORK_START; i <= SPORK_END; ++i) {
         // Since not all spork IDs are in use, we have to exclude undefined IDs
         std::string strSpork = sporkManager.GetSporkNameByID(i);
-        if (strSpork == "Unknown") continue;
+        if (strSpork == "Unknown")
+            continue;
 
         // attempt to read spork from sporkDB
         CSporkMessage spork;
@@ -58,9 +59,10 @@ void LoadSporksFromDB()
     }
 }
 
-void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
+void CSporkManager::ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
-    if (fLiteMode) return; //disable all obfuscation/masternode related functionality
+    if (fLiteMode)
+        return; //disable all obfuscation/masternode related functionality
 
     if (strCommand == "spork") {
         //LogPrintf("ProcessSpork::spork\n");
@@ -68,34 +70,50 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
         CSporkMessage spork;
         vRecv >> spork;
 
-        if (chainActive.Tip() == NULL) return;
+        if (chainActive.Tip() == NULL)
+            return;
 
         // Ignore spork messages about unknown/deleted sporks
         std::string strSpork = sporkManager.GetSporkNameByID(spork.nSporkID);
-        if (strSpork == "Unknown") return;
+        if (strSpork == "Unknown")
+            return;
 
         uint256 hash = spork.GetHash();
-        if (mapSporksActive.count(spork.nSporkID)) {
-            if (mapSporksActive[spork.nSporkID].nTimeSigned >= spork.nTimeSigned) {
-                if (fDebug) LogPrintf("spork - seen %s block %d \n", hash.ToString(), chainActive.Tip()->nHeight);
-                return;
+        {
+            LOCK(cs);
+            if (mapSporksActive.count(spork.nSporkID)) {
+                if (mapSporksActive[spork.nSporkID].nTimeSigned >= spork.nTimeSigned) {
+                    if (fDebug)
+                        LogPrintf("spork - seen %s block %d \n", hash.ToString(), chainActive.Tip()->nHeight);
+                    return;
+                } else {
+                    if (fDebug)
+                        LogPrintf("spork - got updated spork %s block %d \n", hash.ToString(), chainActive.Tip()->nHeight);
+                }
             } else {
-                if (fDebug) LogPrintf("spork - got updated spork %s block %d \n", hash.ToString(), chainActive.Tip()->nHeight);
+                // spork is not active
+                if (fDebug)
+                    LogPrintf("%s : got new spork %s block %d \n", __func__, hash.ToString(), chainActive.Tip()->nHeight);
             }
         }
 
         LogPrintf("spork - new %s ID %d Time %d bestHeight %d\n", hash.ToString(), spork.nSporkID, spork.nValue, chainActive.Tip()->nHeight);
 
-        if (!sporkManager.CheckSignature(spork)) {
-            LogPrintf("spork - invalid signature\n");
+        bool fValidSig = spork.CheckSignature();
+
+        if (!fValidSig) {
+            LOCK(cs_main);
+            LogPrintf("%s : Invalid Signature\n", __func__);
             Misbehaving(pfrom->GetId(), 100);
             return;
         }
+        {
+            LOCK(cs);
+            mapSporks[hash] = spork;
+            mapSporksActive[spork.nSporkID] = spork;
+        }
 
-        mapSporks[hash] = spork;
-        mapSporksActive[spork.nSporkID] = spork;
-        sporkManager.Relay(spork);
-
+        spork.Relay();
         // SnowGem: add to spork database.
         pSporkDB->WriteSpork(spork.nSporkID, spork);
     }
@@ -111,34 +129,45 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 
 
 // grab the value of the spork on the network, or the default
-int64_t GetSporkValue(int nSporkID)
+int64_t CSporkManager::GetSporkValue(int nSporkID)
 {
     int64_t r = -1;
 
     if (mapSporksActive.count(nSporkID)) {
         r = mapSporksActive[nSporkID].nValue;
     } else {
-        if (nSporkID == SPORK_2_SWIFTTX) r = SPORK_2_SWIFTTX_DEFAULT;
-        if (nSporkID == SPORK_3_SWIFTTX_BLOCK_FILTERING) r = SPORK_3_SWIFTTX_BLOCK_FILTERING_DEFAULT;
-        if (nSporkID == SPORK_5_MAX_VALUE) r = SPORK_5_MAX_VALUE_DEFAULT;
-        if (nSporkID == SPORK_7_MASTERNODE_SCANNING) r = SPORK_7_MASTERNODE_SCANNING_DEFAULT;
-        if (nSporkID == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
-        if (nSporkID == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT) r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
-        if (nSporkID == SPORK_10_MASTERNODE_PAY_UPDATED_NODES) r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
-        if (nSporkID == SPORK_11_LOCK_INVALID_UTXO) r = SPORK_11_LOCK_INVALID_UTXO_DEFAULT;
-        if (nSporkID == SPORK_13_ENABLE_SUPERBLOCKS) r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
+        if (nSporkID == SPORK_2_SWIFTTX)
+            r = SPORK_2_SWIFTTX_DEFAULT;
+        if (nSporkID == SPORK_3_SWIFTTX_BLOCK_FILTERING)
+            r = SPORK_3_SWIFTTX_BLOCK_FILTERING_DEFAULT;
+        if (nSporkID == SPORK_5_MAX_VALUE)
+            r = SPORK_5_MAX_VALUE_DEFAULT;
+        if (nSporkID == SPORK_7_MASTERNODE_SCANNING)
+            r = SPORK_7_MASTERNODE_SCANNING_DEFAULT;
+        if (nSporkID == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)
+            r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
+        if (nSporkID == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)
+            r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
+        if (nSporkID == SPORK_10_MASTERNODE_PAY_UPDATED_NODES)
+            r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
+        if (nSporkID == SPORK_11_LOCK_INVALID_UTXO)
+            r = SPORK_11_LOCK_INVALID_UTXO_DEFAULT;
+        if (nSporkID == SPORK_13_ENABLE_SUPERBLOCKS)
+            r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
 
-        if (r == -1) LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
+        if (r == -1)
+            LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
     }
 
     return r;
 }
 
 // grab the spork value, and see if it's off
-bool IsSporkActive(int nSporkID)
+bool CSporkManager::IsSporkActive(int nSporkID)
 {
     int64_t r = GetSporkValue(nSporkID);
-    if (r == -1) return false;
+    if (r == -1)
+        return false;
     return r < GetTime();
 }
 
@@ -174,111 +203,116 @@ void ReprocessBlocks(int nBlocks)
     }
 }
 
-bool CSporkManager::CheckSignature(CSporkMessage& spork)
-{
-    //note: need to investigate why this is failing
-    std::string strMessage = boost::lexical_cast<std::string>(spork.nSporkID) + boost::lexical_cast<std::string>(spork.nValue) + boost::lexical_cast<std::string>(spork.nTimeSigned);
-    CPubKey pubkeynew(ParseHex(Params().SporkKey()));
-    std::string errorMessage = "";
-    if (obfuScationSigner.VerifyMessage(pubkeynew, spork.vchSig, strMessage, errorMessage)) {
-        return true;
-    }
 
-    return false;
+uint256 CSporkMessage::GetSignatureHash() const
+{
+    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+    ss << nMessVersion;
+    ss << nSporkID;
+    ss << nValue;
+    ss << nTimeSigned;
+    return ss.GetHash();
 }
 
-bool CSporkManager::Sign(CSporkMessage& spork)
+std::string CSporkMessage::GetStrMessage() const
 {
-    std::string strMessage = boost::lexical_cast<std::string>(spork.nSporkID) + boost::lexical_cast<std::string>(spork.nValue) + boost::lexical_cast<std::string>(spork.nTimeSigned);
-
-    CKey key2;
-    CPubKey pubkey2;
-    std::string errorMessage = "";
-
-    if (!obfuScationSigner.SetKey(strMasterPrivKey, errorMessage, key2, pubkey2)) {
-        LogPrintf("CMasternodePayments::Sign - ERROR: Invalid masternodeprivkey: '%s'\n", errorMessage);
-        return false;
-    }
-
-    if (!obfuScationSigner.SignMessage(strMessage, errorMessage, spork.vchSig, key2)) {
-        LogPrintf("CMasternodePayments::Sign - Sign message failed");
-        return false;
-    }
-
-    if (!obfuScationSigner.VerifyMessage(pubkey2, spork.vchSig, strMessage, errorMessage)) {
-        LogPrintf("CMasternodePayments::Sign - Verify message failed");
-        return false;
-    }
-
-    return true;
+    return std::to_string(nSporkID) +
+           std::to_string(nValue) +
+           std::to_string(nTimeSigned);
 }
 
-bool CSporkManager::UpdateSpork(int nSporkID, int64_t nValue)
+void CSporkMessage::Relay()
 {
-    CSporkMessage msg;
-    msg.nSporkID = nSporkID;
-    msg.nValue = nValue;
-    msg.nTimeSigned = GetTime();
-
-    if (Sign(msg)) {
-        Relay(msg);
-        mapSporks[msg.GetHash()] = msg;
-        mapSporksActive[nSporkID] = msg;
-        return true;
-    }
-
-    return false;
-}
-
-void CSporkManager::Relay(CSporkMessage& msg)
-{
-    CInv inv(MSG_SPORK, msg.GetHash());
+    CInv inv(MSG_SPORK, GetHash());
     RelayInv(inv);
 }
 
+
+bool CSporkManager::UpdateSpork(int nSporkID, int64_t nValue)
+{
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+
+    CSporkMessage spork = CSporkMessage(nSporkID, nValue, GetTime());
+
+    if (spork.Sign(strMasterPrivKey, fNewSigs)) {
+        spork.Relay();
+        LOCK(cs);
+        mapSporks[spork.GetHash()] = spork;
+        mapSporksActive[nSporkID] = spork;
+        return true;
+    }
+
+    return false;
+}
+
+
 bool CSporkManager::SetPrivKey(std::string strPrivKey)
 {
-    CSporkMessage msg;
+    CSporkMessage spork;
 
-    // Test signing successful, proceed
-    strMasterPrivKey = strPrivKey;
+    spork.Sign(strPrivKey, true);
 
-    Sign(msg);
+    bool fValidSig = spork.CheckSignature();
 
-    if (CheckSignature(msg)) {
-        LogPrintf("CSporkManager::SetPrivKey - Successfully initialized as spork signer\n");
+    if (fValidSig) {
+        LOCK(cs);
+        // Test signing successful, proceed
+        LogPrintf("%s : Successfully initialized as spork signer\n", __func__);
+        strMasterPrivKey = strPrivKey;
         return true;
-    } else {
-        return false;
     }
+
+    return false;
 }
 
 int CSporkManager::GetSporkIDByName(std::string strName)
 {
-    if (strName == "SPORK_2_SWIFTTX") return SPORK_2_SWIFTTX;
-    if (strName == "SPORK_3_SWIFTTX_BLOCK_FILTERING") return SPORK_3_SWIFTTX_BLOCK_FILTERING;
-    if (strName == "SPORK_5_MAX_VALUE") return SPORK_5_MAX_VALUE;
-    if (strName == "SPORK_7_MASTERNODE_SCANNING") return SPORK_7_MASTERNODE_SCANNING;
-    if (strName == "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT") return SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT;
-    if (strName == "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT") return SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT;
-    if (strName == "SPORK_10_MASTERNODE_PAY_UPDATED_NODES") return SPORK_10_MASTERNODE_PAY_UPDATED_NODES;
-    if (strName == "SPORK_11_LOCK_INVALID_UTXO") return SPORK_11_LOCK_INVALID_UTXO;
-    if (strName == "SPORK_13_ENABLE_SUPERBLOCKS") return SPORK_13_ENABLE_SUPERBLOCKS;
+    if (strName == "SPORK_2_SWIFTTX")
+        return SPORK_2_SWIFTTX;
+    if (strName == "SPORK_3_SWIFTTX_BLOCK_FILTERING")
+        return SPORK_3_SWIFTTX_BLOCK_FILTERING;
+    if (strName == "SPORK_5_MAX_VALUE")
+        return SPORK_5_MAX_VALUE;
+    if (strName == "SPORK_7_MASTERNODE_SCANNING")
+        return SPORK_7_MASTERNODE_SCANNING;
+    if (strName == "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT")
+        return SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT;
+    if (strName == "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT")
+        return SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT;
+    if (strName == "SPORK_10_MASTERNODE_PAY_UPDATED_NODES")
+        return SPORK_10_MASTERNODE_PAY_UPDATED_NODES;
+    if (strName == "SPORK_11_LOCK_INVALID_UTXO")
+        return SPORK_11_LOCK_INVALID_UTXO;
+    if (strName == "SPORK_13_ENABLE_SUPERBLOCKS")
+        return SPORK_13_ENABLE_SUPERBLOCKS;
 
     return -1;
 }
 
 std::string CSporkManager::GetSporkNameByID(int id)
 {
-    if (id == SPORK_2_SWIFTTX) return "SPORK_2_SWIFTTX";
-    if (id == SPORK_3_SWIFTTX_BLOCK_FILTERING) return "SPORK_3_SWIFTTX_BLOCK_FILTERING";
-    if (id == SPORK_5_MAX_VALUE) return "SPORK_5_MAX_VALUE";
-    if (id == SPORK_7_MASTERNODE_SCANNING) return "SPORK_7_MASTERNODE_SCANNING";
-    if (id == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) return "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT";
-    if (id == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT) return "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT";
-    if (id == SPORK_10_MASTERNODE_PAY_UPDATED_NODES) return "SPORK_10_MASTERNODE_PAY_UPDATED_NODES";
-    if (id == SPORK_11_LOCK_INVALID_UTXO) return "SPORK_11_LOCK_INVALID_UTXO";
-    if (id == SPORK_13_ENABLE_SUPERBLOCKS) return "SPORK_13_ENABLE_SUPERBLOCKS";
+    if (id == SPORK_2_SWIFTTX)
+        return "SPORK_2_SWIFTTX";
+    if (id == SPORK_3_SWIFTTX_BLOCK_FILTERING)
+        return "SPORK_3_SWIFTTX_BLOCK_FILTERING";
+    if (id == SPORK_5_MAX_VALUE)
+        return "SPORK_5_MAX_VALUE";
+    if (id == SPORK_7_MASTERNODE_SCANNING)
+        return "SPORK_7_MASTERNODE_SCANNING";
+    if (id == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)
+        return "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT";
+    if (id == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)
+        return "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT";
+    if (id == SPORK_10_MASTERNODE_PAY_UPDATED_NODES)
+        return "SPORK_10_MASTERNODE_PAY_UPDATED_NODES";
+    if (id == SPORK_11_LOCK_INVALID_UTXO)
+        return "SPORK_11_LOCK_INVALID_UTXO";
+    if (id == SPORK_13_ENABLE_SUPERBLOCKS)
+        return "SPORK_13_ENABLE_SUPERBLOCKS";
 
     return "Unknown";
 }
