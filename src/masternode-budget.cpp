@@ -1072,7 +1072,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
 
         mapSeenMasternodeBudgetVotes.insert(make_pair(vote.GetHash(), vote));
-        if (!vote.CheckSignature(true)) {
+        if (!vote.CheckSignature()) {
             LogPrint("masternode", "mvote - signature invalid\n");
             if (masternodeSync.IsSynced()) {
                 Misbehaving(pfrom->GetId(), 20);
@@ -1147,7 +1147,7 @@ void CBudgetManager::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         }
 
         mapSeenFinalizedBudgetVotes.insert(make_pair(vote.GetHash(), vote));
-        if (!vote.CheckSignature(true)) {
+        if (!vote.CheckSignature()) {
             LogPrint("masternode", "fbvote - signature invalid\n");
             if (masternodeSync.IsSynced()) {
                 Misbehaving(pfrom->GetId(), 20);

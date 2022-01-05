@@ -19,27 +19,52 @@
 using namespace std;
 using namespace boost;
 
-class CSporkMessage;
+
+#define MAKE_SPORK_DEF(name, defaultValue) CSporkDef(name, defaultValue, #name)
+
+std::vector<CSporkDef> sporkDefs = {
+    MAKE_SPORK_DEF(SPORK_2_SWIFTTX,                         0),             // ON
+    MAKE_SPORK_DEF(SPORK_3_SWIFTTX_BLOCK_FILTERING,         0),             // ON
+    MAKE_SPORK_DEF(SPORK_5_MAX_VALUE,                       1000),          // 1000 PIV
+    MAKE_SPORK_DEF(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT,  1523750400ULL), // ON
+    MAKE_SPORK_DEF(SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT,   4070908800ULL), // OFF
+    MAKE_SPORK_DEF(SPORK_10_MASTERNODE_PAY_UPDATED_NODES,   0),             // OFF
+    MAKE_SPORK_DEF(SPORK_11_LOCK_INVALID_UTXO,              4070908800ULL), // OFF
+    MAKE_SPORK_DEF(SPORK_13_ENABLE_SUPERBLOCKS,             4070908800ULL), // OFF
+    MAKE_SPORK_DEF(SPORK_14_NEW_PROTOCOL_ENFORCEMENT,       4070908800ULL), // OFF
+    MAKE_SPORK_DEF(SPORK_15_NEW_PROTOCOL_ENFORCEMENT_2,     4070908800ULL), // OFF
+    MAKE_SPORK_DEF(SPORK_16_ZEROCOIN_MAINTENANCE_MODE,      4070908800ULL), // OFF
+    MAKE_SPORK_DEF(SPORK_17_COLDSTAKING_ENFORCEMENT,        4070908800ULL), // OFF
+    MAKE_SPORK_DEF(SPORK_18_ZEROCOIN_PUBLICSPEND_V4,        4070908800ULL), // OFF
+};
+
 class CSporkManager;
 
 CSporkManager sporkManager;
-
 std::map<uint256, CSporkMessage> mapSporks;
-std::map<int, CSporkMessage> mapSporksActive;
+
+CSporkManager::CSporkManager()
+{
+    for (auto& sporkDef : sporkDefs) {
+        sporkDefsById.emplace((int)sporkDef.sporkId, &sporkDef);
+        sporkDefsByName.emplace(sporkDef.name, &sporkDef);
+    }
+}
+
+void CSporkManager::Clear()
+{
+    strMasterPrivKey = "";
+    mapSporksActive.clear();
+}
 
 // SnowGem: on startup load spork values from previous session if they exist in the sporkDB
 void CSporkManager::LoadSporksFromDB()
 {
-    for (int i = SPORK_START; i <= SPORK_END; ++i) {
-        // Since not all spork IDs are in use, we have to exclude undefined IDs
-        std::string strSpork = sporkManager.GetSporkNameByID(i);
-        if (strSpork == "Unknown")
-            continue;
-
+    for (const auto& sporkDef : sporkDefs) {
         // attempt to read spork from sporkDB
         CSporkMessage spork;
-        if (!pSporkDB->ReadSpork(i, spork)) {
-            LogPrintf("%s : no previous value for %s found in database\n", __func__, strSpork);
+        if (!pSporkDB->ReadSpork(sporkDef.sporkId, spork)) {
+            LogPrintf("%s : no previous value for %s found in database\n", __func__, sporkDef.name);
             continue;
         }
 
@@ -47,14 +72,15 @@ void CSporkManager::LoadSporksFromDB()
         mapSporks[spork.GetHash()] = spork;
         mapSporksActive[spork.nSporkID] = spork;
         std::time_t result = spork.nValue;
+        std::string sporkName = sporkManager.GetSporkNameByID(spork.nSporkID);
         // If SPORK Value is greater than 1,000,000 assume it's actually a Date and then convert to a more readable format
         if (spork.nValue > 1000000) {
-            LogPrintf("%s : loaded spork %s with value %d : %s", __func__,
-                      sporkManager.GetSporkNameByID(spork.nSporkID), spork.nValue,
-                      std::ctime(&result));
+            char* res = std::ctime(&result);
+            LogPrintf("%s : loaded spork %s with value %d : %s\n", __func__, sporkName.c_str(), spork.nValue,
+                      ((res) ? res : "no time") );
         } else {
             LogPrintf("%s : loaded spork %s with value %d\n", __func__,
-                      sporkManager.GetSporkNameByID(spork.nSporkID), spork.nValue);
+                      sporkName, spork.nValue);
         }
     }
 }
@@ -64,9 +90,15 @@ void CSporkManager::ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStr
     if (fLiteMode)
         return; //disable all obfuscation/masternode related functionality
 
+    int nChainHeight = 0;
+    {
+        LOCK(cs_main);
+        if (chainActive.Tip() == nullptr)
+            return;
+        nChainHeight = chainActive.Height();
+    }
+
     if (strCommand == "spork") {
-        //LogPrintf("ProcessSpork::spork\n");
-        CDataStream vMsg(vRecv);
         CSporkMessage spork;
         vRecv >> spork;
 
@@ -75,8 +107,22 @@ void CSporkManager::ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStr
 
         // Ignore spork messages about unknown/deleted sporks
         std::string strSpork = sporkManager.GetSporkNameByID(spork.nSporkID);
-        if (strSpork == "Unknown")
+        if (strSpork == "Unknown") return;
+
+        if (spork.nTimeSigned > GetAdjustedTime() + 2 * 60 * 60) {
+            LOCK(cs_main);
+            LogPrintf("%s : ERROR: too far into the future\n", __func__);
+            Misbehaving(pfrom->GetId(), 100);
             return;
+        }
+
+        // reject old signatures 600 blocks after hard-fork
+        if (spork.nMessVersion != MessageVersion::MESS_VER_HASH) {
+            if (NetworkUpgradeActive(nChainHeight - 600, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+                LogPrintf("%s : nMessVersion=%d not accepted anymore at block %d\n", __func__, spork.nMessVersion, nChainHeight);
+                return;
+            }
+        }
 
         uint256 hash = spork.GetHash();
         {
@@ -127,39 +173,24 @@ void CSporkManager::ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStr
     }
 }
 
-
 // grab the value of the spork on the network, or the default
 int64_t CSporkManager::GetSporkValue(int nSporkID)
 {
-    int64_t r = -1;
+    LOCK(cs);
 
     if (mapSporksActive.count(nSporkID)) {
-        r = mapSporksActive[nSporkID].nValue;
-    } else {
-        if (nSporkID == SPORK_2_SWIFTTX)
-            r = SPORK_2_SWIFTTX_DEFAULT;
-        if (nSporkID == SPORK_3_SWIFTTX_BLOCK_FILTERING)
-            r = SPORK_3_SWIFTTX_BLOCK_FILTERING_DEFAULT;
-        if (nSporkID == SPORK_5_MAX_VALUE)
-            r = SPORK_5_MAX_VALUE_DEFAULT;
-        if (nSporkID == SPORK_7_MASTERNODE_SCANNING)
-            r = SPORK_7_MASTERNODE_SCANNING_DEFAULT;
-        if (nSporkID == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)
-            r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
-        if (nSporkID == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)
-            r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
-        if (nSporkID == SPORK_10_MASTERNODE_PAY_UPDATED_NODES)
-            r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
-        if (nSporkID == SPORK_11_LOCK_INVALID_UTXO)
-            r = SPORK_11_LOCK_INVALID_UTXO_DEFAULT;
-        if (nSporkID == SPORK_13_ENABLE_SUPERBLOCKS)
-            r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
+        return mapSporksActive[nSporkID].nValue;
 
-        if (r == -1)
-            LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
+    } else {
+        auto it = sporkDefsById.find(nSporkID);
+        if (it != sporkDefsById.end()) {
+            return it->second->defaultValue;
+        } else {
+            LogPrintf("%s : Unknown Spork %d\n", __func__, nSporkID);
+        }
     }
 
-    return r;
+    return -1;
 }
 
 // grab the spork value, and see if it's off
@@ -269,50 +300,28 @@ bool CSporkManager::SetPrivKey(std::string strPrivKey)
     return false;
 }
 
-int CSporkManager::GetSporkIDByName(std::string strName)
+SporkId CSporkManager::GetSporkIDByName(std::string strName)
 {
-    if (strName == "SPORK_2_SWIFTTX")
-        return SPORK_2_SWIFTTX;
-    if (strName == "SPORK_3_SWIFTTX_BLOCK_FILTERING")
-        return SPORK_3_SWIFTTX_BLOCK_FILTERING;
-    if (strName == "SPORK_5_MAX_VALUE")
-        return SPORK_5_MAX_VALUE;
-    if (strName == "SPORK_7_MASTERNODE_SCANNING")
-        return SPORK_7_MASTERNODE_SCANNING;
-    if (strName == "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT")
-        return SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT;
-    if (strName == "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT")
-        return SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT;
-    if (strName == "SPORK_10_MASTERNODE_PAY_UPDATED_NODES")
-        return SPORK_10_MASTERNODE_PAY_UPDATED_NODES;
-    if (strName == "SPORK_11_LOCK_INVALID_UTXO")
-        return SPORK_11_LOCK_INVALID_UTXO;
-    if (strName == "SPORK_13_ENABLE_SUPERBLOCKS")
-        return SPORK_13_ENABLE_SUPERBLOCKS;
-
-    return -1;
+    auto it = sporkDefsByName.find(strName);
+    if (it == sporkDefsByName.end()) {
+        LogPrintf("%s : Unknown Spork name '%s'\n", __func__, strName);
+        return SPORK_INVALID;
+    }
+    return (SporkId)it->second->sporkId;
 }
 
-std::string CSporkManager::GetSporkNameByID(int id)
+std::string CSporkManager::GetSporkNameByID(int nSporkID)
 {
-    if (id == SPORK_2_SWIFTTX)
-        return "SPORK_2_SWIFTTX";
-    if (id == SPORK_3_SWIFTTX_BLOCK_FILTERING)
-        return "SPORK_3_SWIFTTX_BLOCK_FILTERING";
-    if (id == SPORK_5_MAX_VALUE)
-        return "SPORK_5_MAX_VALUE";
-    if (id == SPORK_7_MASTERNODE_SCANNING)
-        return "SPORK_7_MASTERNODE_SCANNING";
-    if (id == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)
-        return "SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT";
-    if (id == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)
-        return "SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT";
-    if (id == SPORK_10_MASTERNODE_PAY_UPDATED_NODES)
-        return "SPORK_10_MASTERNODE_PAY_UPDATED_NODES";
-    if (id == SPORK_11_LOCK_INVALID_UTXO)
-        return "SPORK_11_LOCK_INVALID_UTXO";
-    if (id == SPORK_13_ENABLE_SUPERBLOCKS)
-        return "SPORK_13_ENABLE_SUPERBLOCKS";
+    auto it = sporkDefsById.find(nSporkID);
+    if (it == sporkDefsById.end()) {
+        LogPrint("%s : Unknown Spork ID %d\n", __func__, nSporkID);
+        return "Unknown";
+    }
+    return it->second->name;
+}
 
-    return "Unknown";
+std::string CSporkManager::ToString() const
+{
+    LOCK(cs);
+    return strprintf("Sporks: %llu", mapSporksActive.size());
 }
