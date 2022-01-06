@@ -7,7 +7,7 @@
 #define BITCOIN_CONSENSUS_PARAMS_H
 
 #include "uint256.h"
-#include "optional.h"
+#include <boost/optional.hpp>
 
 int32_t MAX_BLOCK_SIZE(int32_t height);
 
