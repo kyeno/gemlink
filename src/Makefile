@@ -412,6 +412,7 @@ libbitcoin_wallet_a_LIBADD =
 am_libbitcoin_wallet_a_OBJECTS =  \
 	libbitcoin_wallet_a-activemasternode.$(OBJEXT) \
 	libbitcoin_wallet_a-utiltest.$(OBJEXT) \
+	util/libbitcoin_wallet_a-threadnames.$(OBJEXT) \
 	libbitcoin_wallet_a-zcbenchmarks.$(OBJEXT) \
 	wallet/libbitcoin_wallet_a-asyncrpcoperation_common.$(OBJEXT) \
 	wallet/libbitcoin_wallet_a-asyncrpcoperation_mergetoaddress.$(OBJEXT) \
@@ -969,6 +970,7 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	test/$(DEPDIR)/test_bitcoin-univalue_tests.Po \
 	test/$(DEPDIR)/test_bitcoin-util_tests.Po \
 	util/$(DEPDIR)/libbitcoin_util_a-threadnames.Po \
+	util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Po \
 	wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_common.Po \
 	wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_mergetoaddress.Po \
 	wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_saplingconsolidation.Po \
@@ -1754,6 +1756,7 @@ libbitcoin_wallet_a_SOURCES = \
   activemasternode.cpp \
   utiltest.cpp \
   utiltest.h \
+  util/threadnames.cpp \
   zcbenchmarks.cpp \
   zcbenchmarks.h \
   wallet/asyncrpcoperation_common.cpp \
@@ -2376,6 +2379,8 @@ libbitcoin_util.a: $(libbitcoin_util_a_OBJECTS) $(libbitcoin_util_a_DEPENDENCIES
 	$(AM_V_at)-rm -f libbitcoin_util.a
 	$(AM_V_AR)$(libbitcoin_util_a_AR) libbitcoin_util.a $(libbitcoin_util_a_OBJECTS) $(libbitcoin_util_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libbitcoin_util.a
+util/libbitcoin_wallet_a-threadnames.$(OBJEXT): util/$(am__dirstamp) \
+	util/$(DEPDIR)/$(am__dirstamp)
 wallet/$(am__dirstamp):
 	@$(MKDIR_P) wallet
 	@: > wallet/$(am__dirstamp)
@@ -2950,6 +2955,7 @@ include test/$(DEPDIR)/test_bitcoin-uint256_tests.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-univalue_tests.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-util_tests.Po # am--include-marker
 include util/$(DEPDIR)/libbitcoin_util_a-threadnames.Po # am--include-marker
+include util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Po # am--include-marker
 include wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_common.Po # am--include-marker
 include wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_mergetoaddress.Po # am--include-marker
 include wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_saplingconsolidation.Po # am--include-marker
@@ -4395,6 +4401,20 @@ libbitcoin_wallet_a-utiltest.obj: utiltest.cpp
 #	$(AM_V_CXX)source='utiltest.cpp' object='libbitcoin_wallet_a-utiltest.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_wallet_a-utiltest.obj `if test -f 'utiltest.cpp'; then $(CYGPATH_W) 'utiltest.cpp'; else $(CYGPATH_W) '$(srcdir)/utiltest.cpp'; fi`
+
+util/libbitcoin_wallet_a-threadnames.o: util/threadnames.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT util/libbitcoin_wallet_a-threadnames.o -MD -MP -MF util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Tpo -c -o util/libbitcoin_wallet_a-threadnames.o `test -f 'util/threadnames.cpp' || echo '$(srcdir)/'`util/threadnames.cpp
+	$(AM_V_at)$(am__mv) util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Tpo util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Po
+#	$(AM_V_CXX)source='util/threadnames.cpp' object='util/libbitcoin_wallet_a-threadnames.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o util/libbitcoin_wallet_a-threadnames.o `test -f 'util/threadnames.cpp' || echo '$(srcdir)/'`util/threadnames.cpp
+
+util/libbitcoin_wallet_a-threadnames.obj: util/threadnames.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT util/libbitcoin_wallet_a-threadnames.obj -MD -MP -MF util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Tpo -c -o util/libbitcoin_wallet_a-threadnames.obj `if test -f 'util/threadnames.cpp'; then $(CYGPATH_W) 'util/threadnames.cpp'; else $(CYGPATH_W) '$(srcdir)/util/threadnames.cpp'; fi`
+	$(AM_V_at)$(am__mv) util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Tpo util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Po
+#	$(AM_V_CXX)source='util/threadnames.cpp' object='util/libbitcoin_wallet_a-threadnames.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o util/libbitcoin_wallet_a-threadnames.obj `if test -f 'util/threadnames.cpp'; then $(CYGPATH_W) 'util/threadnames.cpp'; else $(CYGPATH_W) '$(srcdir)/util/threadnames.cpp'; fi`
 
 libbitcoin_wallet_a-zcbenchmarks.o: zcbenchmarks.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_wallet_a-zcbenchmarks.o -MD -MP -MF $(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Tpo -c -o libbitcoin_wallet_a-zcbenchmarks.o `test -f 'zcbenchmarks.cpp' || echo '$(srcdir)/'`zcbenchmarks.cpp
@@ -6937,6 +6957,7 @@ distclean: distclean-recursive
 	-rm -f test/$(DEPDIR)/test_bitcoin-univalue_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-util_tests.Po
 	-rm -f util/$(DEPDIR)/libbitcoin_util_a-threadnames.Po
+	-rm -f util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Po
 	-rm -f wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_common.Po
 	-rm -f wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_mergetoaddress.Po
 	-rm -f wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_saplingconsolidation.Po
@@ -7223,6 +7244,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f test/$(DEPDIR)/test_bitcoin-univalue_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-util_tests.Po
 	-rm -f util/$(DEPDIR)/libbitcoin_util_a-threadnames.Po
+	-rm -f util/$(DEPDIR)/libbitcoin_wallet_a-threadnames.Po
 	-rm -f wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_common.Po
 	-rm -f wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_mergetoaddress.Po
 	-rm -f wallet/$(DEPDIR)/libbitcoin_wallet_a-asyncrpcoperation_saplingconsolidation.Po

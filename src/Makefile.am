@@ -311,6 +311,7 @@ libbitcoin_wallet_a_SOURCES = \
   activemasternode.cpp \
   utiltest.cpp \
   utiltest.h \
+  util/threadnames.cpp \
   zcbenchmarks.cpp \
   zcbenchmarks.h \
   wallet/asyncrpcoperation_common.cpp \
