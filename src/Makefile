@@ -89,7 +89,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-pc-linux-gnu
-host_triplet = x86_64-unknown-linux-gnu
+host_triplet = x86_64-w64-mingw32
 am__append_1 = -I$(srcdir)/leveldb/include \
 	-I$(srcdir)/leveldb/helpers/memenv
 am__append_2 = $(builddir)/leveldb/libleveldb.a
@@ -106,9 +106,9 @@ am__append_7 = \
   ${EQUIHASH_TROMP_SOURCES}
 
 #am__append_8 = compat/glibc_compat.cpp
-#am__append_9 = bitcoind-res.rc
-#am__append_10 = bitcoin-cli-res.rc
-#am__append_11 = bitcoin-tx-res.rc
+am__append_9 = bitcoind-res.rc
+am__append_10 = bitcoin-cli-res.rc
+am__append_11 = bitcoin-tx-res.rc
 ##am__append_12 = compat/glibc_compat.cpp
 am__append_13 = test/test_bitcoin snowgem-gtest
 am__append_14 = test/test_bitcoin snowgem-gtest
@@ -305,6 +305,7 @@ am_libbitcoin_server_a_OBJECTS =  \
 	libbitcoin_server_a-init.$(OBJEXT) \
 	libbitcoin_server_a-dbwrapper.$(OBJEXT) \
 	libbitcoin_server_a-main.$(OBJEXT) \
+	libbitcoin_server_a-masternodeconfig.$(OBJEXT) \
 	libbitcoin_server_a-merkleblock.$(OBJEXT) \
 	libbitcoin_server_a-messagesigner.$(OBJEXT) \
 	libbitcoin_server_a-metrics.$(OBJEXT) \
@@ -494,15 +495,13 @@ libzcashconsensus_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 #am_libzcashconsensus_la_rpath = -rpath \
 #	$(libdir)
 am__snowgem_cli_SOURCES_DIST = bitcoin-cli.cpp bitcoin-cli-res.rc
-#am__objects_5 = bitcoin-cli-res.$(OBJEXT)
+am__objects_5 = bitcoin-cli-res.$(OBJEXT)
 am_snowgem_cli_OBJECTS = snowgem_cli-bitcoin-cli.$(OBJEXT) \
 	$(am__objects_5)
 snowgem_cli_OBJECTS = $(am_snowgem_cli_OBJECTS)
 am__DEPENDENCIES_1 =
-#am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
-#	univalue/libunivalue.la
-am__DEPENDENCIES_2 = univalue/libunivalue.la \
-	univalue/libunivalue.la
+#am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
+am__DEPENDENCIES_2 = univalue/libunivalue.la
 snowgem_cli_DEPENDENCIES = $(LIBBITCOIN_CLI) $(am__DEPENDENCIES_2) \
 	$(LIBBITCOIN_UTIL) $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) $(libzcash) \
@@ -588,7 +587,7 @@ snowgem_gtest_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) $(snowgem_gtest_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__snowgem_tx_SOURCES_DIST = bitcoin-tx.cpp bitcoin-tx-res.rc
-#am__objects_8 = bitcoin-tx-res.$(OBJEXT)
+am__objects_8 = bitcoin-tx-res.$(OBJEXT)
 am_snowgem_tx_OBJECTS = snowgem_tx-bitcoin-tx.$(OBJEXT) \
 	$(am__objects_8)
 snowgem_tx_OBJECTS = $(am_snowgem_tx_OBJECTS)
@@ -600,7 +599,7 @@ snowgem_tx_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgem_tx_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgem_tx_LDFLAGS) $(LDFLAGS) -o $@
 am__snowgemd_SOURCES_DIST = bitcoind.cpp bitcoind-res.rc
-#am__objects_9 = bitcoind-res.$(OBJEXT)
+am__objects_9 = bitcoind-res.$(OBJEXT)
 am_snowgemd_OBJECTS = snowgemd-bitcoind.$(OBJEXT) $(am__objects_9)
 snowgemd_OBJECTS = $(am_snowgemd_OBJECTS)
 snowgemd_DEPENDENCIES = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) \
@@ -791,6 +790,7 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_server_a-httpserver.Po \
 	./$(DEPDIR)/libbitcoin_server_a-init.Po \
 	./$(DEPDIR)/libbitcoin_server_a-main.Po \
+	./$(DEPDIR)/libbitcoin_server_a-masternodeconfig.Po \
 	./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po \
 	./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po \
 	./$(DEPDIR)/libbitcoin_server_a-metrics.Po \
@@ -1257,7 +1257,7 @@ am__set_TESTS_bases = \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
 TEST_SUITE_LOG = test-suite.log
-TEST_EXTENSIONS =  .test
+TEST_EXTENSIONS = .exe .test
 LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 LOG_COMPILE = $(LOG_COMPILER) $(AM_LOG_FLAGS) $(LOG_FLAGS)
 am__set_b = \
@@ -1271,7 +1271,7 @@ am__set_b = \
       b='$*';; \
   esac
 am__test_logs1 = $(TESTS:=.log)
-am__test_logs2 = $(am__test_logs1:.log=.log)
+am__test_logs2 = $(am__test_logs1:.exe.log=.log)
 TEST_LOGS = $(am__test_logs2:.test.log=.log)
 TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
@@ -1309,7 +1309,7 @@ am__relativize = \
 ACLOCAL = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing aclocal-1.16
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 0
-AR = ar
+AR = /usr/bin/x86_64-w64-mingw32-ar
 ARFLAGS = cr
 AUTOCONF = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing autoconf
 AUTOHEADER = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing autoheader
@@ -1321,38 +1321,38 @@ BITCOIN_CLI_NAME = snowgem-cli
 BITCOIN_DAEMON_NAME = snowgemd
 BITCOIN_TX_NAME = snowgem-tx
 BOOST_CHRONO_LIB = -lboost_chrono
-BOOST_CPPFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../include
+BOOST_CPPFLAGS = -mthreads -I/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../include
 BOOST_FILESYSTEM_LIB = -lboost_filesystem
-BOOST_LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib
-BOOST_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
+BOOST_LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib
+BOOST_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
 BOOST_PROGRAM_OPTIONS_LIB = -lboost_program_options
 BOOST_SYSTEM_LIB = -lboost_system
 BOOST_THREAD_LIB = -lboost_thread
 BOOST_UNIT_TEST_FRAMEWORK_LIB = -lboost_unit_test_framework
 BREW = 
-CC = /mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../native/bin/ccache gcc -m64
-CCACHE = /mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../native/bin/ccache
+CC = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache x86_64-w64-mingw32-gcc-posix
+CCACHE = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache
 CCDEPMODE = depmode=gcc3
-CFLAGS = -pipe -O1 
+CFLAGS = -pipe -std=c17 -O2 
 CLIENT_VERSION_BUILD = 50
 CLIENT_VERSION_IS_RELEASE = true
 CLIENT_VERSION_MAJOR = 3
 CLIENT_VERSION_MINOR = 1
 CLIENT_VERSION_REVISION = 4
 COPYRIGHT_YEAR = 2021
-CPP = gcc -m64 -E
-CPPFILT = /usr/bin/c++filt
-CPPFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS -DMULTICORE
-CRYPTO_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-CRYPTO_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -lcrypto -ldl -pthread
-CXX = /mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../native/bin/ccache g++ -m64 -std=c++17
-CXXCPP = g++ -m64 -std=c++17 -E
+CPP = x86_64-w64-mingw32-gcc-posix -E
+CPPFILT = /usr/bin/x86_64-w64-mingw32-c++filt
+CPPFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -D_FILE_OFFSET_BITS=64 -DMULTICORE
+CRYPTO_CFLAGS = 
+CRYPTO_LIBS = -lcrypto
+CXX = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache x86_64-w64-mingw32-g++-posix -std=c++17
+CXXCPP = x86_64-w64-mingw32-g++-posix -std=c++17 -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -pipe -O1 -g -fopenmp -fwrapv -fno-strict-aliasing -Wno-builtin-declaration-mismatch
+CXXFLAGS = -pipe -std=c17 -std=c++17 -O2 -g -fopenmp -fwrapv -fno-strict-aliasing -Wno-builtin-declaration-mismatch
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-DLLTOOL = false
+DLLTOOL = x86_64-w64-mingw32-dlltool
 DSYMUTIL = 
 DUMPBIN = 
 ECHO_C = 
@@ -1360,20 +1360,20 @@ ECHO_N = -n
 ECHO_T = 
 EGREP = /usr/bin/grep -E
 ERROR_CXXFLAGS = 
-EVENT_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-EVENT_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -levent
-EVENT_PTHREADS_CFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-EVENT_PTHREADS_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -levent_pthreads -levent
-EXEEXT = 
+EVENT_CFLAGS = 
+EVENT_LIBS = -levent
+EVENT_PTHREADS_CFLAGS = 
+EVENT_PTHREADS_LIBS = 
+EXEEXT = .exe
 FGREP = /usr/bin/grep -F
-GCOV = /usr/bin/gcov
+GCOV = /usr/bin/x86_64-w64-mingw32-gcov
 GENHTML = 
 GENISOIMAGE = 
 GIT = /usr/bin/git
 GREP = /usr/bin/grep
 HARDENED_CPPFLAGS =  -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
 HARDENED_CXXFLAGS =  -Wformat -Wformat-security -Wstack-protector -fstack-protector-all
-HARDENED_LDFLAGS =  -Wl,-z,relro -Wl,-z,now -pie
+HARDENED_LDFLAGS =  -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va
 HAVE_CXX17 = 1
 HEXDUMP = /usr/bin/hexdump
 INSTALL = /usr/bin/install -c
@@ -1383,31 +1383,31 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LCOV = 
-LD = /usr/bin/ld -m elf_x86_64
-LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib 
+LD = /usr/bin/x86_64-w64-mingw32-ld
+LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib 
 LEVELDB_CPPFLAGS =  $(am__append_1)
-LEVELDB_TARGET_FLAGS = 
+LEVELDB_TARGET_FLAGS = TARGET_OS=OS_WINDOWS_CROSSCOMPILE
 LIBLEVELDB =  $(am__append_2)
 LIBMEMENV =  $(am__append_3)
 LIBOBJS = 
-LIBS = -lanl 
+LIBS = -lssp -lcrypt32 -liphlpapi -lshlwapi -lmswsock -lws2_32 -ladvapi32 -lrpcrt4 -luuid -loleaut32 -lole32 -lcomctl32 -lshell32 -lwinmm -lwinspool -lcomdlg32 -lgdi32 -luser32 -lkernel32 -lmingwthrd 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_APP_LDFLAGS = 
+LIBTOOL_APP_LDFLAGS =  -all-static
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
 LT_SYS_LIBRARY_PATH = 
 MAINT = 
 MAKEINFO = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing makeinfo
-MAKENSIS = 
+MAKENSIS = none
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
-NM = nm
+NM = x86_64-w64-mingw32-nm
 NMEDIT = 
-OBJCXX = g++ -m64
+OBJCXX = x86_64-w64-mingw32-g++-posix
 OBJCXXDEPMODE = depmode=gcc3
 OBJCXXFLAGS = 
-OBJDUMP = objdump
+OBJDUMP = x86_64-w64-mingw32-objdump
 OBJEXT = o
 OTOOL = 
 OTOOL64 = 
@@ -1419,36 +1419,36 @@ PACKAGE_TARNAME = snowgem
 PACKAGE_URL = 
 PACKAGE_VERSION = 3.1.4
 PATH_SEPARATOR = :
-PIC_FLAGS = -fPIC
-PIE_FLAGS = -fPIE
+PIC_FLAGS = 
+PIE_FLAGS = 
 PKG_CONFIG = /usr/bin/pkg-config --static
-PKG_CONFIG_LIBDIR = /mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../lib/pkgconfig
-PKG_CONFIG_PATH = /mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/share/../share/pkgconfig
+PKG_CONFIG_LIBDIR = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib/pkgconfig
+PKG_CONFIG_PATH = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../share/pkgconfig
 PORT = 
 PROTON_LIBS = 
-PTHREAD_CC = gcc -m64
+PTHREAD_CC = x86_64-w64-mingw32-gcc-posix
 PTHREAD_CFLAGS = -pthread
 PTHREAD_LIBS = 
-RANLIB = ranlib
-READELF = /usr/bin/readelf
+RANLIB = /usr/bin/x86_64-w64-mingw32-ranlib
+READELF = /usr/bin/x86_64-w64-mingw32-readelf
 RELDFLAGS = 
 SAN_CXXFLAGS = 
 SAN_LDFLAGS = 
 SED = /usr/bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
-SSL_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-SSL_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -lssl -lcrypto -ldl -pthread
-STRIP = /usr/bin/strip
+SSL_CFLAGS = 
+SSL_LIBS = -lssl
+STRIP = /usr/bin/x86_64-w64-mingw32-strip
 TESTDEFS = 
 UNIVALUE_CFLAGS = -I$(srcdir)/univalue/include
 UNIVALUE_LIBS = univalue/libunivalue.la
 VERSION = 3.1.4
-WINDOWS_BITS = 
-WINDRES = 
+WINDOWS_BITS = 64
+WINDRES = /usr/bin/x86_64-w64-mingw32-windres
 XGETTEXT = 
-ZMQ_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/include
-ZMQ_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-unknown-linux-gnu/lib -lzmq -lstdc++ -lpthread -lrt
+ZMQ_CFLAGS =  -DZMQ_STATIC
+ZMQ_LIBS = -lzmq
 abs_builddir = /mnt/m/github/gemlink/gemlink/src
 abs_srcdir = /mnt/m/github/gemlink/gemlink/src
 abs_top_builddir = /mnt/m/github/gemlink/gemlink
@@ -1476,18 +1476,18 @@ datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = x86_64-unknown-linux-gnu
-host_alias = x86_64-unknown-linux-gnu
+host = x86_64-w64-mingw32
+host_alias = x86_64-w64-mingw32
 host_cpu = x86_64
-host_os = linux-gnu
-host_vendor = unknown
+host_os = mingw32
+host_vendor = w64
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
 install_sh = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
-libzcash_LIBS = -lboost_system -lcrypto -lsodium -lrustzcash -ldl
+libzcash_LIBS = -lboost_system -lcrypto -lsodium -lrustzcash
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
 mandir = ${datarootdir}/man
@@ -1519,7 +1519,6 @@ EXTRA_LIBRARIES = $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_WALLET) $(LIBBITCOIN_ZMQ) $(LIBBITCOIN_PROTON) \
 	$(libzcash)
 #LIBUNIVALUE = $(UNIVALUE_LIBS)
-LIBUNIVALUE = univalue/libunivalue.la
 LIBUNIVALUE = univalue/libunivalue.la
 BITCOIN_CONFIG_INCLUDES = -I$(builddir)/config
 BITCOIN_INCLUDES = -I$(builddir) -I$(builddir)/obj $(BDB_CPPFLAGS) \
@@ -1703,6 +1702,7 @@ libbitcoin_server_a_SOURCES = \
   init.cpp \
   dbwrapper.cpp \
   main.cpp \
+  masternodeconfig.cpp \
   merkleblock.cpp \
   messagesigner.cpp \
   metrics.cpp \
@@ -1921,8 +1921,8 @@ libzcash_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT \
 	-DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE \
 	-fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES) \
 	-DMONTGOMERY_OUTPUT
-libzcash_a_CXXFLAGS = $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
-libzcash_a_LDFLAGS = $(AM_LDFLAGS)
+libzcash_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) $(HARDENED_CXXFLAGS) \
+	-fwrapv -fno-strict-aliasing
 
 # snowgemconsensus library #
 #include_HEADERS = script/snowgemconsensus.h
@@ -2771,6 +2771,7 @@ include ./$(DEPDIR)/libbitcoin_server_a-httprpc.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-httpserver.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-init.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-main.Po # am--include-marker
+include ./$(DEPDIR)/libbitcoin_server_a-masternodeconfig.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-metrics.Po # am--include-marker
@@ -3750,6 +3751,20 @@ libbitcoin_server_a-main.obj: main.cpp
 #	$(AM_V_CXX)source='main.cpp' object='libbitcoin_server_a-main.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
+
+libbitcoin_server_a-masternodeconfig.o: masternodeconfig.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-masternodeconfig.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-masternodeconfig.Tpo -c -o libbitcoin_server_a-masternodeconfig.o `test -f 'masternodeconfig.cpp' || echo '$(srcdir)/'`masternodeconfig.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-masternodeconfig.Tpo $(DEPDIR)/libbitcoin_server_a-masternodeconfig.Po
+#	$(AM_V_CXX)source='masternodeconfig.cpp' object='libbitcoin_server_a-masternodeconfig.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-masternodeconfig.o `test -f 'masternodeconfig.cpp' || echo '$(srcdir)/'`masternodeconfig.cpp
+
+libbitcoin_server_a-masternodeconfig.obj: masternodeconfig.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-masternodeconfig.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-masternodeconfig.Tpo -c -o libbitcoin_server_a-masternodeconfig.obj `if test -f 'masternodeconfig.cpp'; then $(CYGPATH_W) 'masternodeconfig.cpp'; else $(CYGPATH_W) '$(srcdir)/masternodeconfig.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-masternodeconfig.Tpo $(DEPDIR)/libbitcoin_server_a-masternodeconfig.Po
+#	$(AM_V_CXX)source='masternodeconfig.cpp' object='libbitcoin_server_a-masternodeconfig.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-masternodeconfig.obj `if test -f 'masternodeconfig.cpp'; then $(CYGPATH_W) 'masternodeconfig.cpp'; else $(CYGPATH_W) '$(srcdir)/masternodeconfig.cpp'; fi`
 
 libbitcoin_server_a-merkleblock.o: merkleblock.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-merkleblock.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-merkleblock.Tpo -c -o libbitcoin_server_a-merkleblock.o `test -f 'merkleblock.cpp' || echo '$(srcdir)/'`merkleblock.cpp
@@ -6557,13 +6572,13 @@ snowgem-gtest.log: snowgem-gtest$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-#.test$(EXEEXT).log:
-#	@p='$<'; \
-#	$(am__set_b); \
-#	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
-#	--log-file $$b.log --trs-file $$b.trs \
-#	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
-#	"$$tst" $(AM_TESTS_FD_REDIRECT)
+.test$(EXEEXT).log:
+	@p='$<'; \
+	$(am__set_b); \
+	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 
 distdir: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) distdir-am
@@ -6743,6 +6758,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-httpserver.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-init.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-main.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_server_a-masternodeconfig.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-metrics.Po
@@ -7028,6 +7044,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-httpserver.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-init.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-main.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_server_a-masternodeconfig.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-metrics.Po

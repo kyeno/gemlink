@@ -4,12 +4,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "masternode-budget.h"
 #include "activemasternode.h"
 #include "db.h"
 #include "init.h"
 #include "key_io.h"
 #include "main.h"
+#include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
 #include "masternodeconfig.h"
@@ -47,101 +47,6 @@ void budgetToJSON(CBudgetProposal* pbudgetProposal, UniValue& bObj)
     bObj.push_back(Pair("IsValid", pbudgetProposal->IsValid(strError)));
     bObj.push_back(Pair("IsValidReason", strError.c_str()));
     bObj.push_back(Pair("fValid", pbudgetProposal->fValid));
-}
-
-// This command is retained for backwards compatibility, but is depreciated.
-// Future removal of this command is planned to keep things clean.
-UniValue mnbudget(const UniValue& params, bool fHelp)
-{
-    string strCommand;
-    if (params.size() >= 1)
-        strCommand = params[0].get_str();
-
-    if (fHelp ||
-        (strCommand != "vote-alias" && strCommand != "vote-many" && strCommand != "prepare" && strCommand != "submit" && strCommand != "vote" && strCommand != "getvotes" && strCommand != "getinfo" && strCommand != "show" && strCommand != "projection" && strCommand != "check" && strCommand != "nextblock"))
-        throw runtime_error(
-            "mnbudget \"command\"... ( \"passphrase\" )\n"
-            "\nVote or show current budgets\n"
-            "This command is depreciated, please see individual command documentation for future reference\n\n"
-
-            "\nAvailable commands:\n"
-            "  prepare            - Prepare proposal for network by signing and creating tx\n"
-            "  submit             - Submit proposal for network\n"
-            "  vote-many          - Vote on a SnowGem initiative\n"
-            "  vote-alias         - Vote on a SnowGem initiative\n"
-            "  vote               - Vote on a SnowGem initiative/budget\n"
-            "  getvotes           - Show current masternode budgets\n"
-            "  getinfo            - Show current masternode budgets\n"
-            "  show               - Show all budgets\n"
-            "  projection         - Show the projection of which proposals will be paid the next cycle\n"
-            "  check              - Scan proposals and remove invalid\n"
-            "  nextblock          - Get next superblock for budget system\n");
-
-    if (strCommand == "nextblock") {
-        UniValue newParams(UniValue::VARR);
-        for (unsigned int i = 1; i < params.size(); i++) {
-            newParams.push_back(params[i]);
-        }
-        return getnextsuperblock(newParams, fHelp);
-    }
-
-    if (strCommand == "prepare") {
-        UniValue newParams(UniValue::VARR);
-        for (unsigned int i = 1; i < params.size(); i++) {
-            newParams.push_back(params[i]);
-        }
-        return preparebudget(newParams, fHelp);
-    }
-
-    if (strCommand == "submit") {
-        UniValue newParams(UniValue::VARR);
-        for (unsigned int i = 1; i < params.size(); i++) {
-            newParams.push_back(params[i]);
-        }
-        return submitbudget(newParams, fHelp);
-    }
-
-    if (strCommand == "vote" || strCommand == "vote-many" || strCommand == "vote-alias") {
-        if (strCommand == "vote-alias")
-            throw runtime_error(
-                "vote-alias is not supported with this command\n"
-                "Please use mnbudgetvote instead.\n");
-        return mnbudgetvote(params, fHelp);
-    }
-
-    if (strCommand == "projection") {
-        UniValue newParams(UniValue::VARR);
-        for (unsigned int i = 1; i < params.size(); i++) {
-            newParams.push_back(params[i]);
-        }
-        return getbudgetprojection(newParams, fHelp);
-    }
-
-    if (strCommand == "show" || strCommand == "getinfo") {
-        UniValue newParams(UniValue::VARR);
-        for (unsigned int i = 1; i < params.size(); i++) {
-            newParams.push_back(params[i]);
-        }
-        return getbudgetinfo(newParams, fHelp);
-    }
-
-    if (strCommand == "getvotes") {
-        UniValue newParams(UniValue::VARR);
-        for (unsigned int i = 1; i < params.size(); i++) {
-            newParams.push_back(params[i]);
-        }
-        return getbudgetvotes(newParams, fHelp);
-    }
-
-    if (strCommand == "check") {
-        UniValue newParams(UniValue::VARR);
-        for (unsigned int i = 1; i < params.size(); i++) {
-            newParams.push_back(params[i]);
-        }
-        return checkbudgets(newParams, fHelp);
-    }
-
-    return NullUniValue;
 }
 
 UniValue preparebudget(const UniValue& params, bool fHelp)

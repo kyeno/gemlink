@@ -40,7 +40,6 @@ LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
-LIBUNIVALUE=univalue/libunivalue.la
 libzcash=libzcash.a
 if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
@@ -257,6 +256,7 @@ libbitcoin_server_a_SOURCES = \
   init.cpp \
   dbwrapper.cpp \
   main.cpp \
+  masternodeconfig.cpp \
   merkleblock.cpp \
   messagesigner.cpp \
   metrics.cpp \
@@ -544,9 +544,7 @@ libzcash_a_SOURCES = \
 
 libzcash_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
 libzcash_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libzcash_a_CXXFLAGS = $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
-
-libzcash_a_LDFLAGS = $(AM_LDFLAGS)
+libzcash_a_CXXFLAGS += $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
 
 libzcash_a_CPPFLAGS += -DMONTGOMERY_OUTPUT
 

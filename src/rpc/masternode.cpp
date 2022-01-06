@@ -9,7 +9,6 @@
 #include "init.h"
 #include "key_io.h"
 #include "main.h"
-#include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
 #include "masternodeconfig.h"

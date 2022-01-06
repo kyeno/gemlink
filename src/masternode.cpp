@@ -8,7 +8,6 @@
 
 #include "addrman.h"
 #include "init.h"
-#include "masternodeconfig.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
 #include "consensus/validation.h"
