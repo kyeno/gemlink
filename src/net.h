@@ -73,8 +73,8 @@ CNode* FindNode(const CSubNet& subNet);
 CNode* FindNode(const std::string& addrName);
 CNode* FindNode(const CService& ip);
 void DisconnectNodes();
-CNode* ConnectNode(CAddress addrConnect, const char* pszDest = NULL, bool darkSendMaster = false);
-bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant* grantOutbound = NULL, const char* strDest = NULL, bool fOneShot = false);
+CNode* ConnectNode(CAddress addrConnect, const char* pszDest = NULL, bool fCountFailure = false);
+bool OpenNetworkConnection(const CAddress& addrConnect, bool fCountFailure, CSemaphoreGrant* grantOutbound = NULL, const char* strDest = NULL, bool fOneShot = false);
 unsigned short GetListenPort();
 bool BindListenPort(const CService& bindAddr, std::string& strError, bool fWhitelisted = false);
 void StartNode(boost::thread_group& threadGroup, CScheduler& scheduler);
@@ -278,12 +278,6 @@ public:
     // b) the peer may tell us in its version message that we should not relay tx invs
     //    until it has initialized its bloom filter.
     bool fRelayTxes;
-    // Should be 'true' only if we connected to this node to actually mix funds.
-    // In this case node will be released automatically via CMasternodeMan::ProcessMasternodeConnections().
-    // Connecting to verify connectability/status or connecting for sending/relaying single message
-    // (even if it's relative to mixing e.g. for blinding) should NOT set this to 'true'.
-    // For such cases node should be released manually (preferably right after corresponding code).
-    bool fObfuScationMaster;
     bool fSentAddr;
     CSemaphoreGrant grantOutbound;
     CCriticalSection cs_filter;
@@ -684,5 +678,14 @@ public:
     bool Write(const CAddrMan& addr);
     bool Read(CAddrMan& addr);
 };
+
+struct AddedNodeInfo {
+    std::string strAddedNode;
+    CService resolvedAddress;
+    bool fConnected;
+    bool fInbound;
+};
+
+std::vector<AddedNodeInfo> GetAddedNodeInfo();
 
 #endif // BITCOIN_NET_H

@@ -10,7 +10,7 @@
 #include "key.h"
 #include "main.h"
 #include "masternode.h"
-#include <boost/lexical_cast.hpp>
+
 
 using namespace std;
 
@@ -219,9 +219,9 @@ public:
     {
         std::string ret = "";
         ret += vinMasternode.ToString();
-        ret += ", " + boost::lexical_cast<std::string>(nBlockHeight);
+        ret += ", " + std::to_string(nBlockHeight);
         ret += ", " + payee.ToString();
-        ret += ", " + boost::lexical_cast<std::string>((int)vchSig.size());
+        ret += ", " + std::to_string((int)vchSig.size());
         return ret;
     }
 };
@@ -240,7 +240,7 @@ private:
 public:
     std::map<uint256, CMasternodePaymentWinner> mapMasternodePayeeVotes;
     std::map<int, CMasternodeBlockPayees> mapMasternodeBlocks;
-    std::map<uint256, int> mapMasternodesLastVote; //prevout.hash + prevout.n, nBlockHeight
+    std::map<COutPoint, int> mapMasternodesLastVote; //prevout.hash + prevout.n, nBlockHeight
 
     CMasternodePayments()
     {
@@ -269,15 +269,15 @@ public:
     bool CanVote(COutPoint outMasternode, int nBlockHeight)
     {
         LOCK(cs_mapMasternodePayeeVotes);
-        uint256 temp = ArithToUint256(UintToArith256(outMasternode.hash) + outMasternode.n);
-        if (mapMasternodesLastVote.count(temp)) {
-            if (mapMasternodesLastVote[temp] == nBlockHeight) {
+
+        if (mapMasternodesLastVote.count(outMasternode)) {
+            if (mapMasternodesLastVote[outMasternode] == nBlockHeight) {
                 return false;
             }
         }
 
         //record this masternode voted
-        mapMasternodesLastVote[temp] = nBlockHeight;
+        mapMasternodesLastVote[outMasternode] = nBlockHeight;
         return true;
     }
 

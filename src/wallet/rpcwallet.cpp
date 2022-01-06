@@ -11,7 +11,6 @@
 #include "main.h"
 #include "net.h"
 #include "netbase.h"
-#include "obfuscation.h"
 #include "primitives/transaction.h"
 #include "rpc/server.h"
 #include "script/interpreter.h"

@@ -9,13 +9,13 @@
 #include "consensus/validation.h"
 #include "key.h"
 #include "masternodeman.h"
+#include "masternode-sync.h"
 #include "net.h"
-#include "obfuscation.h"
 #include "protocol.h"
 #include "spork.h"
 #include "sync.h"
 #include "util.h"
-#include <boost/lexical_cast.hpp>
+
 
 using namespace std;
 using namespace boost;

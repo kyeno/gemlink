@@ -67,6 +67,8 @@ public:
 
 /** nServices flags */
 enum {
+    // Nothing
+    NODE_NONE = 0,
     // NODE_NETWORK means that the node is capable of serving the block chain. It is currently
     // set by all Bitcoin Core nodes, and is unset by SPV clients or other peers that just want
     // network services but don't provide them.

@@ -6,8 +6,7 @@
 #define ZCASH_CONSENSUS_UPGRADES_H
 
 #include "consensus/params.h"
-
-#include <boost/optional.hpp>
+#include "optional.h"
 
 enum UpgradeState {
     UPGRADE_DISABLED,

@@ -129,8 +129,6 @@ BITCOIN_CORE_H = \
   consensus/validation.h \
   core_io.h \
   core_memusage.h \
-  obfuscation.h \
-  obfuscation-relay.h \
   deprecation.h \
   hash.h \
   httprpc.h \
@@ -167,6 +165,7 @@ BITCOIN_CORE_H = \
   primitives/transaction.h \
   protocol.h \
   pubkey.h \
+  optional.h \
   random.h \
   reverselock.h \
   rpc/client.h \
@@ -202,6 +201,7 @@ BITCOIN_CORE_H = \
   uint252.h \
   undo.h \
   util.h \
+  util/threadnames.h \
   utilmoneystr.h \
   utilstrencodings.h \
   utiltime.h \
@@ -302,8 +302,6 @@ libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
   activemasternode.cpp \
-  obfuscation.cpp \
-  obfuscation-relay.cpp \
   utiltest.cpp \
   utiltest.h \
   zcbenchmarks.cpp \
@@ -421,6 +419,7 @@ libbitcoin_util_a_SOURCES = \
   uint256.cpp \
   util.cpp \
   utilmoneystr.cpp \
+  util/threadnames.cpp \
   utilstrencodings.cpp \
   utiltime.cpp \
   $(BITCOIN_CORE_H) \

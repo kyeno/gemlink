@@ -5,13 +5,17 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "masternode.h"
+
 #include "addrman.h"
+#include "init.h"
+#include "masternodeconfig.h"
+#include "masternode-payments.h"
+#include "masternode-sync.h"
 #include "consensus/validation.h"
 #include "masternodeman.h"
-#include "obfuscation.h"
 #include "sync.h"
 #include "util.h"
-
+#include "wallet/wallet.h"
 
 #include "key_io.h"
 
@@ -84,8 +88,6 @@ CMasternode::CMasternode()
     nScanningErrorCount = 0;
     nLastScanningErrorBlockHeight = 0;
     lastTimeChecked = 0;
-    nLastDsee = 0;  // temporary, do not save. Remove after migration to v12
-    nLastDseep = 0; // temporary, do not save. Remove after migration to v12
 }
 
 CMasternode::CMasternode(const CMasternode& other)
@@ -108,8 +110,6 @@ CMasternode::CMasternode(const CMasternode& other)
     nScanningErrorCount = other.nScanningErrorCount;
     nLastScanningErrorBlockHeight = other.nLastScanningErrorBlockHeight;
     lastTimeChecked = 0;
-    nLastDsee = other.nLastDsee;   // temporary, do not save. Remove after migration to v12
-    nLastDseep = other.nLastDseep; // temporary, do not save. Remove after migration to v12
 }
 
 uint256 CMasternode::GetSignatureHash() const
@@ -208,19 +208,17 @@ void CMasternode::Check(bool forceCheck)
     }
 
     if (!unitTest) {
-        CValidationState state;
-        CMutableTransaction tx = CMutableTransaction();
-        CTxOut vout = CTxOut(((float)Params().GetMasternodeCollateral() - 0.01) * COIN, obfuScationPool.collateralPubKey);
-        tx.vin.push_back(vin);
-        tx.vout.push_back(vout);
-
         {
             TRY_LOCK(cs_main, lockMain);
             if (!lockMain)
                 return;
 
-            if (!AcceptableInputs(mempool, state, CTransaction(tx), false, NULL)) {
-                activeState = MASTERNODE_VIN_SPENT;
+            CCoins coins;
+            if (!pcoinsTip->GetCoins(vin.prevout.hash, coins) ||
+               (unsigned int)vin.prevout.n>=coins.vout.size() ||
+               coins.vout[vin.prevout.n].IsNull()) {
+                nActiveState = MASTERNODE_OUTPOINT_SPENT;
+                LogPrint("masternode", "CMasternode::Check -- Failed to find Masternode UTXO, masternode=%s\n", vin.prevout.ToStringShort());
                 return;
             }
         }
@@ -389,21 +387,27 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
         return false;
     }
 
+    int nPort;
+    int nDefaultPort = Params().GetDefaultPort();
+    std::string strHost;
+    SplitHostPort(strService, nPort, strHost);
+    if (nPort == 0) nPort = nDefaultPort;
+    CService _service(LookupNumeric(strHost.c_str(), nPort));
+
     // The service needs the correct default port to work properly
-    if (!CheckDefaultPort(strService, strErrorRet, "CMasternodeBroadcast::Create"))
+    if (!CheckDefaultPort(_service, strErrorRet, "CMasternodeBroadcast::Create"))
         return false;
 
-    return Create(txin, CService(strService), keyCollateralAddressNew, pubKeyCollateralAddressNew, keyMasternodeNew, pubKeyMasternodeNew, strErrorRet, mnbRet);
+    return Create(txin, _service, keyCollateralAddressNew, pubKeyCollateralAddressNew, keyMasternodeNew, pubKeyMasternodeNew, strErrorRet, mnbRet);
 }
 
-bool CMasternodeBroadcast::CheckDefaultPort(std::string strService, std::string& strErrorRet, std::string strContext)
+bool CMasternodeBroadcast::CheckDefaultPort(CService service, std::string& strErrorRet, std::string strContext)
 {
-    CService service = CService(strService);
     int nDefaultPort = Params().GetDefaultPort();
 
     if (service.GetPort() != nDefaultPort) {
         strErrorRet = strprintf("Invalid port %u for masternode %s, only %d is supported on %s-net.",
-                                service.GetPort(), strService, nDefaultPort, Params().NetworkIDString());
+                                service.GetPort(), service.ToString(), nDefaultPort, Params().NetworkIDString());
         LogPrint("masternode", "%s - %s\n", strContext, strErrorRet);
         return false;
     }
@@ -618,12 +622,6 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
             mnodeman.Remove(pmn->vin);
     }
 
-    CValidationState state;
-    CMutableTransaction tx = CMutableTransaction();
-    CTxOut vout = CTxOut(((float)Params().GetMasternodeCollateral() - 0.01) * COIN, obfuScationPool.collateralPubKey);
-    tx.vin.push_back(vin);
-    tx.vout.push_back(vout);
-
     {
         TRY_LOCK(cs_main, lockMain);
         if (!lockMain) {
@@ -634,10 +632,11 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
             return false;
         }
 
-        if (!AcceptableInputs(mempool, state, CTransaction(tx), false, NULL)) {
-            LogPrint("masternode", "!AcceptableInputs\n");
-            //set nDos
-            state.IsInvalid(nDoS);
+        CCoins coins;
+        if (!pcoinsTip->GetCoins(vin.prevout.hash, coins) ||
+           (unsigned int)vin.prevout.n>=coins.vout.size() ||
+           coins.vout[vin.prevout.n].IsNull()) {
+            LogPrint("masternode", "CMasternodeBroadcast::CheckInputsAndAdd -- Failed to find Masternode UTXO, masternode=%s\n", vin.prevout.ToStringShort());
             return false;
         }
     }
