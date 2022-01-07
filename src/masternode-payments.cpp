@@ -422,9 +422,9 @@ int CMasternodePayments::GetMinMasternodePaymentsProto()
         return ActiveProtocol(); // Allow only updated peers
     else {
         int minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT;
-        if (NetworkUpgradeActive(nLastBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_KNOWHERE)) {
+        if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() , Consensus::UPGRADE_KNOWHERE)) {
             minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_KNOWHERE;
-        } else if (NetworkUpgradeActive(nLastBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+        } else if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height(), Consensus::UPGRADE_MORAG)) {
             minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG;
         }
         return minPeer;
