@@ -35,7 +35,7 @@ extern std::vector<CSporkDef> sporkDefs;
 extern std::map<uint256, CSporkMessage> mapSporks;
 extern CSporkManager sporkManager;
 
-void ReprocessBlocks(int nBlocks);
+void ReprocessBlocks(const CChainParams& chainparams, int nBlocks);
 
 //
 // Spork Class

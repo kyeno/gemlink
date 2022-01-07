@@ -256,6 +256,7 @@ am_libbitcoin_common_a_OBJECTS = libbitcoin_common_a-amount.$(OBJEXT) \
 	libbitcoin_common_a-chainparams.$(OBJEXT) \
 	libbitcoin_common_a-coins.$(OBJEXT) \
 	libbitcoin_common_a-compressor.$(OBJEXT) \
+	consensus/libbitcoin_common_a-params.$(OBJEXT) \
 	consensus/libbitcoin_common_a-upgrades.$(OBJEXT) \
 	libbitcoin_common_a-core_read.$(OBJEXT) \
 	libbitcoin_common_a-core_write.$(OBJEXT) \
@@ -360,17 +361,18 @@ am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
 	messagesigner.h metrics.h miner.h mruset.h net.h netbase.h \
 	noui.h paymentdisclosure.h paymentdisclosuredb.h policy/fees.h \
 	pow.h prevector.h primitives/block.h primitives/transaction.h \
-	protocol.h pubkey.h random.h reverselock.h rpc/client.h \
-	rpc/protocol.h rpc/server.h rpc/register.h scheduler.h \
-	script/interpreter.h script/script.h script/script_error.h \
-	script/sigcache.h script/sign.h script/standard.h serialize.h \
-	spork.h sporkdb.h streams.h support/allocators/secure.h \
-	support/allocators/zeroafterfree.h support/cleanse.h \
-	support/events.h support/pagelocker.h sync.h threadsafety.h \
-	timedata.h tinyformat.h torcontrol.h transaction_builder.h \
-	txdb.h txmempool.h ui_interface.h uint256.h uint252.h undo.h \
-	util.h util/threadnames.h utilmoneystr.h utilstrencodings.h \
-	utiltime.h validationinterface.h version.h \
+	protocol.h pubkey.h random.h reverse_iterator.h reverselock.h \
+	rpc/client.h rpc/protocol.h rpc/server.h rpc/register.h \
+	scheduler.h script/interpreter.h script/script.h \
+	script/script_error.h script/sigcache.h script/sign.h \
+	script/standard.h serialize.h spork.h sporkdb.h streams.h \
+	support/allocators/secure.h support/allocators/zeroafterfree.h \
+	support/cleanse.h support/events.h support/pagelocker.h sync.h \
+	threadsafety.h timedata.h tinyformat.h torcontrol.h \
+	transaction_builder.h txdb.h txmempool.h ui_interface.h \
+	uint256.h uint252.h undo.h util.h util/threadnames.h \
+	utilmoneystr.h utilstrencodings.h utiltime.h \
+	validationinterface.h version.h \
 	wallet/asyncrpcoperation_common.h \
 	wallet/asyncrpcoperation_mergetoaddress.h \
 	wallet/asyncrpcoperation_saplingmigration.h \
@@ -845,6 +847,7 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po \
 	compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo \
+	consensus/$(DEPDIR)/libbitcoin_common_a-params.Po \
 	consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po \
@@ -1627,6 +1630,7 @@ BITCOIN_CORE_H = \
   protocol.h \
   pubkey.h \
   random.h \
+  reverse_iterator.h \
   reverselock.h \
   rpc/client.h \
   rpc/protocol.h \
@@ -1814,6 +1818,7 @@ libbitcoin_common_a_SOURCES = \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
+  consensus/params.cpp \
   consensus/upgrades.cpp \
   core_read.cpp \
   core_write.cpp \
@@ -2257,6 +2262,8 @@ consensus/$(am__dirstamp):
 consensus/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) consensus/$(DEPDIR)
 	@: > consensus/$(DEPDIR)/$(am__dirstamp)
+consensus/libbitcoin_common_a-params.$(OBJEXT):  \
+	consensus/$(am__dirstamp) consensus/$(DEPDIR)/$(am__dirstamp)
 consensus/libbitcoin_common_a-upgrades.$(OBJEXT):  \
 	consensus/$(am__dirstamp) consensus/$(DEPDIR)/$(am__dirstamp)
 primitives/$(am__dirstamp):
@@ -2830,6 +2837,7 @@ include compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po # am--include-marker
 include compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo # am--include-marker
+include consensus/$(DEPDIR)/libbitcoin_common_a-params.Po # am--include-marker
 include consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po # am--include-marker
@@ -3225,6 +3233,20 @@ libbitcoin_common_a-compressor.obj: compressor.cpp
 #	$(AM_V_CXX)source='compressor.cpp' object='libbitcoin_common_a-compressor.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_common_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_common_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_common_a-compressor.obj `if test -f 'compressor.cpp'; then $(CYGPATH_W) 'compressor.cpp'; else $(CYGPATH_W) '$(srcdir)/compressor.cpp'; fi`
+
+consensus/libbitcoin_common_a-params.o: consensus/params.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_common_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_common_a_CXXFLAGS) $(CXXFLAGS) -MT consensus/libbitcoin_common_a-params.o -MD -MP -MF consensus/$(DEPDIR)/libbitcoin_common_a-params.Tpo -c -o consensus/libbitcoin_common_a-params.o `test -f 'consensus/params.cpp' || echo '$(srcdir)/'`consensus/params.cpp
+	$(AM_V_at)$(am__mv) consensus/$(DEPDIR)/libbitcoin_common_a-params.Tpo consensus/$(DEPDIR)/libbitcoin_common_a-params.Po
+#	$(AM_V_CXX)source='consensus/params.cpp' object='consensus/libbitcoin_common_a-params.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_common_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_common_a_CXXFLAGS) $(CXXFLAGS) -c -o consensus/libbitcoin_common_a-params.o `test -f 'consensus/params.cpp' || echo '$(srcdir)/'`consensus/params.cpp
+
+consensus/libbitcoin_common_a-params.obj: consensus/params.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_common_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_common_a_CXXFLAGS) $(CXXFLAGS) -MT consensus/libbitcoin_common_a-params.obj -MD -MP -MF consensus/$(DEPDIR)/libbitcoin_common_a-params.Tpo -c -o consensus/libbitcoin_common_a-params.obj `if test -f 'consensus/params.cpp'; then $(CYGPATH_W) 'consensus/params.cpp'; else $(CYGPATH_W) '$(srcdir)/consensus/params.cpp'; fi`
+	$(AM_V_at)$(am__mv) consensus/$(DEPDIR)/libbitcoin_common_a-params.Tpo consensus/$(DEPDIR)/libbitcoin_common_a-params.Po
+#	$(AM_V_CXX)source='consensus/params.cpp' object='consensus/libbitcoin_common_a-params.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_common_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_common_a_CXXFLAGS) $(CXXFLAGS) -c -o consensus/libbitcoin_common_a-params.obj `if test -f 'consensus/params.cpp'; then $(CYGPATH_W) 'consensus/params.cpp'; else $(CYGPATH_W) '$(srcdir)/consensus/params.cpp'; fi`
 
 consensus/libbitcoin_common_a-upgrades.o: consensus/upgrades.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_common_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_common_a_CXXFLAGS) $(CXXFLAGS) -MT consensus/libbitcoin_common_a-upgrades.o -MD -MP -MF consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Tpo -c -o consensus/libbitcoin_common_a-upgrades.o `test -f 'consensus/upgrades.cpp' || echo '$(srcdir)/'`consensus/upgrades.cpp
@@ -6832,6 +6854,7 @@ distclean: distclean-recursive
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po
 	-rm -f compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo
+	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-params.Po
 	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po
@@ -7119,6 +7142,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po
 	-rm -f compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo
+	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-params.Po
 	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po

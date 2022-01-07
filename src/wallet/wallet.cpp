@@ -557,17 +557,18 @@ void CWallet::ChainTip(const CBlockIndex* pindex,
                        bool added)
 {
     if (added) {
-        bool initialDownloadCheck = IsInitialBlockDownload();
+        const CChainParams& params = Params();
+        bool initialDownloadCheck = IsInitialBlockDownload(params.GetConsensus());
         if (!initialDownloadCheck &&
             pblock->GetBlockTime() > GetAdjustedTime() - 8640) //Last 144 blocks 2.4 * 60 * 60
         {
-            BuildWitnessCache(pindex, false);
+            BuildWitnessCache(params, pindex, false);
             RunSaplingMigration(pindex->nHeight);
             RunSaplingConsolidation(pindex->nHeight);
             DeleteWalletTransactions(pindex);
         } else {
             //Build intial witnesses on every block
-            BuildWitnessCache(pindex, true);
+            BuildWitnessCache(params, pindex, true);
             if (initialDownloadCheck && pindex->nHeight % fDeleteInterval == 0) {
                 DeleteWalletTransactions(pindex);
             }
@@ -581,7 +582,7 @@ void CWallet::ChainTip(const CBlockIndex* pindex,
 
 void CWallet::RunSaplingMigration(int blockHeight)
 {
-    if (!NetworkUpgradeActive(blockHeight, Params().GetConsensus(), Consensus::UPGRADE_SAPLING)) {
+    if (!Params().GetConsensus().NetworkUpgradeActive(blockHeight, Consensus::UPGRADE_SAPLING)) {
         return;
     }
     LOCK(cs_wallet);
@@ -635,17 +636,34 @@ void CWallet::RunSaplingConsolidation(int blockHeight)
         return;
     }
 
-    int consolidateInterval = rand() % 5 + 5;
-    if (blockHeight % consolidateInterval == 0) {
+    // The migration transactions to be sent in a particular batch can take
+    // significant time to generate, and this time depends on the speed of the user's
+    // computer. If they were generated only after a block is seen at the target
+    // height minus 1, then this could leak information. Therefore, for target
+    // height N, implementations SHOULD start generating the transactions at around
+    // height N-5
+    if (blockHeight % 500 == 495) {
         std::shared_ptr<AsyncRPCQueue> q = getAsyncRPCQueue();
-        std::shared_ptr<AsyncRPCOperation> lastOperation = q->getOperationForId(saplingConsolidationOperationId);
+        std::shared_ptr<AsyncRPCOperation> lastOperation = q->getOperationForId(saplingMigrationOperationId);
         if (lastOperation != nullptr) {
             lastOperation->cancel();
         }
-        pendingSaplingConsolidationTxs.clear();
-        std::shared_ptr<AsyncRPCOperation> operation(new AsyncRPCOperation_saplingconsolidation(blockHeight + 5));
-        saplingConsolidationOperationId = operation->getId();
+        pendingSaplingMigrationTxs.clear();
+        std::shared_ptr<AsyncRPCOperation> operation(new AsyncRPCOperation_saplingmigration(blockHeight + 5));
+        saplingMigrationOperationId = operation->getId();
         q->addOperation(operation);
+    } else if (blockHeight % 500 == 499) {
+        std::shared_ptr<AsyncRPCQueue> q = getAsyncRPCQueue();
+        std::shared_ptr<AsyncRPCOperation> lastOperation = q->getOperationForId(saplingMigrationOperationId);
+        if (lastOperation != nullptr) {
+            lastOperation->cancel();
+        }
+        for (const CTransaction& transaction : pendingSaplingMigrationTxs) {
+            // Send the transaction
+            CWalletTx wtx(this, transaction);
+            CommitTransaction(wtx, boost::none);
+        }
+        pendingSaplingMigrationTxs.clear();
     }
 }
 
@@ -1207,7 +1225,7 @@ int CWallet::SaplingWitnessMinimumHeight(const uint256& nullifier, int nWitnessH
     return nMinimumHeight;
 }
 
-int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessOnly)
+int CWallet::VerifyAndSetInitialWitness(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly)
 {
     LOCK2(cs_main, cs_wallet);
 
@@ -1278,7 +1296,7 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
                 //Cycle through blocks and transactions building sprout tree until the commitment needed is reached
                 const CBlock* pblock;
                 CBlock block;
-                ReadBlockFromDisk(block, pblockindex);
+                ReadBlockFromDisk(block, pblockindex, chainparams.GetConsensus());
                 pblock = &block;
 
                 for (const CTransaction& tx : block.vtx) {
@@ -1366,7 +1384,7 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
                 //Cycle through blocks and transactions building sapling tree until the commitment needed is reached
                 const CBlock* pblock;
                 CBlock block;
-                ReadBlockFromDisk(block, pblockindex);
+                ReadBlockFromDisk(block, pblockindex, chainparams.GetConsensus());
                 pblock = &block;
 
                 for (const CTransaction& tx : block.vtx) {
@@ -1408,11 +1426,11 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
     return nMinimumHeight;
 }
 
-void CWallet::BuildWitnessCache(const CBlockIndex* pindex, bool witnessOnly)
+void CWallet::BuildWitnessCache(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly)
 {
     LOCK2(cs_main, cs_wallet);
 
-    int startHeight = VerifyAndSetInitialWitness(pindex, witnessOnly) + 1;
+    int startHeight = VerifyAndSetInitialWitness(chainparams, pindex, witnessOnly) + 1;
 
     if (startHeight > pindex->nHeight || witnessOnly) {
         return;
@@ -1438,7 +1456,7 @@ void CWallet::BuildWitnessCache(const CBlockIndex* pindex, bool witnessOnly)
 
         //Cycle through blocks and transactions building sapling tree until the commitment needed is reached
         CBlock block;
-        ReadBlockFromDisk(block, pblockindex);
+        ReadBlockFromDisk(block, pblockindex, chainparams.GetConsensus());
 
         for (std::pair<const uint256, CWalletTx>& wtxItem : mapWallet) {
             if (wtxItem.second.mapSproutNoteData.empty() && wtxItem.second.mapSaplingNoteData.empty())
@@ -2771,7 +2789,8 @@ bool CWalletTx::WriteToDisk(CWalletDB* pwalletdb)
     return pwalletdb->WriteTx(GetHash(), *this);
 }
 
-void CWallet::WitnessNoteCommitment(std::vector<uint256> commitments,
+void CWallet::WitnessNoteCommitment(
+    std::vector<uint256> commitments,
                                     std::vector<boost::optional<SproutWitness>>& witnesses,
                                     uint256& final_anchor)
 {
@@ -2781,7 +2800,7 @@ void CWallet::WitnessNoteCommitment(std::vector<uint256> commitments,
 
     while (pindex) {
         CBlock block;
-        ReadBlockFromDisk(block, pindex);
+        ReadBlockFromDisk(block, pindex, Params().GetConsensus());
 
         for (const CTransaction& tx : block.vtx) {
             for (const JSDescription& jsdesc : tx.vjoinsplit) {
@@ -3140,7 +3159,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
                 ShowProgress(_("Rescanning..."), std::max(1, std::min(99, (int)((Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex, false) - dProgressStart) / (dProgressTip - dProgressStart) * 100))));
 
             CBlock block;
-            ReadBlockFromDisk(block, pindex);
+            ReadBlockFromDisk(block, pindex, chainParams.GetConsensus());
             for (CTransaction& tx : block.vtx) {
                 if (AddToWalletIfInvolvingMe(tx, &block, fUpdate)) {
                     ret++;
@@ -3159,7 +3178,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
             }
 
             // Build inital witness caches
-            BuildWitnessCache(pindex, true);
+            BuildWitnessCache(chainParams, pindex, true);
 
             //Delete Transactions
             if (pindex->nHeight % fDeleteInterval == 0)
@@ -3173,7 +3192,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
         }
 
         //Update all witness caches
-        BuildWitnessCache(chainActive.Tip(), false);
+        BuildWitnessCache(chainParams, chainActive.Tip(), false);
 
         ShowProgress(_("Rescanning..."), 100); // hide progress dialog in GUI
     }
@@ -3206,7 +3225,7 @@ void CWallet::ReacceptWalletTransactions()
         CWalletTx& wtx = *(item.second);
 
         LOCK(mempool.cs);
-        wtx.AcceptToMemoryPool(false);
+        wtx.AcceptToMemoryPool(Params(), false);
     }
 }
 
@@ -4344,7 +4363,7 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, boost::optional<CReserveKey&>
             // This is only to keep the database open to defeat the auto-flush for the
             // duration of this scope.  This is the only place where this optimization
             // maybe makes sense; please don't do it anywhere else.
-            CWalletDB* pwalletdb = fFileBacked ? new CWalletDB(strWalletFile, "r+") : NULL;
+            CWalletDB* pwalletdb = fFileBacked ? new CWalletDB(strWalletFile,"r+") : NULL;
 
             if (reservekey) {
                 // Take key pair from key pool so it won't be used again
@@ -4357,8 +4376,9 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, boost::optional<CReserveKey&>
 
             // Notify that old coins are spent
             set<CWalletTx*> setCoins;
-            for (const CTxIn& txin : wtxNew.vin) {
-                CWalletTx& coin = mapWallet[txin.prevout.hash];
+            for (const CTxIn& txin : wtxNew.vin)
+            {
+                CWalletTx &coin = mapWallet[txin.prevout.hash];
                 coin.BindWallet(this);
                 NotifyTransactionChanged(this, coin.GetHash(), CT_UPDATED);
             }
@@ -4370,14 +4390,16 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, boost::optional<CReserveKey&>
         // Track how many getdata requests our transaction gets
         mapRequestCount[wtxNew.GetHash()] = 0;
 
-        if (fBroadcastTransactions) {
+        if (fBroadcastTransactions)
+        {
             // Broadcast
-            if (!wtxNew.AcceptToMemoryPool(false)) {
+            if (!wtxNew.AcceptToMemoryPool(Params(), false))
+            {
                 // This must not fail. The transaction has already been signed and recorded.
                 LogPrintf("CommitTransaction(): Error: Transaction not valid\n");
                 return false;
             }
-            wtxNew.RelayWalletTransaction(strCommand);
+            wtxNew.RelayWalletTransaction();
         }
     }
     return true;
@@ -5175,10 +5197,10 @@ int CMerkleTx::GetBlocksToMaturity() const
 }
 
 
-bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree, bool fRejectAbsurdFee, bool ignoreFees)
+bool CMerkleTx::AcceptToMemoryPool(const CChainParams& chainparams, bool fLimitFree, bool fRejectAbsurdFee, bool ignoreFees)
 {
     CValidationState state;
-    return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL, fRejectAbsurdFee, ignoreFees);
+    return ::AcceptToMemoryPool(chainparams, mempool, state, *this, fLimitFree, NULL, fRejectAbsurdFee, ignoreFees);
 }
 
 

@@ -138,7 +138,7 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
     bool fNewSigs = false;
     {
         LOCK(cs_main);
-        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+        fNewSigs = Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG);
     }
 
     CMasternodePing mnp(vin);

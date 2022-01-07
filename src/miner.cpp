@@ -22,6 +22,7 @@
 #include "masternode-sync.h"
 #include "metrics.h"
 #include "net.h"
+#include "consensus/params.h"
 #include "pow.h"
 #include "primitives/transaction.h"
 #include "random.h"
@@ -112,9 +113,8 @@ void UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, 
     }
 }
 
-CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
+CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& scriptPubKeyIn)
 {
-    const CChainParams& chainparams = Params();
     // Create new block
     std::unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
     if (!pblocktemplate.get())
@@ -379,7 +379,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn)
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 
         CValidationState state;
-        if (!TestBlockValidity(state, *pblock, pindexPrev, false, false))
+        if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false))
             throw std::runtime_error("CreateNewBlock(): TestBlockValidity failed");
     }
 
@@ -413,11 +413,11 @@ boost::optional<CScript> GetMinerScriptPubKey()
 }
 
 #ifdef ENABLE_WALLET
-CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey)
+CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams, CReserveKey& reservekey)
 {
     boost::optional<CScript> scriptPubKey = GetMinerScriptPubKey(reservekey);
 #else
-CBlockTemplate* CreateNewBlockWithKey()
+CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams)
 {
     boost::optional<CScript> scriptPubKey = GetMinerScriptPubKey();
 #endif
@@ -425,7 +425,7 @@ CBlockTemplate* CreateNewBlockWithKey()
     if (!scriptPubKey) {
         return NULL;
     }
-    return CreateNewBlock(*scriptPubKey);
+    return CreateNewBlock(chainparams, *scriptPubKey);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -435,7 +435,7 @@ CBlockTemplate* CreateNewBlockWithKey()
 
 #ifdef ENABLE_MINING
 
-void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce)
+void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce, const Consensus::Params& consensusParams)
 {
     // Update nExtraNonce
     static uint256 hashPrevBlock;
@@ -489,7 +489,7 @@ static bool ProcessBlockFound(CBlock* pblock)
     CValidationState state;
 
     // Check that the time is valid
-    if (!ProcessNewBlock(state, NULL, pblock, true, NULL))
+    if (!ProcessNewBlock(state, Params(), NULL, pblock, true, NULL))
         return error("SnowgemMiner: ProcessNewBlock, block not accepted");
 
     TrackMinedBlock(pblock->GetHash());
@@ -498,15 +498,14 @@ static bool ProcessBlockFound(CBlock* pblock)
 }
 
 #ifdef ENABLE_WALLET
-void static BitcoinMiner(CWallet* pwallet)
+void static BitcoinMiner(CWallet* pwallet, const CChainParams& chainparams)
 #else
-void static BitcoinMiner()
+void static BitcoinMiner(const CChainParams& chainparams)
 #endif
 {
     LogPrintf("SnowgemMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("snowgem-miner");
-    const CChainParams& chainparams = Params();
 
 #ifdef ENABLE_WALLET
     // Each thread has its own key
@@ -541,7 +540,7 @@ void static BitcoinMiner()
                         LOCK(cs_vNodes);
                         fvNodesEmpty = vNodes.empty();
                     }
-                    if (!fvNodesEmpty && !IsInitialBlockDownload())
+                    if (!fvNodesEmpty && !IsInitialBlockDownload(chainparams.GetConsensus()))
                         break;
                     MilliSleep(1000);
                 } while (true);
@@ -564,8 +563,8 @@ void static BitcoinMiner()
             CBlockIndex* pindexPrev = chainActive[nHeight];
 
             // Get equihash parameters for the next block to be mined.
-            EHparameters ehparams[MAX_EH_PARAM_LIST_LEN]; //allocate on-stack space for parameters list
-            validEHparameterList(ehparams, nTime, chainparams);
+            Consensus::EHparameters ehparams[Consensus::MAX_EH_PARAM_LIST_LEN]; //allocate on-stack space for parameters list
+            chainparams.GetConsensus().validEHparameterList(ehparams, nTime);
 
             unsigned int n = ehparams[0].n;
             unsigned int k = ehparams[0].k;
@@ -573,9 +572,9 @@ void static BitcoinMiner()
 
 
 #ifdef ENABLE_WALLET
-            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey));
+            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(chainparams, reservekey));
 #else
-            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey());
+            unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(chainparams));
 #endif
             if (!pblocktemplate.get()) {
                 if (GetArg("-mineraddress", "").empty()) {
@@ -587,7 +586,7 @@ void static BitcoinMiner()
                 return;
             }
             CBlock* pblock = &pblocktemplate->block;
-            IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+            IncrementExtraNonce(pblock, pindexPrev, nExtraNonce, chainparams.GetConsensus());
 
             LogPrintf("Running SnowgemMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                       ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
@@ -752,9 +751,9 @@ void static BitcoinMiner()
 }
 
 #ifdef ENABLE_WALLET
-void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
+void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads, const CChainParams& chainparams)
 #else
-void GenerateBitcoins(bool fGenerate, int nThreads)
+void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams)
 #endif
 {
     static boost::thread_group* minerThreads = NULL;
@@ -774,9 +773,9 @@ void GenerateBitcoins(bool fGenerate, int nThreads)
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++) {
 #ifdef ENABLE_WALLET
-        minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
+        minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet, boost::cref(chainparams)));
 #else
-        minerThreads->create_thread(&BitcoinMiner);
+        minerThreads->create_thread(&BitcoinMiner, boost::cref(chainparams));
 #endif
     }
 }

@@ -71,16 +71,16 @@ static const unsigned int WITNESS_CACHE_SIZE = MAX_REORG_LENGTH + 1;
 //! Size of HD seed in bytes
 static const size_t HD_WALLET_SEED_LENGTH = 32;
 
-//Default Transaction Rentention N-BLOCKS
+// Default Transaction Rentention N-BLOCKS
 static const int DEFAULT_TX_DELETE_INTERVAL = 1000;
 
-//Default Transaction Rentention N-BLOCKS
+// Default Transaction Rentention N-BLOCKS
 static const unsigned int DEFAULT_TX_RETENTION_BLOCKS = 10000;
 
-//Default Retenion Last N-Transactions
+// Default Retenion Last N-Transactions
 static const unsigned int DEFAULT_TX_RETENTION_LASTTX = 200;
 
-//Amount of transactions to delete per run while syncing
+// Amount of transactions to delete per run while syncing
 static const int MAX_DELETE_TX_SIZE = 50000;
 
 class CBlockIndex;
@@ -103,7 +103,7 @@ enum WalletFeature {
 
 enum AvailableCoinsType {
     ALL_COINS = 1,
-    ONLY_10000 = 5                        // find masternode outputs including locked ones (use with caution)
+    ONLY_10000 = 5 // find masternode outputs including locked ones (use with caution)
 };
 
 /** A key pool entry */
@@ -265,7 +265,7 @@ public:
      */
     int witnessHeight;
 
-    //In Memory Only
+    // In Memory Only
     bool witnessRootValidated;
     SproutNoteData() : address(), nullifier(), witnessHeight{-1}, witnessRootValidated{false} {}
     SproutNoteData(libzcash::SproutPaymentAddress a) : address{a}, nullifier(), witnessHeight{-1}, witnessRootValidated{false} {}
@@ -315,7 +315,7 @@ public:
     libzcash::SaplingIncomingViewingKey ivk;
     boost::optional<uint256> nullifier;
 
-    //In Memory Only
+    // In Memory Only
     bool witnessRootValidated;
 
     ADD_SERIALIZE_METHODS;
@@ -429,12 +429,12 @@ public:
         return GetDepthInMainChainINTERNAL(pindexRet) > 0;
     }
     int GetBlocksToMaturity() const;
-    bool AcceptToMemoryPool(bool fLimitFree = true, bool fRejectAbsurdFee = true, bool ignoreFees = false);
+    bool AcceptToMemoryPool(const CChainParams& chainparams, bool fLimitFree = true, bool fRejectAbsurdFee = true, bool ignoreFees = false);
     int GetTransactionLockSignatures() const;
     bool IsTransactionLockTimedOut() const;
 };
 
-/** 
+/**
  * A transaction with a bunch of additional info that only the owner cares about.
  * It includes any unrecorded transactions needed to link it back to the block chain.
  */
@@ -677,7 +677,7 @@ public:
         fSpendable = fSpendableIn;
     }
 
-    //Used with Obfuscation. Will return largest nondenom, then denominations, then very small inputs
+    // Used with Obfuscation. Will return largest nondenom, then denominations, then very small inputs
     int Priority() const
     {
         for (CAmount d : obfuScationDenominations)
@@ -686,7 +686,7 @@ public:
         if (tx->vout[i].nValue < 1 * COIN)
             return 20000;
 
-        //nondenom return largest first
+        // nondenom return largest first
         return -(tx->vout[i].nValue / COIN);
     }
 
@@ -807,7 +807,7 @@ private:
 };
 
 
-/** 
+/**
  * A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
  */
@@ -875,8 +875,8 @@ protected:
     /**
      * pindex is the new tip being connected.
      */
-    int VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessOnly);
-    void BuildWitnessCache(const CBlockIndex* pindex, bool witnessOnly);
+    int VerifyAndSetInitialWitness(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly);
+    void BuildWitnessCache(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly);
     /**
      * pindex is the old tip being disconnected.
      */
@@ -925,6 +925,7 @@ protected:
 private:
     template <class T>
     void SyncMetaData(std::pair<typename TxSpendMap<T>::iterator, typename TxSpendMap<T>::iterator>);
+    void ChainTipAdded(const CBlockIndex *pindex, const CBlock *pblock, SproutMerkleTree sproutTree, SaplingMerkleTree saplingTree);
 
 protected:
     bool UpdatedNoteData(const CWalletTx& wtxIn, CWalletTx& wtx);
@@ -1147,8 +1148,8 @@ public:
     void GetKeyBirthTimes(std::map<CKeyID, int64_t>& mapKeyBirth) const;
 
     /**
-      * Sprout ZKeys
-      */
+     * Sprout ZKeys
+     */
     //! Generates a new Sprout zaddr
     libzcash::SproutPaymentAddress GenerateNewSproutZKey();
     //! Adds spending key to the store, and saves it to disk
@@ -1172,8 +1173,8 @@ public:
     bool LoadSproutViewingKey(const libzcash::SproutViewingKey& dest);
 
     /**
-      * Sapling ZKeys
-      */
+     * Sapling ZKeys
+     */
     //! Generates new Sapling key
     libzcash::SaplingPaymentAddress GenerateNewSaplingZKey(bool resetCounter = false);
     //! Adds Sapling spending key to the store, and saves it to disk
@@ -1204,7 +1205,7 @@ public:
     CAmount GetLockedCoins() const;
     CAmount GetUnlockedCoins() const;
     double GetAverageAnonymizedRounds() const;
-    /** 
+    /**
      * Increment the next transaction order id
      * @return next transaction order id
      */
@@ -1225,6 +1226,7 @@ public:
     void UpdateNullifierNoteMapWithTx(const CWalletTx& wtx);
     void UpdateSproutNullifierNoteMapWithTx(CWalletTx& wtx);
     void UpdateSaplingNullifierNoteMapWithTx(CWalletTx& wtx);
+    void UpdateSaplingNullifierNoteMapForBlock(const CBlock* pblock);
     void UpdateNullifierNoteMapForBlock(const CBlock* pblock);
     bool AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet, CWalletDB* pwalletdb);
     void SyncTransaction(const CTransaction& tx, const CBlock* pblock);
@@ -1376,13 +1378,13 @@ public:
     //! Verify the wallet database and perform salvage if required
     static bool Verify(const std::string& walletFile, std::string& warningString, std::string& errorString);
 
-    /** 
+    /**
      * Address book entry changed.
      * @note called with lock cs_wallet held.
      */
     boost::signals2::signal<void(CWallet* wallet, const CTxDestination& address, const std::string& label, bool isMine, const std::string& purpose, ChangeType status)> NotifyAddressBookChanged;
 
-    /** 
+    /**
      * Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
      */
@@ -1468,7 +1470,7 @@ public:
 };
 
 
-/** 
+/**
  * Account information.
  * Stored in wallet with key "acc"+string account name.
  */

@@ -214,9 +214,9 @@ void Shutdown()
 #endif
 #ifdef ENABLE_MINING
 #ifdef ENABLE_WALLET
-    GenerateBitcoins(false, NULL, 0);
+    GenerateBitcoins(false, NULL, 0, Params());
 #else
-    GenerateBitcoins(false, 0);
+    GenerateBitcoins(false, 0, Params());
 #endif
 #endif
     StopNode();
@@ -1587,7 +1587,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                     LogPrintf("Prune: pruned datadir may not have more than %d blocks; -checkblocks=%d may fail\n",
                               MIN_BLOCKS_TO_KEEP, GetArg("-checkblocks", 288));
                 }
-                if (!CVerifyDB().VerifyDB(pcoinsdbview, GetArg("-checklevel", 3),
+                if (!CVerifyDB().VerifyDB(chainparams, pcoinsdbview, GetArg("-checklevel", 3),
                                           GetArg("-checkblocks", 288))) {
                     strLoadError = _("Corrupted block database detected");
                     break;
@@ -1858,7 +1858,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     uiInterface.InitMessage(_("Activating best chain..."));
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
-    if (!ActivateBestChain(state))
+    if (!ActivateBestChain(state, chainparams))
         strErrors << "Failed to connect best block";
 
     std::vector<boost::filesystem::path> vImportFiles;
@@ -2037,18 +2037,18 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     StartNode(threadGroup, scheduler);
 
     // Monitor the chain, and alert if we get blocks much quicker or slower than expected
-    int64_t nPowTargetSpacing = Params().GetConsensus().nPowTargetSpacing;
-    CScheduler::Function f = boost::bind(&PartitionCheck, &IsInitialBlockDownload,
-                                         boost::ref(cs_main), boost::cref(pindexBestHeader), nPowTargetSpacing);
-    scheduler.scheduleEvery(f, nPowTargetSpacing);
+    // int64_t nPowTargetSpacing = Params().GetConsensus().nPowTargetSpacing;
+    // CScheduler::Function f = boost::bind(&PartitionCheck, &IsInitialBlockDownload,
+    //                                      boost::ref(cs_main), boost::cref(pindexBestHeader), nPowTargetSpacing);
+    // scheduler.scheduleEvery(f, nPowTargetSpacing);
 
 #ifdef ENABLE_MINING
     // Generate coins in the background
 #ifdef ENABLE_WALLET
     if (pwalletMain || !GetArg("-mineraddress", "").empty())
-        GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
+        GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1), chainparams);
 #else
-    GenerateBitcoins(GetBoolArg("-gen", false), GetArg("-genproclimit", 1));
+    GenerateBitcoins(GetBoolArg("-gen", false), GetArg("-genproclimit", 1), chainparams);
 #endif
 #endif
 

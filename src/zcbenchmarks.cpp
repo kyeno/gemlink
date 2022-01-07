@@ -44,7 +44,7 @@ void pre_wallet_load()
     if (pwalletMain)
         pwalletMain->Flush(false);
 #ifdef ENABLE_MINING
-    GenerateBitcoins(false, NULL, 0);
+    GenerateBitcoins(false, NULL, 0, Params());
 #endif
     UnregisterNodeSignals(GetNodeSignals());
     if (pwalletMain)
@@ -63,7 +63,7 @@ void post_wallet_load(){
 #ifdef ENABLE_MINING
     // Generate coins in the background
     if (pwalletMain || !GetArg("-mineraddress", "").empty())
-        GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
+        GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1), Params());
 #endif    
 }
 
@@ -203,7 +203,7 @@ double benchmark_verify_equihash()
     CBlockHeader genesis_header = genesis.GetBlockHeader();
     struct timeval tv_start;
     timer_start(tv_start);
-    CheckEquihashSolution(&genesis_header, params);
+    CheckEquihashSolution(&genesis_header, params.GetConsensus());
     return timer_stop(tv_start);
 }
 
@@ -406,7 +406,7 @@ double benchmark_connectblock_slow()
     CValidationState state;
     struct timeval tv_start;
     timer_start(tv_start);
-    assert(ConnectBlock(block, state, &index, view, true));
+    assert(ConnectBlock(block, state, &index, view, Params(), true));
     auto duration = timer_stop(tv_start);
 
     // Undo alterations to global state

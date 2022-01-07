@@ -15,6 +15,7 @@
 class CBasicKeyStore;
 class CWallet;
 class uint256;
+class CBlockIndex;
 
 /** General change type (added, updated, removed). */
 enum ChangeType
@@ -95,6 +96,9 @@ public:
 
     /** Show progress e.g. for verifychain */
     boost::signals2::signal<void (const std::string &title, int nProgress)> ShowProgress;
+
+        /** Best header has changed */
+    boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyHeaderTip;
 
     /** New block has been accepted */
     boost::signals2::signal<void (const uint256& hash)> NotifyBlockTip;

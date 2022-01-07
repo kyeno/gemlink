@@ -198,26 +198,26 @@ UniValue generate(const UniValue& params, bool fHelp)
     UniValue blockHashes(UniValue::VARR);
 
 
-    EHparameters ehparams[MAX_EH_PARAM_LIST_LEN]; //allocate on-stack space for parameters list
+    Consensus::EHparameters ehparams[Consensus::MAX_EH_PARAM_LIST_LEN]; //allocate on-stack space for parameters list
     const CChainParams& chainparams = Params();
 
     while (nHeight < nHeightEnd) {
-        validEHparameterList(ehparams, nHeight + 1, chainparams);
+        chainparams.GetConsensus().validEHparameterList(ehparams, nHeight + 1);
         unsigned int n = ehparams[0].n;
         unsigned int k = ehparams[0].k;
 
 
 #ifdef ENABLE_WALLET
-        std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey));
+        std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(chainparams, reservekey));
 #else
-        std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey());
+        std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(chainparams));
 #endif
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Wallet keypool empty");
         CBlock* pblock = &pblocktemplate->block;
         {
             LOCK(cs_main);
-            IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+            IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce, Params().GetConsensus());
         }
 
         // Hash state
@@ -259,7 +259,7 @@ UniValue generate(const UniValue& params, bool fHelp)
         }
     endloop:
         CValidationState state;
-        if (!ProcessNewBlock(state, NULL, pblock, true, NULL))
+        if (!ProcessNewBlock(state, Params(), NULL, pblock, true, NULL))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
         ++nHeight;
         blockHashes.push_back(pblock->GetHash().GetHex());
@@ -312,9 +312,9 @@ UniValue setgenerate(const UniValue& params, bool fHelp)
     mapArgs["-gen"] = (fGenerate ? "1" : "0");
     mapArgs["-genproclimit"] = itostr(nGenProcLimit);
 #ifdef ENABLE_WALLET
-    GenerateBitcoins(fGenerate, pwalletMain, nGenProcLimit);
+    GenerateBitcoins(fGenerate, pwalletMain, nGenProcLimit, Params());
 #else
-    GenerateBitcoins(fGenerate, nGenProcLimit);
+    GenerateBitcoins(fGenerate, nGenProcLimit, Params());
 #endif
 
     return NullUniValue;
@@ -422,7 +422,7 @@ UniValue getblockchainsyncstatus(const UniValue& params, bool fHelp)
     if (vNodes.empty())
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Snowgem is not connected!");
 
-    if (IsInitialBlockDownload())
+    if (IsInitialBlockDownload(Params().GetConsensus()))
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Snowgem is downloading blocks...");
 
     UniValue result(UniValue::VOBJ);
@@ -551,7 +551,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
             if (block.hashPrevBlock != pindexPrev->GetBlockHash())
                 return "inconclusive-not-best-prevblk";
             CValidationState state;
-            TestBlockValidity(state, block, pindexPrev, false, true);
+            TestBlockValidity(state, Params(), block, pindexPrev, false, true);
             return BIP22ValidationResult(state);
         }
     }
@@ -562,7 +562,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     if (vNodes.empty())
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Snowgem is not connected!");
 
-    if (IsInitialBlockDownload())
+    if (IsInitialBlockDownload(Params().GetConsensus()))
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Snowgem is downloading blocks...");
 
     static unsigned int nTransactionsUpdatedLast;
@@ -628,9 +628,9 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         }
 #ifdef ENABLE_WALLET
         CReserveKey reservekey(pwalletMain);
-        pblocktemplate = CreateNewBlockWithKey(reservekey);
+        pblocktemplate = CreateNewBlockWithKey(Params(), reservekey);
 #else
-        pblocktemplate = CreateNewBlockWithKey();
+        pblocktemplate = CreateNewBlockWithKey(Params());
 #endif
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
@@ -839,7 +839,7 @@ UniValue submitblock(const UniValue& params, bool fHelp)
     CValidationState state;
     submitblock_StateCatcher sc(block.GetHash());
     RegisterValidationInterface(&sc);
-    bool fAccepted = ProcessNewBlock(state, NULL, &block, true, NULL);
+    bool fAccepted = ProcessNewBlock(state, Params(), NULL, &block, true, NULL);
     UnregisterValidationInterface(&sc);
     if (fBlockPresent) {
         if (fAccepted && !sc.found)

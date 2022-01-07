@@ -200,12 +200,12 @@ bool CSporkManager::IsSporkActive(int nSporkID)
 }
 
 
-void ReprocessBlocks(int nBlocks)
+void ReprocessBlocks(const CChainParams& chainparams, int nBlocks)
 {
     std::map<uint256, int64_t>::iterator it = mapRejectedBlocks.begin();
     while (it != mapRejectedBlocks.end()) {
         //use a window twice as large as is usual for the nBlocks we want to reset
-        if ((*it).second > GetTime() - (nBlocks * 60 * 5)) {
+        if ((*it).second > GetTime() - (nBlocks * Params().GetConsensus().nPowTargetSpacing * 2)) {
             BlockMap::iterator mi = mapBlockIndex.find((*it).first);
             if (mi != mapBlockIndex.end() && (*mi).second) {
                 LOCK(cs_main);
@@ -227,7 +227,7 @@ void ReprocessBlocks(int nBlocks)
     }
 
     if (state.IsValid()) {
-        ActivateBestChain(state);
+        ActivateBestChain(state, chainparams);
     }
 }
 

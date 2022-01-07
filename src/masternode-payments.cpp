@@ -276,7 +276,7 @@ bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue)
     return true;
 }
 
-bool IsBlockPayeeValid(const CBlock& block, int nBlockHeight)
+bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int nBlockHeight)
 {
     if (!masternodeSync.IsSynced()) { //there is no budget data to use to check anything -- find the longest chain
         LogPrint("masternodepayments", "Client not synced, skipping block payee checks\n");
@@ -302,7 +302,7 @@ bool IsBlockPayeeValid(const CBlock& block, int nBlockHeight)
     }
 
     //check for masternode payee
-    if (masternodePayments.IsTransactionValid(txNew, nBlockHeight))
+    if (masternodePayments.IsTransactionValid(chainparams, txNew, nBlockHeight))
         return true;
 
     LogPrintf("masternodepayments", "Invalid mn payment detected %s\n", txNew.ToString().c_str());
@@ -590,7 +590,7 @@ bool CMasternodePayments::AddWinningMasternode(CMasternodePaymentWinner& winnerI
     return true;
 }
 
-bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
+bool CMasternodeBlockPayees::IsTransactionValid(const CChainParams& chainparams, const CTransaction& txNew)
 {
     LOCK(cs_vecPayments);
 
@@ -605,7 +605,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
         return true;
 
     std::string strPayeesPossible = "";
-    CAmount nReward = GetBlockSubsidy(nBlockHeight, Params().GetConsensus());
+    CAmount nReward = GetBlockSubsidy(nBlockHeight, chainparams.GetConsensus());
     CAmount requiredMasternodePayment = GetMasternodePayment(nBlockHeight, nReward);
 
     for (CMasternodePayee& payee : vecPayments) {
@@ -675,14 +675,14 @@ std::string CMasternodePayments::GetRequiredPaymentsString(int nBlockHeight)
     return "Unknown";
 }
 
-bool CMasternodePayments::IsTransactionValid(const CTransaction& txNew, int nBlockHeight)
+bool CMasternodePayments::IsTransactionValid(const CChainParams& chainparams, const CTransaction& txNew, int nBlockHeight)
 {
     LOCK(cs_mapMasternodeBlocks);
 
     LogPrint("masternode", "mapMasternodeBlocks size = %d, nBlockHeight = %d", mapMasternodeBlocks.size(), nBlockHeight);
     if (mapMasternodeBlocks.count(nBlockHeight)) {
         LogPrint("masternode", "mapMasternodeBlocks check transaction");
-        return mapMasternodeBlocks[nBlockHeight].IsTransactionValid(txNew);
+        return mapMasternodeBlocks[nBlockHeight].IsTransactionValid(chainparams, txNew);
     }
 
     return true;

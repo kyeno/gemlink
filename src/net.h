@@ -18,6 +18,7 @@
 #include "sync.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
+#include "chainparams.h"
 
 #include <deque>
 #include <stdint.h>
@@ -101,8 +102,8 @@ struct CombinerAll {
 // Signals for message handling
 struct CNodeSignals {
     boost::signals2::signal<int()> GetHeight;
-    boost::signals2::signal<bool(CNode*), CombinerAll> ProcessMessages;
-    boost::signals2::signal<bool(CNode*, bool), CombinerAll> SendMessages;
+    boost::signals2::signal<bool(const CChainParams&, CNode*), CombinerAll> ProcessMessages;
+    boost::signals2::signal<bool(const Consensus::Params&, CNode*, bool), CombinerAll> SendMessages;
     boost::signals2::signal<void(NodeId, const CNode*)> InitializeNode;
     boost::signals2::signal<void(NodeId)> FinalizeNode;
 };
