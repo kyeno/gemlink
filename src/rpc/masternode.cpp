@@ -803,26 +803,19 @@ UniValue getmasternodescores(const UniValue& params, bool fHelp)
     }
     UniValue obj(UniValue::VOBJ);
 
-    int nHeight = chainActive.Tip()->nHeight - nLast;
-
-    uint256 blockHash;
-    if (!GetBlockHash(blockHash, nHeight - 100)) {
-        return NullUniValue;
-    }
-
     std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
-    for (int height = nHeight; height < chainActive.Tip()->nHeight + 20; height++) {
+    for (int nHeight = chainActive.Tip()->nHeight - nLast; nHeight < chainActive.Tip()->nHeight + 20; nHeight++) {
         arith_uint256 nHigh = 0;
         CMasternode* pBestMasternode = NULL;
         for (CMasternode& mn : vMasternodes) {
-            arith_uint256 n = mn.CalculateScore(blockHash);
+            arith_uint256 n = mn.CalculateScore(nHeight);
             if (n > nHigh) {
                 nHigh = n;
                 pBestMasternode = &mn;
             }
         }
         if (pBestMasternode)
-            obj.push_back(Pair(strprintf("%d", height), pBestMasternode->vin.prevout.hash.ToString().c_str()));
+            obj.push_back(Pair(strprintf("%d", nHeight), pBestMasternode->vin.prevout.hash.ToString().c_str()));
     }
 
     return obj;

@@ -197,7 +197,7 @@ public:
     }
 
     // CALCULATE A RANK AGAINST OF GIVEN BLOCK
-    arith_uint256 CalculateScore(const uint256& blockHash);
+    arith_uint256 CalculateScore(int64_t nBlockHeight = 0);
 
     ADD_SERIALIZE_METHODS;
 

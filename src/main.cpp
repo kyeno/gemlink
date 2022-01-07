@@ -6701,7 +6701,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 //       it was the one which was commented out
 int ActiveProtocol()
 {
-    return MIN_PEER_PROTO_VERSION_ENFORCEMENT;
+    return MIN_PEER_PROTO_VERSION_ENFORCEMENT_KNOWHERE;
 }
 
 // requires LOCK(cs_vRecvMsg)

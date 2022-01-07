@@ -418,12 +418,14 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
 int CMasternodePayments::GetMinMasternodePaymentsProto()
 {
-    if (sporkManager.IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+    if (sporkManager.IsSporkActive(SPORK_14_NEW_PROTOCOL_ENFORCEMENT))
         return ActiveProtocol(); // Allow only updated peers
     else {
         int minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT;
         if (NetworkUpgradeActive(nLastBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_KNOWHERE)) {
             minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_KNOWHERE;
+        } else if (NetworkUpgradeActive(nLastBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+            minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG;
         }
         return minPeer;
     }

@@ -538,12 +538,6 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     // Sort them high to low
     sort(vecMasternodeLastPaid.rbegin(), vecMasternodeLastPaid.rend(), CompareLastPaid());
 
-    uint256 blockHash;
-    if (!GetBlockHash(blockHash, nBlockHeight - 101)) {
-        LogPrintf("CMasternode::GetNextMasternodeInQueueForPayment -- ERROR: GetBlockHash() failed at nBlockHeight %d\n", nBlockHeight - 101);
-        return NULL;
-    }
-
     // Look at 1/10 of the oldest nodes (by last payment), calculate their scores and pay the best one
     //  -- This doesn't look at who is being paid in the +8-10 blocks, allowing for double payments very rarely
     //  -- 1/100 payments should be a double payment on mainnet - (1/(3000/10))*2
@@ -551,12 +545,16 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     int nTenthNetwork = nMnCount / 10;
     int nCountTenth = 0;
     arith_uint256 nHighest = 0;
+
+    
+    bool isMoragActive = NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+
     for (PAIRTYPE(int64_t, CTxIn) & s : vecMasternodeLastPaid) {
         CMasternode* pmn = Find(s.second);
         if (!pmn)
             break;
 
-        arith_uint256 n = pmn->CalculateScore(blockHash);
+        arith_uint256 n = pmn->CalculateScore(isMoragActive ? nBlockHeight - 101 : nBlockHeight - 100);
         if (n > nHighest) {
             nHighest = n;
             pBestMasternode = pmn;
@@ -573,11 +571,6 @@ CMasternode* CMasternodeMan::GetCurrentMasterNode(int mod, int64_t nBlockHeight,
     int64_t score = 0;
     CMasternode* winner = NULL;
 
-    //make sure we know about this block
-    uint256 blockHash = uint256();
-    if (!GetBlockHash(blockHash, nBlockHeight))
-        return NULL;
-
     // scan for winner
     for (CMasternode& mn : vMasternodes) {
         mn.Check();
@@ -585,7 +578,7 @@ CMasternode* CMasternodeMan::GetCurrentMasterNode(int mod, int64_t nBlockHeight,
             continue;
 
         // calculate the score for each Masternode
-        arith_uint256 n = mn.CalculateScore(blockHash);
+        arith_uint256 n = mn.CalculateScore(nBlockHeight);
         int64_t n2 = n.GetCompact(false);
 
         // determine the winner
@@ -605,9 +598,8 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
     int64_t nMasternode_Age = 0;
 
     //make sure we know about this block
-    uint256 blockHash = uint256();
-    if (!GetBlockHash(blockHash, nBlockHeight))
-        return -1;
+    uint256 hash;
+    if (!GetBlockHash(hash, nBlockHeight)) return -1;
 
     // scan for winner
     for (CMasternode& mn : vMasternodes) {
@@ -629,7 +621,7 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
             if (!mn.IsEnabled())
                 continue;
         }
-        arith_uint256 n = mn.CalculateScore(blockHash);
+        arith_uint256 n = mn.CalculateScore(nBlockHeight);
         int64_t n2 = n.GetCompact(false);
 
         vecMasternodeScores.push_back(make_pair(n2, mn.vin));
@@ -653,10 +645,6 @@ std::vector<pair<int, CMasternode>> CMasternodeMan::GetMasternodeRanks(int64_t n
     std::vector<pair<int64_t, CMasternode>> vecMasternodeScores;
     std::vector<pair<int, CMasternode>> vecMasternodeRanks;
 
-    //make sure we know about this block
-    uint256 blockHash = uint256();
-    if (!GetBlockHash(blockHash, nBlockHeight))
-        return vecMasternodeRanks;
 
     // scan for winner
     for (CMasternode& mn : vMasternodes) {
@@ -670,7 +658,7 @@ std::vector<pair<int, CMasternode>> CMasternodeMan::GetMasternodeRanks(int64_t n
             continue;
         }
 
-        arith_uint256 n = mn.CalculateScore(blockHash);
+        arith_uint256 n = mn.CalculateScore(nBlockHeight);
         int64_t n2 = n.GetCompact(false);
 
         vecMasternodeScores.push_back(make_pair(n2, mn));
@@ -691,12 +679,6 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
 {
     std::vector<pair<int64_t, CTxIn>> vecMasternodeScores;
 
-    uint256 blockHash;
-    if (!GetBlockHash(blockHash, nBlockHeight)) {
-        LogPrintf("CMasternode::GetMasternodeByRank -- ERROR: GetBlockHash() failed at nBlockHeight %d\n", nBlockHeight);
-        return NULL;
-    }
-
     // scan for winner
     for (CMasternode& mn : vMasternodes) {
         if (mn.protocolVersion < minProtocol)
@@ -707,7 +689,7 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
                 continue;
         }
 
-        arith_uint256 n = mn.CalculateScore(blockHash);
+        arith_uint256 n = mn.CalculateScore(nBlockHeight);
         int64_t n2 = n.GetCompact(false);
 
         vecMasternodeScores.push_back(make_pair(n2, mn.vin));
@@ -910,7 +892,7 @@ void ThreadCheckMasternodes()
     if (fLiteMode) return; //disable all Masternode related functionality
 
     // Make this thread recognisable as the wallet flushing thread
-    util::ThreadRename("pivx-masternodeman");
+    util::ThreadRename("snowgem-masternodeman");
     LogPrintf("Masternodes thread started\n");
 
     unsigned int c = 0;

@@ -28,7 +28,7 @@ std::vector<CSporkDef> sporkDefs = {
     MAKE_SPORK_DEF(SPORK_5_MAX_VALUE,                       1000),          // 1000 PIV
     MAKE_SPORK_DEF(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT,  1523750400ULL), // ON
     MAKE_SPORK_DEF(SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT,   4070908800ULL), // OFF
-    MAKE_SPORK_DEF(SPORK_10_MASTERNODE_PAY_UPDATED_NODES,   0),             // OFF
+    MAKE_SPORK_DEF(SPORK_10_MASTERNODE_PAY_UPDATED_NODES,   4070908800ULL), // OFF
     MAKE_SPORK_DEF(SPORK_11_LOCK_INVALID_UTXO,              4070908800ULL), // OFF
     MAKE_SPORK_DEF(SPORK_13_ENABLE_SUPERBLOCKS,             4070908800ULL), // OFF
     MAKE_SPORK_DEF(SPORK_14_NEW_PROTOCOL_ENFORCEMENT,       4070908800ULL), // OFF
@@ -196,10 +196,7 @@ int64_t CSporkManager::GetSporkValue(int nSporkID)
 // grab the spork value, and see if it's off
 bool CSporkManager::IsSporkActive(int nSporkID)
 {
-    int64_t r = GetSporkValue(nSporkID);
-    if (r == -1)
-        return false;
-    return r < GetTime();
+    return GetSporkValue(nSporkID) < GetAdjustedTime();
 }
 
 
