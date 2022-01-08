@@ -554,7 +554,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
         if (!pmn)
             break;
 
-        arith_uint256 n = pmn->CalculateScore(isMoragActive ? nBlockHeight - 101 : nBlockHeight - 100);
+        arith_uint256 n = pmn->CalculateScore(isMoragActive ? nBlockHeight - 100 : nBlockHeight - 101);
         if (n > nHighest) {
             nHighest = n;
             pBestMasternode = pmn;
