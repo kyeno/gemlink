@@ -43,7 +43,7 @@ class CMasternodePing : public CSignedMessage
 public:
     CTxIn vin;
     uint256 blockHash;
-    int64_t sigTime; //mnb message times
+    int64_t sigTime; //mnp message times
 
     CMasternodePing();
     CMasternodePing(CTxIn& newVin);
@@ -314,6 +314,7 @@ public:
 
     bool CheckAndUpdate(int& nDoS);
     bool CheckInputsAndAdd(int& nDos);
+    std::string GetStrMessage() const override;
     uint256 GetHash() const;
     void Relay();
     // special sign/verify

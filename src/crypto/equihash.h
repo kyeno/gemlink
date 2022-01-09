@@ -214,7 +214,7 @@ static Equihash<48,5> Eh48_5;
     } else if (n == 48 && k == 5) {          \
         Eh48_5.InitialiseState(base_state);  \
     } else {                                 \
-        throw std::invalid_argument("Unsupported Equihash parameters"); \
+        throw std::invalid_argument("EhInitialiseState Unsupported Equihash parameters"); \
     }
 
 #ifdef ENABLE_MINING
@@ -233,7 +233,7 @@ inline bool EhBasicSolve(unsigned int n, unsigned int k, const eh_HashState& bas
     } else if (n == 48 && k == 5) {
         return Eh48_5.BasicSolve(base_state, validBlock, cancelled);
     } else {
-        throw std::invalid_argument("Unsupported Equihash parameters");
+        throw std::invalid_argument("EhBasicSolve Unsupported Equihash parameters");
     }
 }
 
@@ -259,7 +259,7 @@ inline bool EhOptimisedSolve(unsigned int n, unsigned int k, const eh_HashState&
     } else if (n == 48 && k == 5) {
         return Eh48_5.OptimisedSolve(base_state, validBlock, cancelled);
     } else {
-        throw std::invalid_argument("Unsupported Equihash parameters");
+        throw std::invalid_argument("EhOptimisedSolve Unsupported Equihash parameters");
     }
 }
 
@@ -283,7 +283,7 @@ inline bool EhOptimisedSolveUncancellable(unsigned int n, unsigned int k, const 
     } else if (n == 48 && k == 5) {                      \
         ret = Eh48_5.IsValidSolution(base_state, soln);  \
     } else {                                             \
-        throw std::invalid_argument("Unsupported Equihash parameters"); \
+        throw std::invalid_argument("EhIsValidSolution Unsupported Equihash parameters"); \
     }
 
 #endif // BITCOIN_EQUIHASH_H

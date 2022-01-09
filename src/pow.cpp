@@ -206,7 +206,7 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& 
         n = params.eh_epoch_2_params().n;
         k = params.eh_epoch_2_params().k;
     }
-    // LogPrint("pow", "selected n,k : %d, %d \n", n,k);
+    LogPrint("pow", "selected n,k : %d, %d \n", n,k);
 
     //need to put block height param switching code here
 

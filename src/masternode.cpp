@@ -121,7 +121,7 @@ uint256 CMasternode::GetSignatureHash() const
     return ss.GetHash();
 }
 
-std::string CMasternode::GetStrMessage() const
+std::string CMasternodeBroadcast::GetStrMessage() const
 {
     std::string strMessage;
 
@@ -130,6 +130,21 @@ std::string CMasternode::GetStrMessage() const
     strMessage = addr.ToString() + std::to_string(sigTime) + vchPubKey + vchPubKey2 + std::to_string(protocolVersion);
 
     return strMessage;
+}
+
+std::string CMasternodePing::GetStrMessage() const
+{
+    return vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
+}
+
+std::string CMasternode::GetStrMessage() const
+{
+    return (addr.ToString() +
+            std::to_string(sigTime) +
+            pubKeyCollateralAddress.GetID().ToString() +
+            pubKeyMasternode.GetID().ToString() +
+            std::to_string(protocolVersion)
+    );
 }
 
 //
@@ -522,7 +537,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
 {
     // make sure signature isn't in the future (past is OK)
     if (sigTime > GetAdjustedTime() + 60 * 60) {
-        LogPrint("masternode", "mnb - Signature rejected, too far into the future %s\n", vin.prevout.hash.ToString());
+        LogPrint("masternode", "mnb - Signature rejected, too far into the future %d %s\n", sigTime, vin.prevout.hash.ToString());
         nDos = 1;
         return false;
     }
@@ -712,7 +727,7 @@ CMasternodePing::CMasternodePing()
 {
     vin = CTxIn();
     blockHash = uint256();
-    sigTime = 0;
+    sigTime = GetAdjustedTime();
     vchSig = std::vector<unsigned char>();
 }
 
@@ -739,15 +754,10 @@ uint256 CMasternodePing::GetHash() const
     return ss.GetHash();
 }
 
-std::string CMasternodePing::GetStrMessage() const
-{
-    return vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
-}
-
 bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fCheckSigTimeOnly)
 {
     if (sigTime > GetAdjustedTime() + 60 * 60) {
-        LogPrint("masternode", "CMasternodePing::CheckAndUpdate - Signature rejected, too far into the future %s\n", vin.prevout.hash.ToString());
+        LogPrint("masternode", "CMasternodePing::CheckAndUpdate - Signature rejected, too far into the future %d %s\n", sigTime, vin.prevout.hash.ToString());
         nDos = 1;
         return false;
     }
