@@ -12,7 +12,7 @@ snowgem_GenerateParams_LDADD = \
   $(LIBSNARK) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO) \
-  $(libzcash_LIBS)
+  $(LIBZCASH_LIBS)
 
 # tool for profiling the creation of joinsplits
 snowgem_CreateJoinSplit_SOURCES = snowgem/CreateJoinSplit.cpp
@@ -25,4 +25,4 @@ snowgem_CreateJoinSplit_LDADD = \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO) \
   $(BOOST_LIBS) \
-  $(libzcash_LIBS)
+  $(LIBZCASH_LIBS)

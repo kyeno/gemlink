@@ -1,3 +1,9 @@
+
+# Pattern rule to print variables, e.g. make print-top_srcdir
+print-%:
+	@echo $* = $($*)
+
+ACLOCAL_AMFLAGS = -I build-aux/m4
 SUBDIRS = src
 if ENABLE_MAN
 SUBDIRS += doc/man
@@ -8,7 +14,7 @@ GZIP_ENV="-9n"
 
 if BUILD_BITCOIN_LIBS
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libzcashconsensus.pc
+pkgconfig_DATA = libzcash_script.pc
 endif
 
 BITCOIND_BIN=$(top_builddir)/src/$(BITCOIN_DAEMON_NAME)$(EXEEXT)
@@ -54,10 +60,10 @@ baseline.info:
 
 baseline_filtered.info: baseline.info
 	$(LCOV) -r $< "/usr/include/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/*.h" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/boost/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gmock/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gtest/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/*.h" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/boost/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gmock/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gtest/*" \
                       "$(abs_builddir)/src/gtest/*" \
                       "$(abs_builddir)/src/test/*" \
                       "$(abs_builddir)/src/wallet/gtest/*" \
@@ -69,10 +75,10 @@ leveldb_baseline.info: baseline_filtered.info
 
 leveldb_baseline_filtered.info: leveldb_baseline.info
 	$(LCOV) -r $< "/usr/include/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/*.h" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/boost/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gmock/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gtest/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/*.h" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/boost/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gmock/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gtest/*" \
                       "$(abs_builddir)/src/gtest/*" \
                       "$(abs_builddir)/src/test/*" \
                       "$(abs_builddir)/src/wallet/gtest/*" \
@@ -90,10 +96,10 @@ test_bitcoin.info: baseline_filtered_combined.info
 
 test_bitcoin_filtered.info: test_bitcoin.info
 	$(LCOV) -r $< "/usr/include/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/*.h" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/boost/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gmock/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gtest/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/*.h" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/boost/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gmock/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gtest/*" \
                       "$(abs_builddir)/src/gtest/*" \
                       "$(abs_builddir)/src/test/*" \
                       "$(abs_builddir)/src/wallet/gtest/*" \
@@ -108,10 +114,10 @@ snowgem-gtest.info: baseline_filtered_combined.info
 
 snowgem-gtest_filtered.info: snowgem-gtest.info
 	$(LCOV) -r $< "/usr/include/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/*.h" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/boost/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gmock/*" \
-                      "$(abs_builddir)/depends/$(BUILD)/include/gtest/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/*.h" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/boost/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gmock/*" \
+                      "$(abs_builddir)/depends/x86_64-pc-linux-gnu/include/gtest/*" \
                       "$(abs_builddir)/src/gtest/*" \
                       "$(abs_builddir)/src/test/*" \
                       "$(abs_builddir)/src/wallet/gtest/*" \
@@ -148,8 +154,9 @@ endif
 dist_bin_SCRIPTS = zcutil/fetch-params.sh
 dist_noinst_SCRIPTS = autogen.sh zcutil/build-debian-package.sh zcutil/build.sh
 
-EXTRA_DIST = $(top_srcdir)/share/genbuild.sh qa/pull-tester/rpc-tests.sh qa/pull-tester/run-bitcoin-cli qa/rpc-tests qa/snowgem $(DIST_DOCS) $(BIN_CHECKS)
+RUST_DIST = $(top_srcdir)/.cargo $(top_srcdir)/Cargo.toml $(top_srcdir)/Cargo.lock rust-toolchain
 
+EXTRA_DIST = $(top_srcdir)/share/genbuild.sh qa/pull-tester/rpc-tests.py qa/rpc-tests qa/zcash $(DIST_DOCS) $(BIN_CHECKS) $(RUST_DIST)
 install-exec-hook:
 	mv $(DESTDIR)$(bindir)/fetch-params.sh $(DESTDIR)$(bindir)/snowgem-fetch-params
 

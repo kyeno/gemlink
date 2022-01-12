@@ -55,9 +55,6 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
 
 LIBSNARK_CXXFLAGS = $(AM_CXXFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT -DNO_PT_COMPRESSION=1 -fstack-protector-all
 LIBSNARK_CONFIG_FLAGS = CURVE=ALT_BN128 NO_PROCPS=1 NO_DOCS=1 STATIC=1 NO_SUPERCOP=1 FEATUREFLAGS=-DMONTGOMERY_OUTPUT NO_COPY_DEPINST=1 NO_COMPILE_LIBGTEST=1
-if HAVE_OPENMP
-LIBSNARK_CONFIG_FLAGS += MULTICORE=1
-endif
 if TARGET_DARWIN
 LIBSNARK_CONFIG_FLAGS += PLATFORM=darwin
 endif
@@ -496,7 +493,7 @@ snowgemd_LDADD += \
   $(ZMQ_LIBS) \
   $(PROTON_LIBS) \
   $(LIBBITCOIN_CRYPTO) \
-  $(libzcash_LIBS)
+  $(LIBZCASH_LIBS)
 
 # bitcoin-cli binary #
 snowgem_cli_SOURCES = bitcoin-cli.cpp
@@ -516,10 +513,10 @@ snowgem_cli_LDADD = \
   $(SSL_LIBS) \
   $(CRYPTO_LIBS) \
   $(EVENT_LIBS) \
-  $(libzcash) \
+  $(LIBZCASH) \
   $(LIBSNARK) \
   $(LIBBITCOIN_CRYPTO) \
-  $(libzcash_LIBS)
+  $(LIBZCASH_LIBS)
 #
 
 # snowgem-tx binary #
@@ -541,7 +538,7 @@ snowgem_tx_LDADD = \
   $(libzcash) \
   $(LIBSNARK) \
   $(LIBBITCOIN_CRYPTO) \
-  $(libzcash_LIBS)
+  $(LIBZCASH_LIBS)
 
 snowgem_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
@@ -572,9 +569,9 @@ libzcash_a_LDFLAGS = $(AM_LDFLAGS)
 
 libzcash_a_CPPFLAGS += -DMONTGOMERY_OUTPUT
 
-# snowgemconsensus library #
+# zcash_script library #
 if BUILD_BITCOIN_LIBS
-include_HEADERS = script/snowgemconsensus.h
+include_HEADERS = script/zcash_script.h
 libzcashconsensus_la_SOURCES = \
   crypto/equihash.cpp \
   crypto/hmac_sha512.cpp \
@@ -585,7 +582,7 @@ libzcashconsensus_la_SOURCES = \
   hash.cpp \
   primitives/transaction.cpp \
   pubkey.cpp \
-  script/snowgemconsensus.cpp \
+  script/zcash_script.cpp \
   script/interpreter.cpp \
   script/script.cpp \
   uint256.cpp \
