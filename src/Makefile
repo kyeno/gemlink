@@ -14,6 +14,16 @@
 
 
 
+# Copyright (c) 2020 The Zcash developers
+# Copyright (c) 2016-2017 The Bitcoin Core developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or https://www.opensource.org/licenses/mit-license.php .
+
+# Copyright (c) 2020 The Zcash developers
+# Copyright (c) 2015-2016 The Bitcoin Core developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or https://www.opensource.org/licenses/mit-license.php .
+
 
 
 
@@ -89,30 +99,43 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-pc-linux-gnu
-host_triplet = x86_64-w64-mingw32
-am__append_1 = -I$(srcdir)/leveldb/include \
-	-I$(srcdir)/leveldb/helpers/memenv
-am__append_2 = $(builddir)/leveldb/libleveldb.a
-am__append_3 = $(builddir)/leveldb/libmemenv.a
-bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
-noinst_PROGRAMS = $(am__EXEEXT_3)
-TESTS = $(am__EXEEXT_3)
-am__append_4 = snowgemd
-am__append_5 = snowgem-cli snowgem-tx
-am__append_6 = \
+host_triplet = x86_64-pc-linux-gnu
+
+# Enable dependency vendoring
+am__append_1 = --locked --offline
+bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3)
+noinst_PROGRAMS = $(am__EXEEXT_4)
+TESTS = $(am__EXEEXT_4)
+am__append_2 = snowgemd
+am__append_3 = snowgem-cli snowgem-tx
+am__append_4 = \
   -DEQUIHASH_TROMP_ATOMIC
 
-am__append_7 = \
+am__append_5 = \
   ${EQUIHASH_TROMP_SOURCES}
 
-#am__append_8 = compat/glibc_compat.cpp
-am__append_9 = bitcoind-res.rc
-am__append_10 = bitcoin-cli-res.rc
-am__append_11 = bitcoin-tx-res.rc
-##am__append_12 = compat/glibc_compat.cpp
-am__append_13 = test/test_bitcoin snowgem-gtest
-am__append_14 = test/test_bitcoin snowgem-gtest
-am__append_15 = \
+#am__append_6 = compat/glibc_compat.cpp
+#am__append_7 = bitcoind-res.rc
+#am__append_8 = bitcoin-cli-res.rc
+#am__append_9 = bitcoin-tx-res.rc
+##am__append_10 = compat/glibc_compat.cpp
+am__append_11 = $(LIBLEVELDB_INT) \
+	$(LIBMEMENV_INT) \
+	$(LIBLEVELDB_SSE42_INT)
+am__append_12 = $(LIBLEVELDB_INT)
+am__append_13 = $(LIBMEMENV_INT)
+am__append_14 = -I$(srcdir)/leveldb/include \
+	-I$(srcdir)/leveldb/helpers/memenv
+#am__append_15 = -DLEVELDB_PLATFORM_WINDOWS -D__USE_MINGW_ANSI_STDIO=1
+am__append_16 = -DLEVELDB_PLATFORM_POSIX
+#am__append_17 = leveldb/util/env_win.cc \
+#	leveldb/port/port_win.cc
+am__append_18 = leveldb/port/port_posix.cc
+#am__append_19 = -DLEVELDB_PLATFORM_POSIX_SSE
+#am__append_20 = $(SSE42_CXXFLAGS)
+am__append_21 = test/test_bitcoin snowgem-gtest
+am__append_22 = test/test_bitcoin snowgem-gtest
+am__append_23 = \
 	test/bctest.py \
 	test/bitcoin-util-test.py \
 	test/data/bitcoin-util-test.json \
@@ -125,26 +148,30 @@ am__append_15 = \
 	test/data/txcreate2.hex \
 	test/data/txcreatesign.hex
 
-am__append_16 = \
+am__append_24 = \
   test/accounting_tests.cpp \
   wallet/test/wallet_tests.cpp \
   test/rpc_wallet_tests.cpp
 
-am__append_17 = $(LIBBITCOIN_WALLET)
-am__append_18 = $(ZMQ_LIBS)
-#am__append_19 = $(PROTON_LIBS)
-am__append_20 = $(CLEAN_BITCOIN_TEST)
+am__append_25 = $(LIBBITCOIN_WALLET)
+am__append_26 = $(ZMQ_LIBS)
+#am__append_27 = $(PROTON_LIBS)
+am__append_28 = $(CLEAN_BITCOIN_TEST)
 # These tests are order-dependent, because they
 # depend on global state (see #1539)
-am__append_21 = \
+am__append_29 = \
 	wallet/gtest/test_wallet_zkeys.cpp
 
-am__append_22 = \
+am__append_30 = \
 	wallet/gtest/test_wallet.cpp
 
-am__append_23 = $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
-am__append_24 = $(LIBBITCOIN_WALLET)
-#am__append_25 = $(LIBBITCOIN_PROTON) $(PROTON_LIBS)
+am__append_31 = $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
+am__append_32 = $(LIBBITCOIN_WALLET)
+#am__append_33 = $(LIBBITCOIN_PROTON) $(PROTON_LIBS)
+am__append_34 = bench/bench_bitcoin
+am__append_35 = $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
+am__append_36 = $(LIBBITCOIN_WALLET)
+am__append_37 = $(CLEAN_BITCOIN_BENCH)
 subdir = src
 SUBDIRS =
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -160,7 +187,6 @@ am__aclocal_m4_deps = $(top_srcdir)/build-aux/m4/ax_boost_base.m4 \
 	$(top_srcdir)/build-aux/m4/ax_check_preproc_flag.m4 \
 	$(top_srcdir)/build-aux/m4/ax_cxx_compile_stdcxx.m4 \
 	$(top_srcdir)/build-aux/m4/ax_gcc_func_attribute.m4 \
-	$(top_srcdir)/build-aux/m4/ax_openmp.m4 \
 	$(top_srcdir)/build-aux/m4/ax_pthread.m4 \
 	$(top_srcdir)/build-aux/m4/bitcoin_find_bdb.m4 \
 	$(top_srcdir)/build-aux/m4/bitcoin_subdir_to_include.m4 \
@@ -182,9 +208,10 @@ CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_1 = snowgemd$(EXEEXT)
 am__EXEEXT_2 = snowgem-cli$(EXEEXT) \
 	snowgem-tx$(EXEEXT)
+am__EXEEXT_3 = bench/bench_bitcoin$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libdir)" \
 	"$(DESTDIR)$(includedir)"
-am__EXEEXT_3 = test/test_bitcoin$(EXEEXT) \
+am__EXEEXT_4 = test/test_bitcoin$(EXEEXT) \
 	snowgem-gtest$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -221,18 +248,22 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 crypto_libbitcoin_crypto_a_AR = $(AR) $(ARFLAGS)
 crypto_libbitcoin_crypto_a_LIBADD =
-am__crypto_libbitcoin_crypto_a_SOURCES_DIST = crypto/common.h \
-	crypto/equihash.cpp crypto/equihash.h crypto/equihash.tcc \
-	crypto/hmac_sha256.cpp crypto/hmac_sha256.h \
-	crypto/hmac_sha512.cpp crypto/hmac_sha512.h \
-	crypto/ripemd160.cpp crypto/ripemd160.h crypto/sha1.cpp \
-	crypto/sha1.h crypto/sha256.cpp crypto/sha256.h \
-	crypto/sha512.cpp crypto/sha512.h pow/tromp/equi_miner.h \
-	pow/tromp/equi.h pow/tromp/osx_barrier.h
+am__crypto_libbitcoin_crypto_a_SOURCES_DIST = crypto/aes.cpp \
+	crypto/aes.h crypto/chacha20.h crypto/chacha20.cpp \
+	crypto/common.h crypto/equihash.cpp crypto/equihash.h \
+	crypto/equihash.tcc crypto/hmac_sha256.cpp \
+	crypto/hmac_sha256.h crypto/hmac_sha512.cpp \
+	crypto/hmac_sha512.h crypto/ripemd160.cpp crypto/ripemd160.h \
+	crypto/sha1.cpp crypto/sha1.h crypto/sha256.cpp \
+	crypto/sha256.h crypto/sha512.cpp crypto/sha512.h \
+	pow/tromp/equi_miner.h pow/tromp/equi.h \
+	pow/tromp/osx_barrier.h
 am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_1 =
 am__objects_2 = $(am__objects_1)
 am_crypto_libbitcoin_crypto_a_OBJECTS =  \
+	crypto/libbitcoin_crypto_a-aes.$(OBJEXT) \
+	crypto/libbitcoin_crypto_a-chacha20.$(OBJEXT) \
 	crypto/libbitcoin_crypto_a-equihash.$(OBJEXT) \
 	crypto/libbitcoin_crypto_a-hmac_sha256.$(OBJEXT) \
 	crypto/libbitcoin_crypto_a-hmac_sha512.$(OBJEXT) \
@@ -242,6 +273,118 @@ am_crypto_libbitcoin_crypto_a_OBJECTS =  \
 	crypto/libbitcoin_crypto_a-sha512.$(OBJEXT) $(am__objects_2)
 crypto_libbitcoin_crypto_a_OBJECTS =  \
 	$(am_crypto_libbitcoin_crypto_a_OBJECTS)
+leveldb_libleveldb_a_AR = $(AR) $(ARFLAGS)
+leveldb_libleveldb_a_LIBADD =
+am__leveldb_libleveldb_a_SOURCES_DIST = leveldb/port/atomic_pointer.h \
+	leveldb/port/port_example.h leveldb/port/port_posix.h \
+	leveldb/port/win/stdint.h leveldb/port/port.h \
+	leveldb/port/port_win.h leveldb/port/thread_annotations.h \
+	leveldb/include/leveldb/db.h leveldb/include/leveldb/options.h \
+	leveldb/include/leveldb/comparator.h \
+	leveldb/include/leveldb/filter_policy.h \
+	leveldb/include/leveldb/slice.h \
+	leveldb/include/leveldb/table_builder.h \
+	leveldb/include/leveldb/env.h leveldb/include/leveldb/c.h \
+	leveldb/include/leveldb/iterator.h \
+	leveldb/include/leveldb/cache.h \
+	leveldb/include/leveldb/dumpfile.h \
+	leveldb/include/leveldb/table.h \
+	leveldb/include/leveldb/write_batch.h \
+	leveldb/include/leveldb/status.h leveldb/db/log_format.h \
+	leveldb/db/memtable.h leveldb/db/version_set.h \
+	leveldb/db/write_batch_internal.h leveldb/db/filename.h \
+	leveldb/db/version_edit.h leveldb/db/dbformat.h \
+	leveldb/db/builder.h leveldb/db/log_writer.h \
+	leveldb/db/db_iter.h leveldb/db/skiplist.h \
+	leveldb/db/db_impl.h leveldb/db/table_cache.h \
+	leveldb/db/snapshot.h leveldb/db/log_reader.h \
+	leveldb/table/filter_block.h leveldb/table/block_builder.h \
+	leveldb/table/block.h leveldb/table/two_level_iterator.h \
+	leveldb/table/merger.h leveldb/table/format.h \
+	leveldb/table/iterator_wrapper.h leveldb/util/crc32c.h \
+	leveldb/util/env_posix_test_helper.h leveldb/util/arena.h \
+	leveldb/util/random.h leveldb/util/posix_logger.h \
+	leveldb/util/hash.h leveldb/util/histogram.h \
+	leveldb/util/coding.h leveldb/util/testutil.h \
+	leveldb/util/mutexlock.h leveldb/util/logging.h \
+	leveldb/util/testharness.h leveldb/db/builder.cc \
+	leveldb/db/c.cc leveldb/db/dbformat.cc leveldb/db/db_impl.cc \
+	leveldb/db/db_iter.cc leveldb/db/dumpfile.cc \
+	leveldb/db/filename.cc leveldb/db/log_reader.cc \
+	leveldb/db/log_writer.cc leveldb/db/memtable.cc \
+	leveldb/db/repair.cc leveldb/db/table_cache.cc \
+	leveldb/db/version_edit.cc leveldb/db/version_set.cc \
+	leveldb/db/write_batch.cc leveldb/table/block_builder.cc \
+	leveldb/table/block.cc leveldb/table/filter_block.cc \
+	leveldb/table/format.cc leveldb/table/iterator.cc \
+	leveldb/table/merger.cc leveldb/table/table_builder.cc \
+	leveldb/table/table.cc leveldb/table/two_level_iterator.cc \
+	leveldb/util/arena.cc leveldb/util/bloom.cc \
+	leveldb/util/cache.cc leveldb/util/coding.cc \
+	leveldb/util/comparator.cc leveldb/util/crc32c.cc \
+	leveldb/util/env.cc leveldb/util/env_posix.cc \
+	leveldb/util/filter_policy.cc leveldb/util/hash.cc \
+	leveldb/util/histogram.cc leveldb/util/logging.cc \
+	leveldb/util/options.cc leveldb/util/status.cc \
+	leveldb/util/env_win.cc leveldb/port/port_win.cc \
+	leveldb/port/port_posix.cc
+#am__objects_3 = leveldb/util/libleveldb_a-env_win.$(OBJEXT) \
+#	leveldb/port/libleveldb_a-port_win.$(OBJEXT)
+am__objects_4 = leveldb/port/libleveldb_a-port_posix.$(OBJEXT)
+am_leveldb_libleveldb_a_OBJECTS = leveldb/db/libleveldb_a-builder.$(OBJEXT) \
+	leveldb/db/libleveldb_a-c.$(OBJEXT) \
+	leveldb/db/libleveldb_a-dbformat.$(OBJEXT) \
+	leveldb/db/libleveldb_a-db_impl.$(OBJEXT) \
+	leveldb/db/libleveldb_a-db_iter.$(OBJEXT) \
+	leveldb/db/libleveldb_a-dumpfile.$(OBJEXT) \
+	leveldb/db/libleveldb_a-filename.$(OBJEXT) \
+	leveldb/db/libleveldb_a-log_reader.$(OBJEXT) \
+	leveldb/db/libleveldb_a-log_writer.$(OBJEXT) \
+	leveldb/db/libleveldb_a-memtable.$(OBJEXT) \
+	leveldb/db/libleveldb_a-repair.$(OBJEXT) \
+	leveldb/db/libleveldb_a-table_cache.$(OBJEXT) \
+	leveldb/db/libleveldb_a-version_edit.$(OBJEXT) \
+	leveldb/db/libleveldb_a-version_set.$(OBJEXT) \
+	leveldb/db/libleveldb_a-write_batch.$(OBJEXT) \
+	leveldb/table/libleveldb_a-block_builder.$(OBJEXT) \
+	leveldb/table/libleveldb_a-block.$(OBJEXT) \
+	leveldb/table/libleveldb_a-filter_block.$(OBJEXT) \
+	leveldb/table/libleveldb_a-format.$(OBJEXT) \
+	leveldb/table/libleveldb_a-iterator.$(OBJEXT) \
+	leveldb/table/libleveldb_a-merger.$(OBJEXT) \
+	leveldb/table/libleveldb_a-table_builder.$(OBJEXT) \
+	leveldb/table/libleveldb_a-table.$(OBJEXT) \
+	leveldb/table/libleveldb_a-two_level_iterator.$(OBJEXT) \
+	leveldb/util/libleveldb_a-arena.$(OBJEXT) \
+	leveldb/util/libleveldb_a-bloom.$(OBJEXT) \
+	leveldb/util/libleveldb_a-cache.$(OBJEXT) \
+	leveldb/util/libleveldb_a-coding.$(OBJEXT) \
+	leveldb/util/libleveldb_a-comparator.$(OBJEXT) \
+	leveldb/util/libleveldb_a-crc32c.$(OBJEXT) \
+	leveldb/util/libleveldb_a-env.$(OBJEXT) \
+	leveldb/util/libleveldb_a-env_posix.$(OBJEXT) \
+	leveldb/util/libleveldb_a-filter_policy.$(OBJEXT) \
+	leveldb/util/libleveldb_a-hash.$(OBJEXT) \
+	leveldb/util/libleveldb_a-histogram.$(OBJEXT) \
+	leveldb/util/libleveldb_a-logging.$(OBJEXT) \
+	leveldb/util/libleveldb_a-options.$(OBJEXT) \
+	leveldb/util/libleveldb_a-status.$(OBJEXT) \
+	$(am__objects_3) $(am__objects_4)
+leveldb_libleveldb_a_OBJECTS = $(am_leveldb_libleveldb_a_OBJECTS)
+leveldb_libleveldb_sse42_a_AR = $(AR) $(ARFLAGS)
+leveldb_libleveldb_sse42_a_LIBADD =
+am__leveldb_libleveldb_sse42_a_SOURCES_DIST =  \
+	leveldb/port/port_posix_sse.cc
+am_leveldb_libleveldb_sse42_a_OBJECTS = leveldb/port/libleveldb_sse42_a-port_posix_sse.$(OBJEXT)
+leveldb_libleveldb_sse42_a_OBJECTS =  \
+	$(am_leveldb_libleveldb_sse42_a_OBJECTS)
+leveldb_libmemenv_a_AR = $(AR) $(ARFLAGS)
+leveldb_libmemenv_a_LIBADD =
+am__leveldb_libmemenv_a_SOURCES_DIST =  \
+	leveldb/helpers/memenv/memenv.cc \
+	leveldb/helpers/memenv/memenv.h
+am_leveldb_libmemenv_a_OBJECTS = leveldb/helpers/memenv/libmemenv_a-memenv.$(OBJEXT)
+leveldb_libmemenv_a_OBJECTS = $(am_leveldb_libmemenv_a_OBJECTS)
 libbitcoin_cli_a_AR = $(AR) $(ARFLAGS)
 libbitcoin_cli_a_LIBADD =
 am_libbitcoin_cli_a_OBJECTS = rpc/libbitcoin_cli_a-client.$(OBJEXT) \
@@ -280,15 +423,6 @@ am_libbitcoin_common_a_OBJECTS = libbitcoin_common_a-amount.$(OBJEXT) \
 	libbitcoin_common_a-transaction_builder.$(OBJEXT) \
 	$(am__objects_1) $(am__objects_1)
 libbitcoin_common_a_OBJECTS = $(am_libbitcoin_common_a_OBJECTS)
-libbitcoin_proton_a_AR = $(AR) $(ARFLAGS)
-libbitcoin_proton_a_LIBADD =
-am__libbitcoin_proton_a_SOURCES_DIST = amqp/amqpabstractnotifier.cpp \
-	amqp/amqpnotificationinterface.cpp \
-	amqp/amqppublishnotifier.cpp
-#am_libbitcoin_proton_a_OBJECTS = amqp/libbitcoin_proton_a-amqpabstractnotifier.$(OBJEXT) \
-#	amqp/libbitcoin_proton_a-amqpnotificationinterface.$(OBJEXT) \
-#	amqp/libbitcoin_proton_a-amqppublishnotifier.$(OBJEXT)
-libbitcoin_proton_a_OBJECTS = $(am_libbitcoin_proton_a_OBJECTS)
 libbitcoin_server_a_AR = $(AR) $(ARFLAGS)
 libbitcoin_server_a_LIBADD =
 am_libbitcoin_server_a_OBJECTS =  \
@@ -333,13 +467,13 @@ am_libbitcoin_server_a_OBJECTS =  \
 	libbitcoin_server_a-txdb.$(OBJEXT) \
 	libbitcoin_server_a-txmempool.$(OBJEXT) \
 	libbitcoin_server_a-validationinterface.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_1)
+	$(am__objects_1)
 libbitcoin_server_a_OBJECTS = $(am_libbitcoin_server_a_OBJECTS)
 libbitcoin_util_a_AR = $(AR) $(ARFLAGS)
 libbitcoin_util_a_LIBADD =
-am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
+am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	chainparamsbase.cpp clientversion.cpp compat/glibc_sanity.cpp \
-	compat/glibcxx_sanity.cpp compat/strnlen.cpp random.cpp \
+	compat/glibcxx_sanity.cpp compat/strnlen.cpp fs.cpp random.cpp \
 	rpc/protocol.cpp support/cleanse.cpp sync.cpp uint256.cpp \
 	util.cpp utilmoneystr.cpp util/threadnames.cpp \
 	utilstrencodings.cpp utiltime.cpp activemasternode.h \
@@ -353,7 +487,7 @@ am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
 	coins.h compat.h compat/byteswap.h compat/endian.h \
 	compat/sanity.h compressor.h consensus/consensus.h \
 	consensus/params.h consensus/upgrades.h consensus/validation.h \
-	core_io.h core_memusage.h deprecation.h hash.h httprpc.h \
+	core_io.h core_memusage.h deprecation.h fs.h hash.h httprpc.h \
 	httpserver.h init.h swifttx.h key.h key_io.h keystore.h \
 	dbwrapper.h limitedmap.h main.h memusage.h masternode.h \
 	masternode-payments.h masternode-budget.h masternode-sync.h \
@@ -367,7 +501,7 @@ am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
 	script/script_error.h script/sigcache.h script/sign.h \
 	script/standard.h serialize.h spork.h sporkdb.h streams.h \
 	support/allocators/secure.h support/allocators/zeroafterfree.h \
-	support/cleanse.h support/events.h support/pagelocker.h sync.h \
+	support/cleanse.h support/events.h support/lockedpool.h sync.h \
 	threadsafety.h timedata.h tinyformat.h torcontrol.h \
 	transaction_builder.h txdb.h txmempool.h ui_interface.h \
 	uint256.h uint252.h undo.h util.h util/threadnames.h \
@@ -387,14 +521,15 @@ am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
 	zcash/Address.hpp zcash/JoinSplit.hpp zcash/Note.hpp \
 	zcash/prf.h zcash/Proof.hpp zcash/util.h zcash/Zcash.h \
 	zcash/zip32.h compat/glibc_compat.cpp
-#am__objects_3 = compat/libbitcoin_util_a-glibc_compat.$(OBJEXT)
+#am__objects_5 = compat/libbitcoin_util_a-glibc_compat.$(OBJEXT)
 am_libbitcoin_util_a_OBJECTS =  \
-	support/libbitcoin_util_a-pagelocker.$(OBJEXT) \
+	support/libbitcoin_util_a-lockedpool.$(OBJEXT) \
 	libbitcoin_util_a-chainparamsbase.$(OBJEXT) \
 	libbitcoin_util_a-clientversion.$(OBJEXT) \
 	compat/libbitcoin_util_a-glibc_sanity.$(OBJEXT) \
 	compat/libbitcoin_util_a-glibcxx_sanity.$(OBJEXT) \
 	compat/libbitcoin_util_a-strnlen.$(OBJEXT) \
+	libbitcoin_util_a-fs.$(OBJEXT) \
 	libbitcoin_util_a-random.$(OBJEXT) \
 	rpc/libbitcoin_util_a-protocol.$(OBJEXT) \
 	support/libbitcoin_util_a-cleanse.$(OBJEXT) \
@@ -405,7 +540,7 @@ am_libbitcoin_util_a_OBJECTS =  \
 	util/libbitcoin_util_a-threadnames.$(OBJEXT) \
 	libbitcoin_util_a-utilstrencodings.$(OBJEXT) \
 	libbitcoin_util_a-utiltime.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_1) $(am__objects_3)
+	$(am__objects_1) $(am__objects_5)
 nodist_libbitcoin_util_a_OBJECTS =
 libbitcoin_util_a_OBJECTS = $(am_libbitcoin_util_a_OBJECTS) \
 	$(nodist_libbitcoin_util_a_OBJECTS)
@@ -461,54 +596,89 @@ am_libzcash_a_OBJECTS =  \
 	zcash/libzcash_a-util.$(OBJEXT) \
 	zcash/libzcash_a-zip32.$(OBJEXT)
 libzcash_a_OBJECTS = $(am_libzcash_a_OBJECTS)
-#libzcashconsensus_la_DEPENDENCIES =  \
+#libzcash_script_la_DEPENDENCIES =  \
 #	$(LIBSECP256K1)
-am__libzcashconsensus_la_SOURCES_DIST = crypto/equihash.cpp \
+am__libzcash_script_la_SOURCES_DIST = crypto/equihash.cpp \
 	crypto/hmac_sha512.cpp crypto/ripemd160.cpp crypto/sha1.cpp \
 	crypto/sha256.cpp crypto/sha512.cpp hash.cpp \
 	primitives/transaction.cpp pubkey.cpp \
 	script/snowgemconsensus.cpp script/interpreter.cpp \
 	script/script.cpp uint256.cpp utilstrencodings.cpp \
 	compat/glibc_compat.cpp
-##am__objects_4 = compat/libzcashconsensus_la-glibc_compat.lo
-#am_libzcashconsensus_la_OBJECTS = crypto/libzcashconsensus_la-equihash.lo \
-#	crypto/libzcashconsensus_la-hmac_sha512.lo \
-#	crypto/libzcashconsensus_la-ripemd160.lo \
-#	crypto/libzcashconsensus_la-sha1.lo \
-#	crypto/libzcashconsensus_la-sha256.lo \
-#	crypto/libzcashconsensus_la-sha512.lo \
-#	libzcashconsensus_la-hash.lo \
-#	primitives/libzcashconsensus_la-transaction.lo \
-#	libzcashconsensus_la-pubkey.lo \
-#	script/libzcashconsensus_la-snowgemconsensus.lo \
-#	script/libzcashconsensus_la-interpreter.lo \
-#	script/libzcashconsensus_la-script.lo \
-#	libzcashconsensus_la-uint256.lo \
-#	libzcashconsensus_la-utilstrencodings.lo \
-#	$(am__objects_4)
-libzcashconsensus_la_OBJECTS = $(am_libzcashconsensus_la_OBJECTS)
+##am__objects_6 = compat/libzcash_script_la-glibc_compat.lo
+#am_libzcash_script_la_OBJECTS = crypto/libzcash_script_la-equihash.lo \
+#	crypto/libzcash_script_la-hmac_sha512.lo \
+#	crypto/libzcash_script_la-ripemd160.lo \
+#	crypto/libzcash_script_la-sha1.lo \
+#	crypto/libzcash_script_la-sha256.lo \
+#	crypto/libzcash_script_la-sha512.lo \
+#	libzcash_script_la-hash.lo \
+#	primitives/libzcash_script_la-transaction.lo \
+#	libzcash_script_la-pubkey.lo \
+#	script/libzcash_script_la-snowgemconsensus.lo \
+#	script/libzcash_script_la-interpreter.lo \
+#	script/libzcash_script_la-script.lo \
+#	libzcash_script_la-uint256.lo \
+#	libzcash_script_la-utilstrencodings.lo \
+#	$(am__objects_6)
+libzcash_script_la_OBJECTS = $(am_libzcash_script_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libzcashconsensus_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+libzcash_script_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) \
-	$(libzcashconsensus_la_LDFLAGS) $(LDFLAGS) -o $@
-#am_libzcashconsensus_la_rpath = -rpath \
+	$(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) \
+	$(libzcash_script_la_LDFLAGS) $(LDFLAGS) -o $@
+#am_libzcash_script_la_rpath = -rpath \
 #	$(libdir)
+am__bench_bench_bitcoin_SOURCES_DIST = bench/bench_bitcoin.cpp \
+	bench/bench.cpp bench/bench.h bench/checkqueue.cpp \
+	bench/Examples.cpp bench/rollingbloom.cpp \
+	bench/verification.cpp bench/crypto_hash.cpp bench/base58.cpp \
+	bench/lockedpool.cpp bench/perf.cpp bench/perf.h \
+	bench/prevector_destructor.cpp
+am_bench_bench_bitcoin_OBJECTS = bench/bench_bitcoin-bench_bitcoin.$(OBJEXT) \
+	bench/bench_bitcoin-bench.$(OBJEXT) \
+	bench/bench_bitcoin-checkqueue.$(OBJEXT) \
+	bench/bench_bitcoin-Examples.$(OBJEXT) \
+	bench/bench_bitcoin-rollingbloom.$(OBJEXT) \
+	bench/bench_bitcoin-verification.$(OBJEXT) \
+	bench/bench_bitcoin-crypto_hash.$(OBJEXT) \
+	bench/bench_bitcoin-base58.$(OBJEXT) \
+	bench/bench_bitcoin-lockedpool.$(OBJEXT) \
+	bench/bench_bitcoin-perf.$(OBJEXT) \
+	bench/bench_bitcoin-prevector_destructor.$(OBJEXT)
+bench_bench_bitcoin_OBJECTS = $(am_bench_bench_bitcoin_OBJECTS)
+am__DEPENDENCIES_1 = $(am__append_12)
+am__DEPENDENCIES_2 = $(am__append_13)
+am__DEPENDENCIES_3 =
+am__DEPENDENCIES_4 =  \
+	$(LIBBITCOIN_ZMQ) \
+	$(am__DEPENDENCIES_3)
+bench_bench_bitcoin_DEPENDENCIES =  \
+	$(LIBBITCOIN_SERVER) $(LIBBITCOIN_COMMON) \
+	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) \
+	$(am__DEPENDENCIES_1) $(LIBLEVELDB_SSE42) \
+	$(am__DEPENDENCIES_2) $(LIBSECP256K1) \
+	$(LIBUNIVALUE) $(LIBZCASH) $(LIBRUSTZCASH) \
+	$(am__DEPENDENCIES_4) $(am__append_36) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3)
+bench_bench_bitcoin_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) \
+	$(bench_bench_bitcoin_LDFLAGS) $(LDFLAGS) -o $@
 am__snowgem_cli_SOURCES_DIST = bitcoin-cli.cpp bitcoin-cli-res.rc
-am__objects_5 = bitcoin-cli-res.$(OBJEXT)
+#am__objects_7 = bitcoin-cli-res.$(OBJEXT)
 am_snowgem_cli_OBJECTS = snowgem_cli-bitcoin-cli.$(OBJEXT) \
-	$(am__objects_5)
+	$(am__objects_7)
 snowgem_cli_OBJECTS = $(am_snowgem_cli_OBJECTS)
-am__DEPENDENCIES_1 =
-#am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-am__DEPENDENCIES_2 = univalue/libunivalue.la
-snowgem_cli_DEPENDENCIES = $(LIBBITCOIN_CLI) $(am__DEPENDENCIES_2) \
-	$(LIBBITCOIN_UTIL) $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) $(libzcash) \
-	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_1)
+snowgem_cli_DEPENDENCIES = $(LIBBITCOIN_CLI) $(LIBUNIVALUE) \
+	$(LIBBITCOIN_UTIL) $(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(LIBZCASH) $(LIBRUSTZCASH) $(LIBBITCOIN_CRYPTO) \
+	$(am__DEPENDENCIES_3)
 snowgem_cli_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgem_cli_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgem_cli_LDFLAGS) $(LDFLAGS) -o $@
@@ -529,15 +699,15 @@ am__snowgem_gtest_SOURCES_DIST = gtest/main.cpp gtest/utils.cpp \
 	gtest/test_paymentdisclosure.cpp gtest/test_pedersen_hash.cpp \
 	gtest/test_checkblock.cpp gtest/test_zip32.cpp \
 	wallet/gtest/test_wallet.cpp
-am__objects_6 = wallet/gtest/snowgem_gtest-test_wallet_zkeys.$(OBJEXT)
-am__objects_7 = wallet/gtest/snowgem_gtest-test_wallet.$(OBJEXT)
+am__objects_8 = wallet/gtest/snowgem_gtest-test_wallet_zkeys.$(OBJEXT)
+am__objects_9 = wallet/gtest/snowgem_gtest-test_wallet.$(OBJEXT)
 am_snowgem_gtest_OBJECTS =  \
 	gtest/snowgem_gtest-main.$(OBJEXT) \
 	gtest/snowgem_gtest-utils.$(OBJEXT) \
 	gtest/snowgem_gtest-test_checktransaction.$(OBJEXT) \
 	gtest/snowgem_gtest-json_test_vectors.$(OBJEXT) \
 	gtest/snowgem_gtest-test_foundersreward.$(OBJEXT) \
-	$(am__objects_6) \
+	$(am__objects_8) \
 	gtest/snowgem_gtest-test_tautology.$(OBJEXT) \
 	gtest/snowgem_gtest-test_deprecation.$(OBJEXT) \
 	gtest/snowgem_gtest-test_equihash.$(OBJEXT) \
@@ -564,61 +734,63 @@ am_snowgem_gtest_OBJECTS =  \
 	gtest/snowgem_gtest-test_pedersen_hash.$(OBJEXT) \
 	gtest/snowgem_gtest-test_checkblock.$(OBJEXT) \
 	gtest/snowgem_gtest-test_zip32.$(OBJEXT) \
-	$(am__objects_7)
+	$(am__objects_9)
 snowgem_gtest_OBJECTS = $(am_snowgem_gtest_OBJECTS)
-am__DEPENDENCIES_3 = $(am__append_2)
-am__DEPENDENCIES_4 = $(am__append_3)
 am__DEPENDENCIES_5 =  \
 	$(LIBBITCOIN_ZMQ) \
-	$(am__DEPENDENCIES_1)
+	$(am__DEPENDENCIES_3)
 #am__DEPENDENCIES_6 =  \
-#	$(LIBBITCOIN_PROTON) \
-#	$(am__DEPENDENCIES_1)
+#	$(LIBBITCOIN_PROTON)
 snowgem_gtest_DEPENDENCIES = $(LIBBITCOIN_SERVER) \
-	$(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) \
-	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) \
-	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3) \
-	$(am__DEPENDENCIES_4) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(LIBSECP256K1) \
-	$(am__DEPENDENCIES_5) $(am__append_24) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(libzcash) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_6)
+	$(LIBBITCOIN_CLI) $(LIBBITCOIN_WALLET) \
+	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
+	$(LIBBITCOIN_ZMQ) $(LIBBITCOIN_PROTON) \
+	$(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
+	$(am__DEPENDENCIES_1) $(LIBLEVELDB_SSE42) \
+	$(am__DEPENDENCIES_2) $(LIBSECP256K1) \
+	$(LIBZCASH_SCRIPT) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(LIBZCASH) \
+	$(LIBRUSTZCASH) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_5) $(am__append_32) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(LIBZCASH) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_6)
 snowgem_gtest_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(snowgem_gtest_CXXFLAGS) $(CXXFLAGS) $(snowgem_gtest_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__snowgem_tx_SOURCES_DIST = bitcoin-tx.cpp bitcoin-tx-res.rc
-am__objects_8 = bitcoin-tx-res.$(OBJEXT)
+#am__objects_10 = bitcoin-tx-res.$(OBJEXT)
 am_snowgem_tx_OBJECTS = snowgem_tx-bitcoin-tx.$(OBJEXT) \
-	$(am__objects_8)
+	$(am__objects_10)
 snowgem_tx_OBJECTS = $(am_snowgem_tx_OBJECTS)
-snowgem_tx_DEPENDENCIES = $(am__DEPENDENCIES_2) $(LIBBITCOIN_COMMON) \
-	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(libzcash) \
-	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+snowgem_tx_DEPENDENCIES = $(LIBUNIVALUE) $(LIBBITCOIN_COMMON) \
+	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(LIBZCASH) $(LIBRUSTZCASH) \
+	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3)
 snowgem_tx_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgem_tx_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgem_tx_LDFLAGS) $(LDFLAGS) -o $@
 am__snowgemd_SOURCES_DIST = bitcoind.cpp bitcoind-res.rc
-am__objects_9 = bitcoind-res.$(OBJEXT)
-am_snowgemd_OBJECTS = snowgemd-bitcoind.$(OBJEXT) $(am__objects_9)
+#am__objects_11 = bitcoind-res.$(OBJEXT)
+am_snowgemd_OBJECTS = snowgemd-bitcoind.$(OBJEXT) $(am__objects_11)
 snowgemd_OBJECTS = $(am_snowgemd_OBJECTS)
 snowgemd_DEPENDENCIES = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) \
-	$(LIBBITCOIN_COMMON) $(am__DEPENDENCIES_2) $(LIBBITCOIN_UTIL) \
+	$(LIBBITCOIN_COMMON) $(LIBUNIVALUE) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_ZMQ) $(LIBBITCOIN_PROTON) $(LIBBITCOIN_CRYPTO) \
-	$(libzcash) $(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4) \
-	$(LIBSECP256K1) $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_1)
+	$(LIBZCASH) $(LIBRUSTZCASH) $(am__DEPENDENCIES_1) \
+	$(LIBLEVELDB_SSE42) $(am__DEPENDENCIES_2) $(LIBSECP256K1) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(LIBBITCOIN_CRYPTO) \
+	$(am__DEPENDENCIES_3)
 snowgemd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgemd_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgemd_LDFLAGS) $(LDFLAGS) -o $@
 am__test_test_bitcoin_SOURCES_DIST = test/arith_uint256_tests.cpp \
-	test/bignum.h test/addrman_tests.cpp test/alert_tests.cpp \
+	test/scriptnum10.h test/addrman_tests.cpp test/alert_tests.cpp \
 	test/allocator_tests.cpp test/base32_tests.cpp \
 	test/base58_tests.cpp test/base64_tests.cpp \
 	test/bech32_tests.cpp test/bip32_tests.cpp \
@@ -640,7 +812,7 @@ am__test_test_bitcoin_SOURCES_DIST = test/arith_uint256_tests.cpp \
 	test/scriptnum_tests.cpp test/serialize_tests.cpp \
 	test/sighash_tests.cpp test/sigopcount_tests.cpp \
 	test/skiplist_tests.cpp test/test_bitcoin.cpp \
-	test/test_bitcoin.h test/timedata_tests.cpp \
+	test/test_bitcoin.h test/test_random.h test/timedata_tests.cpp \
 	test/torcontrol_tests.cpp test/transaction_tests.cpp \
 	test/uint256_tests.cpp test/univalue_tests.cpp \
 	test/util_tests.cpp test/sha256compress_tests.cpp \
@@ -663,10 +835,10 @@ am__test_test_bitcoin_SOURCES_DIST = test/arith_uint256_tests.cpp \
 	test/data/merkle_commitments_sapling.json \
 	test/data/g1_compressed.json test/data/g2_compressed.json \
 	test/data/sapling_key_components.json test/data/alertTests.raw
-am__objects_10 = test/test_bitcoin-accounting_tests.$(OBJEXT) \
+am__objects_12 = test/test_bitcoin-accounting_tests.$(OBJEXT) \
 	wallet/test/test_test_bitcoin-wallet_tests.$(OBJEXT) \
 	test/test_bitcoin-rpc_wallet_tests.$(OBJEXT)
-am__objects_11 = test/test_bitcoin-arith_uint256_tests.$(OBJEXT) \
+am__objects_13 = test/test_bitcoin-arith_uint256_tests.$(OBJEXT) \
 	test/test_bitcoin-addrman_tests.$(OBJEXT) \
 	test/test_bitcoin-alert_tests.$(OBJEXT) \
 	test/test_bitcoin-allocator_tests.$(OBJEXT) \
@@ -718,29 +890,28 @@ am__objects_11 = test/test_bitcoin-arith_uint256_tests.$(OBJEXT) \
 	test/test_bitcoin-univalue_tests.$(OBJEXT) \
 	test/test_bitcoin-util_tests.$(OBJEXT) \
 	test/test_bitcoin-sha256compress_tests.$(OBJEXT) \
-	$(am__objects_10)
-am_test_test_bitcoin_OBJECTS = $(am__objects_11) \
-	$(am__objects_1) $(am__objects_1)
-am__objects_12 = $(am__objects_1) $(am__objects_1)
-nodist_test_test_bitcoin_OBJECTS =  \
 	$(am__objects_12)
+am_test_test_bitcoin_OBJECTS = $(am__objects_13) \
+	$(am__objects_1) $(am__objects_1)
+am__objects_14 = $(am__objects_1) $(am__objects_1)
+nodist_test_test_bitcoin_OBJECTS =  \
+	$(am__objects_14)
 test_test_bitcoin_OBJECTS = $(am_test_test_bitcoin_OBJECTS) \
 	$(nodist_test_test_bitcoin_OBJECTS)
 am__DEPENDENCIES_7 =  \
-	$(am__DEPENDENCIES_1)
-#am__DEPENDENCIES_8 =  \
-#	$(am__DEPENDENCIES_1)
-test_test_bitcoin_DEPENDENCIES = $(am__append_17) \
+	$(am__DEPENDENCIES_3)
+test_test_bitcoin_DEPENDENCIES = $(am__append_25) \
 	$(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) \
 	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
-	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_2) \
-	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_4) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(LIBSECP256K1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(libzcash) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_7) $(am__DEPENDENCIES_8)
+	$(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
+	$(am__DEPENDENCIES_1) $(LIBLEVELDB_SSE42) \
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3) \
+	$(am__DEPENDENCIES_3) $(LIBSECP256K1) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
+	$(LIBZCASH_SCRIPT) $(am__DEPENDENCIES_3) \
+	$(LIBZCASH) $(LIBRUSTZCASH) \
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_7) \
+	$(am__DEPENDENCIES_3)
 test_test_bitcoin_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(test_test_bitcoin_CXXFLAGS) $(CXXFLAGS) \
@@ -813,6 +984,7 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_server_a-validationinterface.Po \
 	./$(DEPDIR)/libbitcoin_util_a-chainparamsbase.Po \
 	./$(DEPDIR)/libbitcoin_util_a-clientversion.Po \
+	./$(DEPDIR)/libbitcoin_util_a-fs.Po \
 	./$(DEPDIR)/libbitcoin_util_a-random.Po \
 	./$(DEPDIR)/libbitcoin_util_a-sync.Po \
 	./$(DEPDIR)/libbitcoin_util_a-uint256.Po \
@@ -832,23 +1004,33 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po \
-	./$(DEPDIR)/libzcashconsensus_la-hash.Plo \
-	./$(DEPDIR)/libzcashconsensus_la-pubkey.Plo \
-	./$(DEPDIR)/libzcashconsensus_la-uint256.Plo \
-	./$(DEPDIR)/libzcashconsensus_la-utilstrencodings.Plo \
+	./$(DEPDIR)/libzcash_script_la-hash.Plo \
+	./$(DEPDIR)/libzcash_script_la-pubkey.Plo \
+	./$(DEPDIR)/libzcash_script_la-uint256.Plo \
+	./$(DEPDIR)/libzcash_script_la-utilstrencodings.Plo \
 	./$(DEPDIR)/snowgem_cli-bitcoin-cli.Po \
 	./$(DEPDIR)/snowgem_tx-bitcoin-tx.Po \
 	./$(DEPDIR)/snowgemd-bitcoind.Po \
-	amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Po \
-	amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Po \
-	amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Po \
+	bench/$(DEPDIR)/bench_bitcoin-Examples.Po \
+	bench/$(DEPDIR)/bench_bitcoin-base58.Po \
+	bench/$(DEPDIR)/bench_bitcoin-bench.Po \
+	bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Po \
+	bench/$(DEPDIR)/bench_bitcoin-checkqueue.Po \
+	bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Po \
+	bench/$(DEPDIR)/bench_bitcoin-lockedpool.Po \
+	bench/$(DEPDIR)/bench_bitcoin-perf.Po \
+	bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po \
+	bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po \
+	bench/$(DEPDIR)/bench_bitcoin-verification.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po \
-	compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo \
+	compat/$(DEPDIR)/libzcash_script_la-glibc_compat.Plo \
 	consensus/$(DEPDIR)/libbitcoin_common_a-params.Po \
 	consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po \
+	crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Po \
+	crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha512.Po \
@@ -856,12 +1038,12 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-sha1.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-sha256.Po \
 	crypto/$(DEPDIR)/libbitcoin_crypto_a-sha512.Po \
-	crypto/$(DEPDIR)/libzcashconsensus_la-equihash.Plo \
-	crypto/$(DEPDIR)/libzcashconsensus_la-hmac_sha512.Plo \
-	crypto/$(DEPDIR)/libzcashconsensus_la-ripemd160.Plo \
-	crypto/$(DEPDIR)/libzcashconsensus_la-sha1.Plo \
-	crypto/$(DEPDIR)/libzcashconsensus_la-sha256.Plo \
-	crypto/$(DEPDIR)/libzcashconsensus_la-sha512.Plo \
+	crypto/$(DEPDIR)/libzcash_script_la-equihash.Plo \
+	crypto/$(DEPDIR)/libzcash_script_la-hmac_sha512.Plo \
+	crypto/$(DEPDIR)/libzcash_script_la-ripemd160.Plo \
+	crypto/$(DEPDIR)/libzcash_script_la-sha1.Plo \
+	crypto/$(DEPDIR)/libzcash_script_la-sha256.Plo \
+	crypto/$(DEPDIR)/libzcash_script_la-sha512.Plo \
 	gtest/$(DEPDIR)/snowgem_gtest-json_test_vectors.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-main.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po \
@@ -893,10 +1075,53 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_validation.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-test_zip32.Po \
 	gtest/$(DEPDIR)/snowgem_gtest-utils.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-builder.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-c.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-filename.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-repair.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Po \
+	leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Po \
+	leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Po \
+	leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Po \
+	leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Po \
+	leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-block.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-format.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-merger.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-table.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Po \
+	leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-arena.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-cache.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-coding.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-env.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-hash.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-logging.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-options.Po \
+	leveldb/util/$(DEPDIR)/libleveldb_a-status.Po \
 	policy/$(DEPDIR)/libbitcoin_server_a-fees.Po \
 	primitives/$(DEPDIR)/libbitcoin_common_a-block.Po \
 	primitives/$(DEPDIR)/libbitcoin_common_a-transaction.Po \
-	primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo \
+	primitives/$(DEPDIR)/libzcash_script_la-transaction.Plo \
 	rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po \
 	rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po \
 	rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po \
@@ -913,11 +1138,11 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	script/$(DEPDIR)/libbitcoin_common_a-sign.Po \
 	script/$(DEPDIR)/libbitcoin_common_a-standard.Po \
 	script/$(DEPDIR)/libbitcoin_server_a-sigcache.Po \
-	script/$(DEPDIR)/libzcashconsensus_la-interpreter.Plo \
-	script/$(DEPDIR)/libzcashconsensus_la-script.Plo \
-	script/$(DEPDIR)/libzcashconsensus_la-snowgemconsensus.Plo \
+	script/$(DEPDIR)/libzcash_script_la-interpreter.Plo \
+	script/$(DEPDIR)/libzcash_script_la-script.Plo \
+	script/$(DEPDIR)/libzcash_script_la-snowgemconsensus.Plo \
 	support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po \
-	support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po \
+	support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po \
 	test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po \
 	test/$(DEPDIR)/test_bitcoin-DoS_tests.Po \
 	test/$(DEPDIR)/test_bitcoin-accounting_tests.Po \
@@ -1041,24 +1266,29 @@ am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(crypto_libbitcoin_crypto_a_SOURCES) \
-	$(libbitcoin_cli_a_SOURCES) $(libbitcoin_common_a_SOURCES) \
-	$(libbitcoin_proton_a_SOURCES) $(libbitcoin_server_a_SOURCES) \
+	$(leveldb_libleveldb_a_SOURCES) \
+	$(leveldb_libleveldb_sse42_a_SOURCES) \
+	$(leveldb_libmemenv_a_SOURCES) $(libbitcoin_cli_a_SOURCES) \
+	$(libbitcoin_common_a_SOURCES) $(libbitcoin_server_a_SOURCES) \
 	$(libbitcoin_util_a_SOURCES) \
 	$(nodist_libbitcoin_util_a_SOURCES) \
 	$(libbitcoin_wallet_a_SOURCES) $(libbitcoin_zmq_a_SOURCES) \
-	$(libzcash_a_SOURCES) $(libzcashconsensus_la_SOURCES) \
-	$(snowgem_cli_SOURCES) $(snowgem_gtest_SOURCES) \
-	$(snowgem_tx_SOURCES) $(snowgemd_SOURCES) \
-	$(test_test_bitcoin_SOURCES) \
+	$(libzcash_a_SOURCES) $(libzcash_script_la_SOURCES) \
+	$(bench_bench_bitcoin_SOURCES) $(snowgem_cli_SOURCES) \
+	$(snowgem_gtest_SOURCES) $(snowgem_tx_SOURCES) \
+	$(snowgemd_SOURCES) $(test_test_bitcoin_SOURCES) \
 	$(nodist_test_test_bitcoin_SOURCES)
 DIST_SOURCES = $(am__crypto_libbitcoin_crypto_a_SOURCES_DIST) \
+	$(am__leveldb_libleveldb_a_SOURCES_DIST) \
+	$(am__leveldb_libleveldb_sse42_a_SOURCES_DIST) \
+	$(am__leveldb_libmemenv_a_SOURCES_DIST) \
 	$(libbitcoin_cli_a_SOURCES) $(libbitcoin_common_a_SOURCES) \
-	$(am__libbitcoin_proton_a_SOURCES_DIST) \
 	$(libbitcoin_server_a_SOURCES) \
 	$(am__libbitcoin_util_a_SOURCES_DIST) \
 	$(libbitcoin_wallet_a_SOURCES) \
 	$(am__libbitcoin_zmq_a_SOURCES_DIST) $(libzcash_a_SOURCES) \
-	$(am__libzcashconsensus_la_SOURCES_DIST) \
+	$(am__libzcash_script_la_SOURCES_DIST) \
+	$(am__bench_bench_bitcoin_SOURCES_DIST) \
 	$(am__snowgem_cli_SOURCES_DIST) \
 	$(am__snowgem_gtest_SOURCES_DIST) \
 	$(am__snowgem_tx_SOURCES_DIST) $(am__snowgemd_SOURCES_DIST) \
@@ -1262,7 +1492,7 @@ am__set_TESTS_bases = \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
 TEST_SUITE_LOG = test-suite.log
-TEST_EXTENSIONS = .exe .test
+TEST_EXTENSIONS =  .test
 LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 LOG_COMPILE = $(LOG_COMPILER) $(AM_LOG_FLAGS) $(LOG_FLAGS)
 am__set_b = \
@@ -1276,13 +1506,15 @@ am__set_b = \
       b='$*';; \
   esac
 am__test_logs1 = $(TESTS:=.log)
-am__test_logs2 = $(am__test_logs1:.exe.log=.log)
+am__test_logs2 = $(am__test_logs1:.log=.log)
 TEST_LOGS = $(am__test_logs2:.test.log=.log)
 TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 	$(TEST_LOG_FLAGS)
-am__DIST_COMMON = $(srcdir)/Makefile.gtest.include \
-	$(srcdir)/Makefile.in $(srcdir)/Makefile.test.include \
+am__DIST_COMMON = $(srcdir)/Makefile.bench.include \
+	$(srcdir)/Makefile.gtest.include $(srcdir)/Makefile.in \
+	$(srcdir)/Makefile.leveldb.include \
+	$(srcdir)/Makefile.test.include \
 	$(top_srcdir)/build-aux/depcomp \
 	$(top_srcdir)/build-aux/test-driver
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -1314,7 +1546,7 @@ am__relativize = \
 ACLOCAL = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing aclocal-1.16
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 0
-AR = /usr/bin/x86_64-w64-mingw32-ar
+AR = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/llvm-ar
 ARFLAGS = cr
 AUTOCONF = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing autoconf
 AUTOHEADER = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing autoheader
@@ -1326,38 +1558,39 @@ BITCOIN_CLI_NAME = snowgem-cli
 BITCOIN_DAEMON_NAME = snowgemd
 BITCOIN_TX_NAME = snowgem-tx
 BOOST_CHRONO_LIB = -lboost_chrono
-BOOST_CPPFLAGS = -mthreads -I/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../include
+BOOST_CPPFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../include
 BOOST_FILESYSTEM_LIB = -lboost_filesystem
-BOOST_LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib
-BOOST_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
+BOOST_LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib
+BOOST_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
 BOOST_PROGRAM_OPTIONS_LIB = -lboost_program_options
 BOOST_SYSTEM_LIB = -lboost_system
 BOOST_THREAD_LIB = -lboost_thread
 BOOST_UNIT_TEST_FRAMEWORK_LIB = -lboost_unit_test_framework
 BREW = 
-CC = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache x86_64-w64-mingw32-gcc-posix
-CCACHE = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache
+CARGO = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/cargo
+CC = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -m64
+CCACHE = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache
 CCDEPMODE = depmode=gcc3
-CFLAGS = -pipe -std=c17 -O2 
+CFLAGS = -pipe -O3 
 CLIENT_VERSION_BUILD = 50
 CLIENT_VERSION_IS_RELEASE = true
 CLIENT_VERSION_MAJOR = 3
 CLIENT_VERSION_MINOR = 1
 CLIENT_VERSION_REVISION = 4
-COPYRIGHT_YEAR = 2021
-CPP = x86_64-w64-mingw32-gcc-posix -E
-CPPFILT = /usr/bin/x86_64-w64-mingw32-c++filt
-CPPFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS -D_MT -DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -D_FILE_OFFSET_BITS=64 -DMULTICORE
-CRYPTO_CFLAGS = 
-CRYPTO_LIBS = -lcrypto
-CXX = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../native/bin/ccache x86_64-w64-mingw32-g++-posix -std=c++17
-CXXCPP = x86_64-w64-mingw32-g++-posix -std=c++17 -E
+COPYRIGHT_YEAR = 2022
+CPP = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -m64 -E
+CPPFILT = /usr/bin/c++filt
+CPPFLAGS = -Qunused-arguments -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS
+CXX = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64 -std=c++17
+CXXCPP = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64 -std=c++17 -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -pipe -std=c17 -std=c++17 -O2 -g -fopenmp -fwrapv -fno-strict-aliasing -Wno-builtin-declaration-mismatch
+CXXFLAGS = -pipe -O3 -g -fwrapv -fno-strict-aliasing
 CYGPATH_W = echo
+DEBUG_CPPFLAGS = 
+DEBUG_CXXFLAGS =  -g
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-DLLTOOL = x86_64-w64-mingw32-dlltool
+DLLTOOL = false
 DSYMUTIL = 
 DUMPBIN = 
 ECHO_C = 
@@ -1365,20 +1598,22 @@ ECHO_N = -n
 ECHO_T = 
 EGREP = /usr/bin/grep -E
 ERROR_CXXFLAGS = 
-EVENT_CFLAGS = 
-EVENT_LIBS = -levent
-EVENT_PTHREADS_CFLAGS = 
-EVENT_PTHREADS_LIBS = 
-EXEEXT = .exe
+EVENT_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
+EVENT_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -levent
+EVENT_PTHREADS_CFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
+EVENT_PTHREADS_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -levent_pthreads -levent
+EXEEXT = 
 FGREP = /usr/bin/grep -F
-GCOV = /usr/bin/x86_64-w64-mingw32-gcov
+GCOV = 
 GENHTML = 
 GENISOIMAGE = 
 GIT = /usr/bin/git
+GPROF_CXXFLAGS = 
+GPROF_LDFLAGS = 
 GREP = /usr/bin/grep
 HARDENED_CPPFLAGS =  -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
 HARDENED_CXXFLAGS =  -Wformat -Wformat-security -Wstack-protector -fstack-protector-all
-HARDENED_LDFLAGS =  -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va
+HARDENED_LDFLAGS =  -Wl,-z,relro -Wl,-z,now -pie
 HAVE_CXX17 = 1
 HEXDUMP = /usr/bin/hexdump
 INSTALL = /usr/bin/install -c
@@ -1388,31 +1623,32 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LCOV = 
-LD = /usr/bin/x86_64-w64-mingw32-ld
-LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib 
-LEVELDB_CPPFLAGS =  $(am__append_1)
-LEVELDB_TARGET_FLAGS = TARGET_OS=OS_WINDOWS_CROSSCOMPILE
-LIBLEVELDB =  $(am__append_2)
-LIBMEMENV =  $(am__append_3)
+LD = /usr/bin/ld -m elf_x86_64
+LDFLAGS = -fuse-ld=lld -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib  -static-libstdc++ -lc++abi
+LEVELDB_CPPFLAGS =  $(am__append_14)
+LEVELDB_TARGET_FLAGS = -DOS_LINUX
+LIBLEVELDB =  $(am__append_12)
+LIBMEMENV =  $(am__append_13)
 LIBOBJS = 
-LIBS = -lssp -lcrypt32 -liphlpapi -lshlwapi -lmswsock -lws2_32 -ladvapi32 -lrpcrt4 -luuid -loleaut32 -lole32 -lcomctl32 -lshell32 -lwinmm -lwinspool -lcomdlg32 -lgdi32 -luser32 -lkernel32 -lmingwthrd 
+LIBS = -lanl 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
-LIBTOOL_APP_LDFLAGS =  -all-static
+LIBTOOL_APP_LDFLAGS = 
+LIBZCASH_LIBS = -lboost_system -lsodium  -ldl
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
 LT_SYS_LIBRARY_PATH = 
 MAINT = 
 MAKEINFO = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing makeinfo
-MAKENSIS = none
+MAKENSIS = 
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
-NM = x86_64-w64-mingw32-nm
+NM = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/llvm-nm
 NMEDIT = 
-OBJCXX = x86_64-w64-mingw32-g++-posix
+OBJCXX = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64
 OBJCXXDEPMODE = depmode=gcc3
-OBJCXXFLAGS = 
-OBJDUMP = x86_64-w64-mingw32-objdump
+OBJCXXFLAGS = -g -O2
+OBJDUMP = objdump
 OBJEXT = o
 OTOOL = 
 OTOOL64 = 
@@ -1424,36 +1660,34 @@ PACKAGE_TARNAME = snowgem
 PACKAGE_URL = 
 PACKAGE_VERSION = 3.1.4
 PATH_SEPARATOR = :
-PIC_FLAGS = 
-PIE_FLAGS = 
+PIC_FLAGS = -fPIC
+PIE_FLAGS = -fPIE
 PKG_CONFIG = /usr/bin/pkg-config --static
-PKG_CONFIG_LIBDIR = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../lib/pkgconfig
-PKG_CONFIG_PATH = /mnt/m/github/gemlink/gemlink/depends/x86_64-w64-mingw32/share/../share/pkgconfig
+PKG_CONFIG_LIBDIR = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib/pkgconfig
+PKG_CONFIG_PATH = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../share/pkgconfig
 PORT = 
-PROTON_LIBS = 
-PTHREAD_CC = x86_64-w64-mingw32-gcc-posix
-PTHREAD_CFLAGS = -pthread
+PTHREAD_CC = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -m64
+PTHREAD_CFLAGS = -Qunused-arguments -pthread
 PTHREAD_LIBS = 
-RANLIB = /usr/bin/x86_64-w64-mingw32-ranlib
-READELF = /usr/bin/x86_64-w64-mingw32-readelf
+RANLIB = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/llvm-ranlib
+READELF = /usr/bin/readelf
 RELDFLAGS = 
-SAN_CXXFLAGS = 
-SAN_LDFLAGS = 
+RUSTC = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/rustc
+RUST_TARGET = x86_64-unknown-linux-gnu
+RUST_VENDORED_SOURCES = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources
+SANITIZER_CXXFLAGS = 
+SANITIZER_LDFLAGS = 
 SED = /usr/bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
-SSL_CFLAGS = 
-SSL_LIBS = -lssl
-STRIP = /usr/bin/x86_64-w64-mingw32-strip
+SSE42_CXXFLAGS = 
+STRIP = /usr/bin/strip
 TESTDEFS = 
-UNIVALUE_CFLAGS = -I$(srcdir)/univalue/include
-UNIVALUE_LIBS = univalue/libunivalue.la
 VERSION = 3.1.4
-WINDOWS_BITS = 64
-WINDRES = /usr/bin/x86_64-w64-mingw32-windres
+WINDRES = 
 XGETTEXT = 
-ZMQ_CFLAGS =  -DZMQ_STATIC
-ZMQ_LIBS = -lzmq
+ZMQ_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
+ZMQ_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -lzmq -lstdc++ -lpthread -lrt
 abs_builddir = /mnt/m/github/gemlink/gemlink/src
 abs_srcdir = /mnt/m/github/gemlink/gemlink/src
 abs_top_builddir = /mnt/m/github/gemlink/gemlink
@@ -1481,18 +1715,17 @@ datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = x86_64-w64-mingw32
-host_alias = x86_64-w64-mingw32
+host = x86_64-pc-linux-gnu
+host_alias = x86_64-pc-linux-gnu
 host_cpu = x86_64
-host_os = mingw32
-host_vendor = w64
+host_os = linux-gnu
+host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
 install_sh = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
-libzcash_LIBS = -lboost_system -lcrypto -lsodium -lrustzcash
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
 mandir = ${datarootdir}/man
@@ -1513,36 +1746,47 @@ top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
 DIST_SUBDIRS = secp256k1 univalue
-AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(SAN_LDFLAGS) $(HARDENED_LDFLAGS)
-AM_CXXFLAGS = $(SAN_CXXFLAGS) $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
-AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
+AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS) $(GPROF_LDFLAGS) $(SANITIZER_LDFLAGS)
+AM_CXXFLAGS = $(DEBUG_CXXFLAGS) $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS) $(GPROF_CXXFLAGS) $(SANITIZER_CXXFLAGS)
+AM_CPPFLAGS = $(DEBUG_CPPFLAGS) $(HARDENED_CPPFLAGS)
 
 # Make is not made aware of per-object dependencies to avoid limiting building parallelization
 # But to build the less dependent modules first, we manually select their order here:
 EXTRA_LIBRARIES = $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) \
-	$(LIBBITCOIN_WALLET) $(LIBBITCOIN_ZMQ) $(LIBBITCOIN_PROTON) \
-	$(libzcash)
-#LIBUNIVALUE = $(UNIVALUE_LIBS)
-LIBUNIVALUE = univalue/libunivalue.la
-BITCOIN_CONFIG_INCLUDES = -I$(builddir)/config
+	$(LIBBITCOIN_WALLET) $(LIBBITCOIN_ZMQ) $(LIBZCASH) \
+	$(am__append_11)
+BITCOIN_CONFIG_INCLUDES = -I$(builddir)/config \
+	-I$(srcdir)/rust/include
 BITCOIN_INCLUDES = -I$(builddir) -I$(builddir)/obj $(BDB_CPPFLAGS) \
-	$(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) \
-	$(SSL_CFLAGS) -I$(srcdir)/secp256k1/include \
-	-I$(srcdir)/univalue/include
+	$(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) -I$(srcdir)/rust/include \
+	-I$(srcdir)/secp256k1/include -I$(srcdir)/univalue/include
 LIBBITCOIN_SERVER = libbitcoin_server.a
 LIBBITCOIN_COMMON = libbitcoin_common.a
 LIBBITCOIN_CLI = libbitcoin_cli.a
 LIBBITCOIN_UTIL = libbitcoin_util.a
 LIBBITCOIN_CRYPTO = crypto/libbitcoin_crypto.a
+LIBRUSTZCASH = $(top_builddir)/target/$(RUST_TARGET)/release/librustzcash.a
 LIBSECP256K1 = secp256k1/libsecp256k1.la
-libzcash = libzcash.a
+LIBUNIVALUE = univalue/libunivalue.la
+LIBZCASH = libzcash.a
 LIBBITCOIN_ZMQ = libbitcoin_zmq.a
 #LIBBITCOIN_PROTON = libbitcoin_proton.a
-#LIBZCASH_CONSENSUS = libzcashconsensus.la
+#LIBZCASH_SCRIPT = libzcash_script.la
 LIBBITCOIN_WALLET = libbitcoin_wallet.a
-lib_LTLIBRARIES = $(LIBZCASH_CONSENSUS)
-libzcash_H = \
+RUST_ENV_VARS = RUSTC="$(RUSTC)" TERM=dumb
+RUST_BUILD_OPTS = --lib --release --target $(RUST_TARGET) \
+	$(am__append_1)
+rust_verbose = $(rust_verbose_$(V))
+rust_verbose_ = $(rust_verbose_$(AM_DEFAULT_VERBOSITY))
+rust_verbose_1 = --verbose
+CARGO_CONFIGURED = $(top_srcdir)/.cargo/.configured-for-offline
+
+# Ensure that .cargo/config does not exist
+#CARGO_CONFIGURED = $(top_srcdir)/.cargo/.configured-for-online
+lib_LTLIBRARIES = $(LIBZCASH_SCRIPT)
+BENCHMARKS = 
+LIBZCASH_H = \
   zcash/IncrementalMerkleTree.hpp \
   zcash/NoteEncryption.hpp \
   zcash/Address.hpp \
@@ -1594,6 +1838,7 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   deprecation.h \
+  fs.h \
   hash.h \
   httprpc.h \
   httpserver.h \
@@ -1651,7 +1896,7 @@ BITCOIN_CORE_H = \
   support/allocators/zeroafterfree.h \
   support/cleanse.h \
   support/events.h \
-  support/pagelocker.h \
+  support/lockedpool.h \
   sync.h \
   threadsafety.h \
   timedata.h \
@@ -1787,20 +2032,21 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/wallet_ismine.cpp \
   wallet/walletdb.cpp \
   $(BITCOIN_CORE_H) \
-  $(libzcash_H)
+  $(LIBZCASH_H)
 
 
 # crypto primitives library
 crypto_libbitcoin_crypto_a_CPPFLAGS = $(AM_CPPFLAGS) \
-	$(BITCOIN_CONFIG_INCLUDES) $(am__append_6)
+	$(BITCOIN_CONFIG_INCLUDES) $(am__append_4)
 crypto_libbitcoin_crypto_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-crypto_libbitcoin_crypto_a_SOURCES = crypto/common.h \
+crypto_libbitcoin_crypto_a_SOURCES = crypto/aes.cpp crypto/aes.h \
+	crypto/chacha20.h crypto/chacha20.cpp crypto/common.h \
 	crypto/equihash.cpp crypto/equihash.h crypto/equihash.tcc \
 	crypto/hmac_sha256.cpp crypto/hmac_sha256.h \
 	crypto/hmac_sha512.cpp crypto/hmac_sha512.h \
 	crypto/ripemd160.cpp crypto/ripemd160.h crypto/sha1.cpp \
 	crypto/sha1.h crypto/sha256.cpp crypto/sha256.h \
-	crypto/sha512.cpp crypto/sha512.h $(am__append_7)
+	crypto/sha512.cpp crypto/sha512.h $(am__append_5)
 EQUIHASH_TROMP_SOURCES = \
   pow/tromp/equi_miner.h \
   pow/tromp/equi.h \
@@ -1841,7 +2087,7 @@ libbitcoin_common_a_SOURCES = \
   sporkdb.cpp \
   transaction_builder.cpp \
   $(BITCOIN_CORE_H) \
-  $(libzcash_H)
+  $(LIBZCASH_H)
 
 
 # util: shared between all executables.
@@ -1849,13 +2095,13 @@ libbitcoin_common_a_SOURCES = \
 # backward-compatibility objects and their sanity checks are linked.
 libbitcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libbitcoin_util_a_SOURCES = support/pagelocker.cpp chainparamsbase.cpp \
+libbitcoin_util_a_SOURCES = support/lockedpool.cpp chainparamsbase.cpp \
 	clientversion.cpp compat/glibc_sanity.cpp \
-	compat/glibcxx_sanity.cpp compat/strnlen.cpp random.cpp \
+	compat/glibcxx_sanity.cpp compat/strnlen.cpp fs.cpp random.cpp \
 	rpc/protocol.cpp support/cleanse.cpp sync.cpp uint256.cpp \
 	util.cpp utilmoneystr.cpp util/threadnames.cpp \
 	utilstrencodings.cpp utiltime.cpp $(BITCOIN_CORE_H) \
-	$(libzcash_H) $(am__append_8)
+	$(LIBZCASH_H) $(am__append_6)
 
 # cli: snowgem-cli
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
@@ -1863,26 +2109,26 @@ libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
   rpc/client.cpp \
   $(BITCOIN_CORE_H) \
-  $(libzcash_H)
+  $(LIBZCASH_H)
 
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
-snowgemd_SOURCES = bitcoind.cpp $(am__append_9)
+snowgemd_SOURCES = bitcoind.cpp $(am__append_7)
 snowgemd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 snowgemd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgemd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 snowgemd_LDADD = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) \
 	$(LIBBITCOIN_COMMON) $(LIBUNIVALUE) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_ZMQ) $(LIBBITCOIN_PROTON) $(LIBBITCOIN_CRYPTO) \
-	$(libzcash) $(LIBLEVELDB) $(LIBMEMENV) $(LIBSECP256K1) \
-	$(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) \
+	$(LIBZCASH) $(LIBRUSTZCASH) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) \
+	$(LIBMEMENV) $(LIBSECP256K1) $(BOOST_LIBS) $(BDB_LIBS) \
 	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) \
-	$(PROTON_LIBS) $(LIBBITCOIN_CRYPTO) $(libzcash_LIBS)
+	$(PROTON_LIBS) $(LIBBITCOIN_CRYPTO) $(LIBZCASH_LIBS)
 
 # bitcoin-cli binary #
-snowgem_cli_SOURCES = bitcoin-cli.cpp $(am__append_10)
+snowgem_cli_SOURCES = bitcoin-cli.cpp $(am__append_8)
 snowgem_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
 snowgem_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgem_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
@@ -1891,26 +2137,24 @@ snowgem_cli_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(BOOST_LIBS) \
-  $(SSL_LIBS) \
-  $(CRYPTO_LIBS) \
   $(EVENT_LIBS) \
-  $(libzcash) \
+  $(LIBZCASH) \
+  $(LIBRUSTZCASH) \
   $(LIBBITCOIN_CRYPTO) \
-  $(libzcash_LIBS)
+  $(LIBZCASH_LIBS)
 
 #
 
 # snowgem-tx binary #
-snowgem_tx_SOURCES = bitcoin-tx.cpp $(am__append_11)
+snowgem_tx_SOURCES = bitcoin-tx.cpp $(am__append_9)
 snowgem_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 snowgem_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgem_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 # FIXME: Is libzcash needed for snowgem_tx?
 snowgem_tx_LDADD = $(LIBUNIVALUE) $(LIBBITCOIN_COMMON) \
-	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(libzcash) \
-	$(LIBBITCOIN_CRYPTO) $(libzcash_LIBS) $(BOOST_LIBS) \
-	$(CRYPTO_LIBS)
+	$(LIBBITCOIN_UTIL) $(LIBSECP256K1) $(LIBZCASH) $(LIBRUSTZCASH) \
+	$(LIBBITCOIN_CRYPTO) $(LIBZCASH_LIBS) $(BOOST_LIBS)
 #
 
 # snowgem protocol primitives #
@@ -1925,16 +2169,13 @@ libzcash_a_SOURCES = \
   zcash/util.cpp \
   zcash/zip32.cpp
 
-libzcash_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT \
-	-DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE \
-	-fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES) \
-	-DMONTGOMERY_OUTPUT
-libzcash_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) $(HARDENED_CXXFLAGS) \
-	-fwrapv -fno-strict-aliasing
+libzcash_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS) $(BITCOIN_INCLUDES)
+libzcash_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libzcash_a_LDFLAGS = $(AM_LDFLAGS)
 
 # snowgemconsensus library #
 #include_HEADERS = script/snowgemconsensus.h
-#libzcashconsensus_la_SOURCES =  \
+#libzcash_script_la_SOURCES =  \
 #	crypto/equihash.cpp \
 #	crypto/hmac_sha512.cpp \
 #	crypto/ripemd160.cpp crypto/sha1.cpp \
@@ -1944,17 +2185,137 @@ libzcash_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) $(HARDENED_CXXFLAGS) \
 #	script/snowgemconsensus.cpp \
 #	script/interpreter.cpp \
 #	script/script.cpp uint256.cpp \
-#	utilstrencodings.cpp $(am__append_12)
-#libzcashconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-#libzcashconsensus_la_LIBADD = $(LIBSECP256K1)
-#libzcashconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
-#libzcashconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+#	utilstrencodings.cpp $(am__append_10)
+#libzcash_script_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
+#libzcash_script_la_LIBADD = $(LIBSECP256K1)
+#libzcash_script_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/rust/include -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+#libzcash_script_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 #
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno \
-	*/*.gcno wallet/*/*.gcno $(am__append_20)
+CTAES_DIST = crypto/ctaes/bench.c crypto/ctaes/ctaes.c \
+	crypto/ctaes/ctaes.h crypto/ctaes/README.md \
+	crypto/ctaes/test.c
+CLEANFILES = *.gcda *.gcno */*.gcno wallet/*/*.gcno $(am__append_28) \
+	$(am__append_37)
 DISTCLEANFILES = obj/build.h
-EXTRA_DIST = leveldb $(am__append_15)
+EXTRA_DIST = $(CTAES_DIST) rust $(am__append_23)
+LIBLEVELDB_INT = leveldb/libleveldb.a
+LIBMEMENV_INT = leveldb/libmemenv.a
+LIBLEVELDB_SSE42_INT = leveldb/libleveldb_sse42.a
+LIBLEVELDB_SSE42 = $(LIBLEVELDB_SSE42_INT)
+LEVELDB_CPPFLAGS_INT = -I$(srcdir)/leveldb \
+	$(LEVELDB_TARGET_FLAGS) \
+	-DLEVELDB_ATOMIC_PRESENT \
+	-D__STDC_LIMIT_MACROS $(am__append_15) \
+	$(am__append_16)
+leveldb_libleveldb_a_CPPFLAGS = $(AM_CPPFLAGS) $(LEVELDB_CPPFLAGS_INT) $(LEVELDB_CPPFLAGS)
+leveldb_libleveldb_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+leveldb_libleveldb_a_SOURCES =  \
+	leveldb/port/atomic_pointer.h \
+	leveldb/port/port_example.h \
+	leveldb/port/port_posix.h \
+	leveldb/port/win/stdint.h \
+	leveldb/port/port.h \
+	leveldb/port/port_win.h \
+	leveldb/port/thread_annotations.h \
+	leveldb/include/leveldb/db.h \
+	leveldb/include/leveldb/options.h \
+	leveldb/include/leveldb/comparator.h \
+	leveldb/include/leveldb/filter_policy.h \
+	leveldb/include/leveldb/slice.h \
+	leveldb/include/leveldb/table_builder.h \
+	leveldb/include/leveldb/env.h \
+	leveldb/include/leveldb/c.h \
+	leveldb/include/leveldb/iterator.h \
+	leveldb/include/leveldb/cache.h \
+	leveldb/include/leveldb/dumpfile.h \
+	leveldb/include/leveldb/table.h \
+	leveldb/include/leveldb/write_batch.h \
+	leveldb/include/leveldb/status.h \
+	leveldb/db/log_format.h \
+	leveldb/db/memtable.h \
+	leveldb/db/version_set.h \
+	leveldb/db/write_batch_internal.h \
+	leveldb/db/filename.h \
+	leveldb/db/version_edit.h \
+	leveldb/db/dbformat.h \
+	leveldb/db/builder.h \
+	leveldb/db/log_writer.h \
+	leveldb/db/db_iter.h \
+	leveldb/db/skiplist.h \
+	leveldb/db/db_impl.h \
+	leveldb/db/table_cache.h \
+	leveldb/db/snapshot.h \
+	leveldb/db/log_reader.h \
+	leveldb/table/filter_block.h \
+	leveldb/table/block_builder.h \
+	leveldb/table/block.h \
+	leveldb/table/two_level_iterator.h \
+	leveldb/table/merger.h \
+	leveldb/table/format.h \
+	leveldb/table/iterator_wrapper.h \
+	leveldb/util/crc32c.h \
+	leveldb/util/env_posix_test_helper.h \
+	leveldb/util/arena.h \
+	leveldb/util/random.h \
+	leveldb/util/posix_logger.h \
+	leveldb/util/hash.h \
+	leveldb/util/histogram.h \
+	leveldb/util/coding.h \
+	leveldb/util/testutil.h \
+	leveldb/util/mutexlock.h \
+	leveldb/util/logging.h \
+	leveldb/util/testharness.h \
+	leveldb/db/builder.cc leveldb/db/c.cc \
+	leveldb/db/dbformat.cc \
+	leveldb/db/db_impl.cc \
+	leveldb/db/db_iter.cc \
+	leveldb/db/dumpfile.cc \
+	leveldb/db/filename.cc \
+	leveldb/db/log_reader.cc \
+	leveldb/db/log_writer.cc \
+	leveldb/db/memtable.cc \
+	leveldb/db/repair.cc \
+	leveldb/db/table_cache.cc \
+	leveldb/db/version_edit.cc \
+	leveldb/db/version_set.cc \
+	leveldb/db/write_batch.cc \
+	leveldb/table/block_builder.cc \
+	leveldb/table/block.cc \
+	leveldb/table/filter_block.cc \
+	leveldb/table/format.cc \
+	leveldb/table/iterator.cc \
+	leveldb/table/merger.cc \
+	leveldb/table/table_builder.cc \
+	leveldb/table/table.cc \
+	leveldb/table/two_level_iterator.cc \
+	leveldb/util/arena.cc \
+	leveldb/util/bloom.cc \
+	leveldb/util/cache.cc \
+	leveldb/util/coding.cc \
+	leveldb/util/comparator.cc \
+	leveldb/util/crc32c.cc \
+	leveldb/util/env.cc \
+	leveldb/util/env_posix.cc \
+	leveldb/util/filter_policy.cc \
+	leveldb/util/hash.cc \
+	leveldb/util/histogram.cc \
+	leveldb/util/logging.cc \
+	leveldb/util/options.cc \
+	leveldb/util/status.cc $(am__append_17) \
+	$(am__append_18)
+leveldb_libmemenv_a_CPPFLAGS = $(leveldb_libleveldb_a_CPPFLAGS)
+leveldb_libmemenv_a_CXXFLAGS = $(leveldb_libleveldb_a_CXXFLAGS)
+leveldb_libmemenv_a_SOURCES =  \
+	leveldb/helpers/memenv/memenv.cc \
+	leveldb/helpers/memenv/memenv.h
+leveldb_libleveldb_sse42_a_CPPFLAGS =  \
+	$(leveldb_libleveldb_a_CPPFLAGS) \
+	$(am__append_19)
+leveldb_libleveldb_sse42_a_CXXFLAGS =  \
+	$(leveldb_libleveldb_a_CXXFLAGS) \
+	$(am__append_20)
+leveldb_libleveldb_sse42_a_SOURCES = leveldb/port/port_posix_sse.cc
 TEST_SRCDIR = test
 TEST_BINARY = test/test_bitcoin$(EXEEXT)
 JSON_TEST_FILES = \
@@ -1985,7 +2346,7 @@ JSON_TEST_FILES = \
 RAW_TEST_FILES = test/data/alertTests.raw
 GENERATED_TEST_FILES = $(JSON_TEST_FILES:.json=.json.h) $(RAW_TEST_FILES:.raw=.raw.h)
 BITCOIN_TESTS = test/arith_uint256_tests.cpp \
-	test/bignum.h test/addrman_tests.cpp \
+	test/scriptnum10.h test/addrman_tests.cpp \
 	test/alert_tests.cpp \
 	test/allocator_tests.cpp \
 	test/base32_tests.cpp test/base58_tests.cpp \
@@ -2018,27 +2379,27 @@ BITCOIN_TESTS = test/arith_uint256_tests.cpp \
 	test/sigopcount_tests.cpp \
 	test/skiplist_tests.cpp \
 	test/test_bitcoin.cpp test/test_bitcoin.h \
-	test/timedata_tests.cpp \
+	test/test_random.h test/timedata_tests.cpp \
 	test/torcontrol_tests.cpp \
 	test/transaction_tests.cpp \
 	test/uint256_tests.cpp \
 	test/univalue_tests.cpp test/util_tests.cpp \
 	test/sha256compress_tests.cpp \
-	$(am__append_16)
+	$(am__append_24)
 test_test_bitcoin_SOURCES = $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
 test_test_bitcoin_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) -I$(builddir)/test/ $(TESTDEFS) $(EVENT_CFLAGS)
-test_test_bitcoin_LDADD = $(am__append_17) \
+test_test_bitcoin_LDADD = $(am__append_25) \
 	$(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) \
 	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
-	$(LIBLEVELDB) $(LIBMEMENV) $(BOOST_LIBS) \
+	$(LIBLEVELDB) $(LIBLEVELDB_SSE42) \
+	$(LIBMEMENV) $(BOOST_LIBS) \
 	$(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
 	$(LIBSECP256K1) $(EVENT_LIBS) \
-	$(EVENT_PTHREADS_LIBS) \
-	$(libzcash_CONSENSUS) $(BDB_LIBS) \
-	$(SSL_LIBS) $(CRYPTO_LIBS) $(libzcash) \
-	$(libzcash_LIBS) $(am__append_18) \
-	$(am__append_19)
+	$(EVENT_PTHREADS_LIBS) $(LIBZCASH_SCRIPT) \
+	$(BDB_LIBS) $(LIBZCASH) $(LIBRUSTZCASH) \
+	$(LIBZCASH_LIBS) $(am__append_26) \
+	$(am__append_27)
 test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 test_test_bitcoin_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 nodist_test_test_bitcoin_SOURCES = $(GENERATED_TEST_FILES)
@@ -2053,7 +2414,7 @@ snowgem_gtest_SOURCES = gtest/main.cpp \
 	gtest/json_test_vectors.cpp \
 	gtest/json_test_vectors.h \
 	gtest/test_foundersreward.cpp \
-	$(am__append_21) gtest/test_tautology.cpp \
+	$(am__append_29) gtest/test_tautology.cpp \
 	gtest/test_deprecation.cpp \
 	gtest/test_equihash.cpp \
 	gtest/test_httprpc.cpp \
@@ -2075,27 +2436,65 @@ snowgem_gtest_SOURCES = gtest/main.cpp \
 	gtest/test_paymentdisclosure.cpp \
 	gtest/test_pedersen_hash.cpp \
 	gtest/test_checkblock.cpp \
-	gtest/test_zip32.cpp $(am__append_22)
+	gtest/test_zip32.cpp $(am__append_30)
 snowgem_gtest_CPPFLAGS = $(AM_CPPFLAGS) -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DSTATIC $(BITCOIN_INCLUDES)
 snowgem_gtest_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 snowgem_gtest_LDADD = -lgtest -lgmock \
 	$(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) \
-	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) \
-	$(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) \
-	$(LIBLEVELDB) $(LIBMEMENV) $(BOOST_LIBS) \
+	$(LIBBITCOIN_WALLET) $(LIBBITCOIN_COMMON) \
+	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_ZMQ) \
+	$(LIBBITCOIN_PROTON) $(LIBBITCOIN_CRYPTO) \
+	$(LIBUNIVALUE) $(LIBLEVELDB) \
+	$(LIBLEVELDB_SSE42) $(LIBMEMENV) \
+	$(LIBSECP256K1) $(LIBZCASH_SCRIPT) \
+	$(BOOST_LIBS) \
 	$(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
-	$(LIBSECP256K1) $(am__append_23) \
-	$(am__append_24) $(libzcash_CONSENSUS) \
-	$(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) \
+	$(BDB_LIBS) $(EVENT_PTHREADS_LIBS) \
+	$(EVENT_LIBS) $(ZMQ_LIBS) $(LIBZCASH) \
+	$(LIBRUSTZCASH) $(LIBZCASH_LIBS) \
+	$(am__append_31) $(am__append_32) \
+	$(libzcash_CONSENSUS) $(BDB_LIBS) \
+	$(SSL_LIBS) $(CRYPTO_LIBS) \
 	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) \
-	$(libzcash) $(LIBSNARK) $(libzcash_LIBS) \
-	$(am__append_25)
+	$(LIBZCASH) $(LIBSNARK) $(LIBZCASH_LIBS) \
+	$(am__append_33)
 snowgem_gtest_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
+BENCH_SRCDIR = bench
+BENCH_BINARY = bench/bench_bitcoin$(EXEEXT)
+bench_bench_bitcoin_SOURCES = \
+  bench/bench_bitcoin.cpp \
+  bench/bench.cpp \
+  bench/bench.h \
+  bench/checkqueue.cpp \
+  bench/Examples.cpp \
+  bench/rollingbloom.cpp \
+  bench/verification.cpp \
+  bench/crypto_hash.cpp \
+  bench/base58.cpp \
+  bench/lockedpool.cpp \
+  bench/perf.cpp \
+  bench/perf.h \
+  bench/prevector_destructor.cpp
+
+bench_bench_bitcoin_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CLFAGS) $(EVENT_PTHREADS_CFLAGS) -I$(builddir)/bench/
+bench_bench_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+bench_bench_bitcoin_LDADD = $(LIBBITCOIN_SERVER) \
+	$(LIBBITCOIN_COMMON) $(LIBBITCOIN_UNIVALUE) \
+	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) \
+	$(LIBLEVELDB) $(LIBLEVELDB_SSE42) \
+	$(LIBMEMENV) $(LIBSECP256K1) $(LIBUNIVALUE) \
+	$(LIBZCASH) $(LIBRUSTZCASH) \
+	$(am__append_35) $(am__append_36) \
+	$(BOOST_LIBS) $(BDB_LIBS) \
+	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) \
+	$(LIBZCASH_LIBS)
+bench_bench_bitcoin_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+CLEAN_BITCOIN_BENCH = bench/*.gcda bench/*.gcno
 all: all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .cpp .lo .log .mm .o .obj .rc .test .test$(EXEEXT) .trs
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/Makefile.test.include $(srcdir)/Makefile.gtest.include $(am__configure_deps)
+.SUFFIXES: .cc .cpp .lo .log .mm .o .obj .rc .test .test$(EXEEXT) .trs
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/Makefile.leveldb.include $(srcdir)/Makefile.test.include $(srcdir)/Makefile.gtest.include $(srcdir)/Makefile.bench.include $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -2115,7 +2514,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__maybe_remake_depfiles)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__maybe_remake_depfiles);; \
 	esac;
-$(srcdir)/Makefile.test.include $(srcdir)/Makefile.gtest.include $(am__empty):
+$(srcdir)/Makefile.leveldb.include $(srcdir)/Makefile.test.include $(srcdir)/Makefile.gtest.include $(srcdir)/Makefile.bench.include $(am__empty):
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
@@ -2224,6 +2623,10 @@ crypto/$(am__dirstamp):
 crypto/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) crypto/$(DEPDIR)
 	@: > crypto/$(DEPDIR)/$(am__dirstamp)
+crypto/libbitcoin_crypto_a-aes.$(OBJEXT): crypto/$(am__dirstamp) \
+	crypto/$(DEPDIR)/$(am__dirstamp)
+crypto/libbitcoin_crypto_a-chacha20.$(OBJEXT): crypto/$(am__dirstamp) \
+	crypto/$(DEPDIR)/$(am__dirstamp)
 crypto/libbitcoin_crypto_a-equihash.$(OBJEXT): crypto/$(am__dirstamp) \
 	crypto/$(DEPDIR)/$(am__dirstamp)
 crypto/libbitcoin_crypto_a-hmac_sha256.$(OBJEXT):  \
@@ -2243,6 +2646,177 @@ crypto/libbitcoin_crypto.a: $(crypto_libbitcoin_crypto_a_OBJECTS) $(crypto_libbi
 	$(AM_V_at)-rm -f crypto/libbitcoin_crypto.a
 	$(AM_V_AR)$(crypto_libbitcoin_crypto_a_AR) crypto/libbitcoin_crypto.a $(crypto_libbitcoin_crypto_a_OBJECTS) $(crypto_libbitcoin_crypto_a_LIBADD)
 	$(AM_V_at)$(RANLIB) crypto/libbitcoin_crypto.a
+leveldb/db/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/db
+	@: > leveldb/db/$(am__dirstamp)
+leveldb/db/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/db/$(DEPDIR)
+	@: > leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-builder.$(OBJEXT): leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-c.$(OBJEXT): leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-dbformat.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-db_impl.$(OBJEXT): leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-db_iter.$(OBJEXT): leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-dumpfile.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-filename.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-log_reader.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-log_writer.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-memtable.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-repair.$(OBJEXT): leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-table_cache.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-version_edit.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-version_set.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/db/libleveldb_a-write_batch.$(OBJEXT):  \
+	leveldb/db/$(am__dirstamp) \
+	leveldb/db/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/table
+	@: > leveldb/table/$(am__dirstamp)
+leveldb/table/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/table/$(DEPDIR)
+	@: > leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-block_builder.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-block.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-filter_block.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-format.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-iterator.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-merger.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-table_builder.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-table.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/table/libleveldb_a-two_level_iterator.$(OBJEXT):  \
+	leveldb/table/$(am__dirstamp) \
+	leveldb/table/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/util
+	@: > leveldb/util/$(am__dirstamp)
+leveldb/util/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/util/$(DEPDIR)
+	@: > leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-arena.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-bloom.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-cache.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-coding.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-comparator.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-crc32c.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-env.$(OBJEXT): leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-env_posix.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-filter_policy.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-hash.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-histogram.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-logging.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-options.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-status.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/util/libleveldb_a-env_win.$(OBJEXT):  \
+	leveldb/util/$(am__dirstamp) \
+	leveldb/util/$(DEPDIR)/$(am__dirstamp)
+leveldb/port/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/port
+	@: > leveldb/port/$(am__dirstamp)
+leveldb/port/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/port/$(DEPDIR)
+	@: > leveldb/port/$(DEPDIR)/$(am__dirstamp)
+leveldb/port/libleveldb_a-port_win.$(OBJEXT):  \
+	leveldb/port/$(am__dirstamp) \
+	leveldb/port/$(DEPDIR)/$(am__dirstamp)
+leveldb/port/libleveldb_a-port_posix.$(OBJEXT):  \
+	leveldb/port/$(am__dirstamp) \
+	leveldb/port/$(DEPDIR)/$(am__dirstamp)
+leveldb/$(am__dirstamp):
+	@$(MKDIR_P) leveldb
+	@: > leveldb/$(am__dirstamp)
+
+leveldb/libleveldb.a: $(leveldb_libleveldb_a_OBJECTS) $(leveldb_libleveldb_a_DEPENDENCIES) $(EXTRA_leveldb_libleveldb_a_DEPENDENCIES) leveldb/$(am__dirstamp)
+	$(AM_V_at)-rm -f leveldb/libleveldb.a
+	$(AM_V_AR)$(leveldb_libleveldb_a_AR) leveldb/libleveldb.a $(leveldb_libleveldb_a_OBJECTS) $(leveldb_libleveldb_a_LIBADD)
+	$(AM_V_at)$(RANLIB) leveldb/libleveldb.a
+leveldb/port/libleveldb_sse42_a-port_posix_sse.$(OBJEXT):  \
+	leveldb/port/$(am__dirstamp) \
+	leveldb/port/$(DEPDIR)/$(am__dirstamp)
+
+leveldb/libleveldb_sse42.a: $(leveldb_libleveldb_sse42_a_OBJECTS) $(leveldb_libleveldb_sse42_a_DEPENDENCIES) $(EXTRA_leveldb_libleveldb_sse42_a_DEPENDENCIES) leveldb/$(am__dirstamp)
+	$(AM_V_at)-rm -f leveldb/libleveldb_sse42.a
+	$(AM_V_AR)$(leveldb_libleveldb_sse42_a_AR) leveldb/libleveldb_sse42.a $(leveldb_libleveldb_sse42_a_OBJECTS) $(leveldb_libleveldb_sse42_a_LIBADD)
+	$(AM_V_at)$(RANLIB) leveldb/libleveldb_sse42.a
+leveldb/helpers/memenv/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/helpers/memenv
+	@: > leveldb/helpers/memenv/$(am__dirstamp)
+leveldb/helpers/memenv/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) leveldb/helpers/memenv/$(DEPDIR)
+	@: > leveldb/helpers/memenv/$(DEPDIR)/$(am__dirstamp)
+leveldb/helpers/memenv/libmemenv_a-memenv.$(OBJEXT):  \
+	leveldb/helpers/memenv/$(am__dirstamp) \
+	leveldb/helpers/memenv/$(DEPDIR)/$(am__dirstamp)
+
+leveldb/libmemenv.a: $(leveldb_libmemenv_a_OBJECTS) $(leveldb_libmemenv_a_DEPENDENCIES) $(EXTRA_leveldb_libmemenv_a_DEPENDENCIES) leveldb/$(am__dirstamp)
+	$(AM_V_at)-rm -f leveldb/libmemenv.a
+	$(AM_V_AR)$(leveldb_libmemenv_a_AR) leveldb/libmemenv.a $(leveldb_libmemenv_a_OBJECTS) $(leveldb_libmemenv_a_LIBADD)
+	$(AM_V_at)$(RANLIB) leveldb/libmemenv.a
 rpc/$(am__dirstamp):
 	@$(MKDIR_P) rpc
 	@: > rpc/$(am__dirstamp)
@@ -2299,23 +2873,6 @@ libbitcoin_common.a: $(libbitcoin_common_a_OBJECTS) $(libbitcoin_common_a_DEPEND
 	$(AM_V_at)-rm -f libbitcoin_common.a
 	$(AM_V_AR)$(libbitcoin_common_a_AR) libbitcoin_common.a $(libbitcoin_common_a_OBJECTS) $(libbitcoin_common_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libbitcoin_common.a
-amqp/$(am__dirstamp):
-	@$(MKDIR_P) amqp
-	@: > amqp/$(am__dirstamp)
-amqp/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) amqp/$(DEPDIR)
-	@: > amqp/$(DEPDIR)/$(am__dirstamp)
-amqp/libbitcoin_proton_a-amqpabstractnotifier.$(OBJEXT):  \
-	amqp/$(am__dirstamp) amqp/$(DEPDIR)/$(am__dirstamp)
-amqp/libbitcoin_proton_a-amqpnotificationinterface.$(OBJEXT):  \
-	amqp/$(am__dirstamp) amqp/$(DEPDIR)/$(am__dirstamp)
-amqp/libbitcoin_proton_a-amqppublishnotifier.$(OBJEXT):  \
-	amqp/$(am__dirstamp) amqp/$(DEPDIR)/$(am__dirstamp)
-
-libbitcoin_proton.a: $(libbitcoin_proton_a_OBJECTS) $(libbitcoin_proton_a_DEPENDENCIES) $(EXTRA_libbitcoin_proton_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libbitcoin_proton.a
-	$(AM_V_AR)$(libbitcoin_proton_a_AR) libbitcoin_proton.a $(libbitcoin_proton_a_OBJECTS) $(libbitcoin_proton_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libbitcoin_proton.a
 policy/$(am__dirstamp):
 	@$(MKDIR_P) policy
 	@: > policy/$(am__dirstamp)
@@ -2353,7 +2910,7 @@ support/$(am__dirstamp):
 support/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) support/$(DEPDIR)
 	@: > support/$(DEPDIR)/$(am__dirstamp)
-support/libbitcoin_util_a-pagelocker.$(OBJEXT):  \
+support/libbitcoin_util_a-lockedpool.$(OBJEXT):  \
 	support/$(am__dirstamp) support/$(DEPDIR)/$(am__dirstamp)
 compat/$(am__dirstamp):
 	@$(MKDIR_P) compat
@@ -2473,32 +3030,64 @@ libzcash.a: $(libzcash_a_OBJECTS) $(libzcash_a_DEPENDENCIES) $(EXTRA_libzcash_a_
 	$(AM_V_at)-rm -f libzcash.a
 	$(AM_V_AR)$(libzcash_a_AR) libzcash.a $(libzcash_a_OBJECTS) $(libzcash_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libzcash.a
-crypto/libzcashconsensus_la-equihash.lo: crypto/$(am__dirstamp) \
+crypto/libzcash_script_la-equihash.lo: crypto/$(am__dirstamp) \
 	crypto/$(DEPDIR)/$(am__dirstamp)
-crypto/libzcashconsensus_la-hmac_sha512.lo: crypto/$(am__dirstamp) \
+crypto/libzcash_script_la-hmac_sha512.lo: crypto/$(am__dirstamp) \
 	crypto/$(DEPDIR)/$(am__dirstamp)
-crypto/libzcashconsensus_la-ripemd160.lo: crypto/$(am__dirstamp) \
+crypto/libzcash_script_la-ripemd160.lo: crypto/$(am__dirstamp) \
 	crypto/$(DEPDIR)/$(am__dirstamp)
-crypto/libzcashconsensus_la-sha1.lo: crypto/$(am__dirstamp) \
+crypto/libzcash_script_la-sha1.lo: crypto/$(am__dirstamp) \
 	crypto/$(DEPDIR)/$(am__dirstamp)
-crypto/libzcashconsensus_la-sha256.lo: crypto/$(am__dirstamp) \
+crypto/libzcash_script_la-sha256.lo: crypto/$(am__dirstamp) \
 	crypto/$(DEPDIR)/$(am__dirstamp)
-crypto/libzcashconsensus_la-sha512.lo: crypto/$(am__dirstamp) \
+crypto/libzcash_script_la-sha512.lo: crypto/$(am__dirstamp) \
 	crypto/$(DEPDIR)/$(am__dirstamp)
-primitives/libzcashconsensus_la-transaction.lo:  \
+primitives/libzcash_script_la-transaction.lo:  \
 	primitives/$(am__dirstamp) \
 	primitives/$(DEPDIR)/$(am__dirstamp)
-script/libzcashconsensus_la-snowgemconsensus.lo:  \
-	script/$(am__dirstamp) script/$(DEPDIR)/$(am__dirstamp)
-script/libzcashconsensus_la-interpreter.lo: script/$(am__dirstamp) \
+script/libzcash_script_la-snowgemconsensus.lo: script/$(am__dirstamp) \
 	script/$(DEPDIR)/$(am__dirstamp)
-script/libzcashconsensus_la-script.lo: script/$(am__dirstamp) \
+script/libzcash_script_la-interpreter.lo: script/$(am__dirstamp) \
 	script/$(DEPDIR)/$(am__dirstamp)
-compat/libzcashconsensus_la-glibc_compat.lo: compat/$(am__dirstamp) \
+script/libzcash_script_la-script.lo: script/$(am__dirstamp) \
+	script/$(DEPDIR)/$(am__dirstamp)
+compat/libzcash_script_la-glibc_compat.lo: compat/$(am__dirstamp) \
 	compat/$(DEPDIR)/$(am__dirstamp)
 
-libzcashconsensus.la: $(libzcashconsensus_la_OBJECTS) $(libzcashconsensus_la_DEPENDENCIES) $(EXTRA_libzcashconsensus_la_DEPENDENCIES) 
-	$(AM_V_CXXLD)$(libzcashconsensus_la_LINK) $(am_libzcashconsensus_la_rpath) $(libzcashconsensus_la_OBJECTS) $(libzcashconsensus_la_LIBADD) $(LIBS)
+libzcash_script.la: $(libzcash_script_la_OBJECTS) $(libzcash_script_la_DEPENDENCIES) $(EXTRA_libzcash_script_la_DEPENDENCIES) 
+	$(AM_V_CXXLD)$(libzcash_script_la_LINK) $(am_libzcash_script_la_rpath) $(libzcash_script_la_OBJECTS) $(libzcash_script_la_LIBADD) $(LIBS)
+bench/$(am__dirstamp):
+	@$(MKDIR_P) bench
+	@: > bench/$(am__dirstamp)
+bench/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) bench/$(DEPDIR)
+	@: > bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-bench_bitcoin.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-bench.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-checkqueue.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-Examples.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-rollingbloom.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-verification.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-crypto_hash.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-base58.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-lockedpool.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-perf.$(OBJEXT): bench/$(am__dirstamp) \
+	bench/$(DEPDIR)/$(am__dirstamp)
+bench/bench_bitcoin-prevector_destructor.$(OBJEXT):  \
+	bench/$(am__dirstamp) bench/$(DEPDIR)/$(am__dirstamp)
+
+bench/bench_bitcoin$(EXEEXT): $(bench_bench_bitcoin_OBJECTS) $(bench_bench_bitcoin_DEPENDENCIES) $(EXTRA_bench_bench_bitcoin_DEPENDENCIES) bench/$(am__dirstamp)
+	@rm -f bench/bench_bitcoin$(EXEEXT)
+	$(AM_V_CXXLD)$(bench_bench_bitcoin_LINK) $(bench_bench_bitcoin_OBJECTS) $(bench_bench_bitcoin_LDADD) $(LIBS)
 
 snowgem-cli$(EXEEXT): $(snowgem_cli_OBJECTS) $(snowgem_cli_DEPENDENCIES) $(EXTRA_snowgem_cli_DEPENDENCIES) 
 	@rm -f snowgem-cli$(EXEEXT)
@@ -2725,13 +3314,18 @@ test/test_bitcoin$(EXEEXT): $(test_test_bitcoin_OBJECTS) $(test_test_bitcoin_DEP
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
-	-rm -f amqp/*.$(OBJEXT)
+	-rm -f bench/*.$(OBJEXT)
 	-rm -f compat/*.$(OBJEXT)
 	-rm -f compat/*.lo
 	-rm -f consensus/*.$(OBJEXT)
 	-rm -f crypto/*.$(OBJEXT)
 	-rm -f crypto/*.lo
 	-rm -f gtest/*.$(OBJEXT)
+	-rm -f leveldb/db/*.$(OBJEXT)
+	-rm -f leveldb/helpers/memenv/*.$(OBJEXT)
+	-rm -f leveldb/port/*.$(OBJEXT)
+	-rm -f leveldb/table/*.$(OBJEXT)
+	-rm -f leveldb/util/*.$(OBJEXT)
 	-rm -f policy/*.$(OBJEXT)
 	-rm -f primitives/*.$(OBJEXT)
 	-rm -f primitives/*.lo
@@ -2803,6 +3397,7 @@ include ./$(DEPDIR)/libbitcoin_server_a-txmempool.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-validationinterface.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_util_a-chainparamsbase.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_util_a-clientversion.Po # am--include-marker
+include ./$(DEPDIR)/libbitcoin_util_a-fs.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_util_a-random.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_util_a-sync.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_util_a-uint256.Po # am--include-marker
@@ -2822,23 +3417,33 @@ include ./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosuredb.Po # am--include-mar
 include ./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po # am--include-marker
-include ./$(DEPDIR)/libzcashconsensus_la-hash.Plo # am--include-marker
-include ./$(DEPDIR)/libzcashconsensus_la-pubkey.Plo # am--include-marker
-include ./$(DEPDIR)/libzcashconsensus_la-uint256.Plo # am--include-marker
-include ./$(DEPDIR)/libzcashconsensus_la-utilstrencodings.Plo # am--include-marker
+include ./$(DEPDIR)/libzcash_script_la-hash.Plo # am--include-marker
+include ./$(DEPDIR)/libzcash_script_la-pubkey.Plo # am--include-marker
+include ./$(DEPDIR)/libzcash_script_la-uint256.Plo # am--include-marker
+include ./$(DEPDIR)/libzcash_script_la-utilstrencodings.Plo # am--include-marker
 include ./$(DEPDIR)/snowgem_cli-bitcoin-cli.Po # am--include-marker
 include ./$(DEPDIR)/snowgem_tx-bitcoin-tx.Po # am--include-marker
 include ./$(DEPDIR)/snowgemd-bitcoind.Po # am--include-marker
-include amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Po # am--include-marker
-include amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Po # am--include-marker
-include amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-Examples.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-base58.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-bench.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-checkqueue.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-lockedpool.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-perf.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po # am--include-marker
+include bench/$(DEPDIR)/bench_bitcoin-verification.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po # am--include-marker
-include compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo # am--include-marker
+include compat/$(DEPDIR)/libzcash_script_la-glibc_compat.Plo # am--include-marker
 include consensus/$(DEPDIR)/libbitcoin_common_a-params.Po # am--include-marker
 include consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po # am--include-marker
+include crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Po # am--include-marker
+include crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha512.Po # am--include-marker
@@ -2846,12 +3451,12 @@ include crypto/$(DEPDIR)/libbitcoin_crypto_a-ripemd160.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-sha1.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-sha256.Po # am--include-marker
 include crypto/$(DEPDIR)/libbitcoin_crypto_a-sha512.Po # am--include-marker
-include crypto/$(DEPDIR)/libzcashconsensus_la-equihash.Plo # am--include-marker
-include crypto/$(DEPDIR)/libzcashconsensus_la-hmac_sha512.Plo # am--include-marker
-include crypto/$(DEPDIR)/libzcashconsensus_la-ripemd160.Plo # am--include-marker
-include crypto/$(DEPDIR)/libzcashconsensus_la-sha1.Plo # am--include-marker
-include crypto/$(DEPDIR)/libzcashconsensus_la-sha256.Plo # am--include-marker
-include crypto/$(DEPDIR)/libzcashconsensus_la-sha512.Plo # am--include-marker
+include crypto/$(DEPDIR)/libzcash_script_la-equihash.Plo # am--include-marker
+include crypto/$(DEPDIR)/libzcash_script_la-hmac_sha512.Plo # am--include-marker
+include crypto/$(DEPDIR)/libzcash_script_la-ripemd160.Plo # am--include-marker
+include crypto/$(DEPDIR)/libzcash_script_la-sha1.Plo # am--include-marker
+include crypto/$(DEPDIR)/libzcash_script_la-sha256.Plo # am--include-marker
+include crypto/$(DEPDIR)/libzcash_script_la-sha512.Plo # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-json_test_vectors.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-main.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po # am--include-marker
@@ -2883,10 +3488,53 @@ include gtest/$(DEPDIR)/snowgem_gtest-test_upgrades.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_validation.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-test_zip32.Po # am--include-marker
 include gtest/$(DEPDIR)/snowgem_gtest-utils.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-builder.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-c.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-filename.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-repair.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Po # am--include-marker
+include leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Po # am--include-marker
+include leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Po # am--include-marker
+include leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Po # am--include-marker
+include leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Po # am--include-marker
+include leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-block.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-format.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-merger.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-table.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Po # am--include-marker
+include leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-arena.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-cache.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-coding.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-env.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-hash.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-logging.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-options.Po # am--include-marker
+include leveldb/util/$(DEPDIR)/libleveldb_a-status.Po # am--include-marker
 include policy/$(DEPDIR)/libbitcoin_server_a-fees.Po # am--include-marker
 include primitives/$(DEPDIR)/libbitcoin_common_a-block.Po # am--include-marker
 include primitives/$(DEPDIR)/libbitcoin_common_a-transaction.Po # am--include-marker
-include primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo # am--include-marker
+include primitives/$(DEPDIR)/libzcash_script_la-transaction.Plo # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po # am--include-marker
 include rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po # am--include-marker
@@ -2903,11 +3551,11 @@ include script/$(DEPDIR)/libbitcoin_common_a-script_error.Po # am--include-marke
 include script/$(DEPDIR)/libbitcoin_common_a-sign.Po # am--include-marker
 include script/$(DEPDIR)/libbitcoin_common_a-standard.Po # am--include-marker
 include script/$(DEPDIR)/libbitcoin_server_a-sigcache.Po # am--include-marker
-include script/$(DEPDIR)/libzcashconsensus_la-interpreter.Plo # am--include-marker
-include script/$(DEPDIR)/libzcashconsensus_la-script.Plo # am--include-marker
-include script/$(DEPDIR)/libzcashconsensus_la-snowgemconsensus.Plo # am--include-marker
+include script/$(DEPDIR)/libzcash_script_la-interpreter.Plo # am--include-marker
+include script/$(DEPDIR)/libzcash_script_la-script.Plo # am--include-marker
+include script/$(DEPDIR)/libzcash_script_la-snowgemconsensus.Plo # am--include-marker
 include support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po # am--include-marker
-include support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po # am--include-marker
+include support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-DoS_tests.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-accounting_tests.Po # am--include-marker
@@ -3000,7 +3648,7 @@ $(am__depfiles_remade):
 
 am--depfiles: $(am__depfiles_remade)
 
-.cpp.o:
+.cc.o:
 	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
 	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
 	$(am__mv) $$depbase.Tpo $$depbase.Po
@@ -3008,7 +3656,7 @@ am--depfiles: $(am__depfiles_remade)
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ $<
 
-.cpp.obj:
+.cc.obj:
 	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
 	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
 	$(am__mv) $$depbase.Tpo $$depbase.Po
@@ -3016,13 +3664,41 @@ am--depfiles: $(am__depfiles_remade)
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-.cpp.lo:
+.cc.lo:
 	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
 	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
 	$(am__mv) $$depbase.Tpo $$depbase.Plo
 #	$(AM_V_CXX)source='$<' object='$@' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(LTCXXCOMPILE) -c -o $@ $<
+
+crypto/libbitcoin_crypto_a-aes.o: crypto/aes.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -MT crypto/libbitcoin_crypto_a-aes.o -MD -MP -MF crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Tpo -c -o crypto/libbitcoin_crypto_a-aes.o `test -f 'crypto/aes.cpp' || echo '$(srcdir)/'`crypto/aes.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Tpo crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Po
+#	$(AM_V_CXX)source='crypto/aes.cpp' object='crypto/libbitcoin_crypto_a-aes.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libbitcoin_crypto_a-aes.o `test -f 'crypto/aes.cpp' || echo '$(srcdir)/'`crypto/aes.cpp
+
+crypto/libbitcoin_crypto_a-aes.obj: crypto/aes.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -MT crypto/libbitcoin_crypto_a-aes.obj -MD -MP -MF crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Tpo -c -o crypto/libbitcoin_crypto_a-aes.obj `if test -f 'crypto/aes.cpp'; then $(CYGPATH_W) 'crypto/aes.cpp'; else $(CYGPATH_W) '$(srcdir)/crypto/aes.cpp'; fi`
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Tpo crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Po
+#	$(AM_V_CXX)source='crypto/aes.cpp' object='crypto/libbitcoin_crypto_a-aes.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libbitcoin_crypto_a-aes.obj `if test -f 'crypto/aes.cpp'; then $(CYGPATH_W) 'crypto/aes.cpp'; else $(CYGPATH_W) '$(srcdir)/crypto/aes.cpp'; fi`
+
+crypto/libbitcoin_crypto_a-chacha20.o: crypto/chacha20.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -MT crypto/libbitcoin_crypto_a-chacha20.o -MD -MP -MF crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Tpo -c -o crypto/libbitcoin_crypto_a-chacha20.o `test -f 'crypto/chacha20.cpp' || echo '$(srcdir)/'`crypto/chacha20.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Tpo crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Po
+#	$(AM_V_CXX)source='crypto/chacha20.cpp' object='crypto/libbitcoin_crypto_a-chacha20.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libbitcoin_crypto_a-chacha20.o `test -f 'crypto/chacha20.cpp' || echo '$(srcdir)/'`crypto/chacha20.cpp
+
+crypto/libbitcoin_crypto_a-chacha20.obj: crypto/chacha20.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -MT crypto/libbitcoin_crypto_a-chacha20.obj -MD -MP -MF crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Tpo -c -o crypto/libbitcoin_crypto_a-chacha20.obj `if test -f 'crypto/chacha20.cpp'; then $(CYGPATH_W) 'crypto/chacha20.cpp'; else $(CYGPATH_W) '$(srcdir)/crypto/chacha20.cpp'; fi`
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Tpo crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Po
+#	$(AM_V_CXX)source='crypto/chacha20.cpp' object='crypto/libbitcoin_crypto_a-chacha20.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libbitcoin_crypto_a-chacha20.obj `if test -f 'crypto/chacha20.cpp'; then $(CYGPATH_W) 'crypto/chacha20.cpp'; else $(CYGPATH_W) '$(srcdir)/crypto/chacha20.cpp'; fi`
 
 crypto/libbitcoin_crypto_a-equihash.o: crypto/equihash.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -MT crypto/libbitcoin_crypto_a-equihash.o -MD -MP -MF crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Tpo -c -o crypto/libbitcoin_crypto_a-equihash.o `test -f 'crypto/equihash.cpp' || echo '$(srcdir)/'`crypto/equihash.cpp
@@ -3121,6 +3797,608 @@ crypto/libbitcoin_crypto_a-sha512.obj: crypto/sha512.cpp
 #	$(AM_V_CXX)source='crypto/sha512.cpp' object='crypto/libbitcoin_crypto_a-sha512.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(crypto_libbitcoin_crypto_a_CPPFLAGS) $(CPPFLAGS) $(crypto_libbitcoin_crypto_a_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libbitcoin_crypto_a-sha512.obj `if test -f 'crypto/sha512.cpp'; then $(CYGPATH_W) 'crypto/sha512.cpp'; else $(CYGPATH_W) '$(srcdir)/crypto/sha512.cpp'; fi`
+
+leveldb/db/libleveldb_a-builder.o: leveldb/db/builder.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-builder.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-builder.Tpo -c -o leveldb/db/libleveldb_a-builder.o `test -f 'leveldb/db/builder.cc' || echo '$(srcdir)/'`leveldb/db/builder.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-builder.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-builder.Po
+#	$(AM_V_CXX)source='leveldb/db/builder.cc' object='leveldb/db/libleveldb_a-builder.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-builder.o `test -f 'leveldb/db/builder.cc' || echo '$(srcdir)/'`leveldb/db/builder.cc
+
+leveldb/db/libleveldb_a-builder.obj: leveldb/db/builder.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-builder.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-builder.Tpo -c -o leveldb/db/libleveldb_a-builder.obj `if test -f 'leveldb/db/builder.cc'; then $(CYGPATH_W) 'leveldb/db/builder.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/builder.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-builder.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-builder.Po
+#	$(AM_V_CXX)source='leveldb/db/builder.cc' object='leveldb/db/libleveldb_a-builder.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-builder.obj `if test -f 'leveldb/db/builder.cc'; then $(CYGPATH_W) 'leveldb/db/builder.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/builder.cc'; fi`
+
+leveldb/db/libleveldb_a-c.o: leveldb/db/c.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-c.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-c.Tpo -c -o leveldb/db/libleveldb_a-c.o `test -f 'leveldb/db/c.cc' || echo '$(srcdir)/'`leveldb/db/c.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-c.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-c.Po
+#	$(AM_V_CXX)source='leveldb/db/c.cc' object='leveldb/db/libleveldb_a-c.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-c.o `test -f 'leveldb/db/c.cc' || echo '$(srcdir)/'`leveldb/db/c.cc
+
+leveldb/db/libleveldb_a-c.obj: leveldb/db/c.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-c.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-c.Tpo -c -o leveldb/db/libleveldb_a-c.obj `if test -f 'leveldb/db/c.cc'; then $(CYGPATH_W) 'leveldb/db/c.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/c.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-c.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-c.Po
+#	$(AM_V_CXX)source='leveldb/db/c.cc' object='leveldb/db/libleveldb_a-c.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-c.obj `if test -f 'leveldb/db/c.cc'; then $(CYGPATH_W) 'leveldb/db/c.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/c.cc'; fi`
+
+leveldb/db/libleveldb_a-dbformat.o: leveldb/db/dbformat.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-dbformat.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Tpo -c -o leveldb/db/libleveldb_a-dbformat.o `test -f 'leveldb/db/dbformat.cc' || echo '$(srcdir)/'`leveldb/db/dbformat.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Po
+#	$(AM_V_CXX)source='leveldb/db/dbformat.cc' object='leveldb/db/libleveldb_a-dbformat.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-dbformat.o `test -f 'leveldb/db/dbformat.cc' || echo '$(srcdir)/'`leveldb/db/dbformat.cc
+
+leveldb/db/libleveldb_a-dbformat.obj: leveldb/db/dbformat.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-dbformat.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Tpo -c -o leveldb/db/libleveldb_a-dbformat.obj `if test -f 'leveldb/db/dbformat.cc'; then $(CYGPATH_W) 'leveldb/db/dbformat.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/dbformat.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Po
+#	$(AM_V_CXX)source='leveldb/db/dbformat.cc' object='leveldb/db/libleveldb_a-dbformat.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-dbformat.obj `if test -f 'leveldb/db/dbformat.cc'; then $(CYGPATH_W) 'leveldb/db/dbformat.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/dbformat.cc'; fi`
+
+leveldb/db/libleveldb_a-db_impl.o: leveldb/db/db_impl.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-db_impl.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Tpo -c -o leveldb/db/libleveldb_a-db_impl.o `test -f 'leveldb/db/db_impl.cc' || echo '$(srcdir)/'`leveldb/db/db_impl.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Po
+#	$(AM_V_CXX)source='leveldb/db/db_impl.cc' object='leveldb/db/libleveldb_a-db_impl.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-db_impl.o `test -f 'leveldb/db/db_impl.cc' || echo '$(srcdir)/'`leveldb/db/db_impl.cc
+
+leveldb/db/libleveldb_a-db_impl.obj: leveldb/db/db_impl.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-db_impl.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Tpo -c -o leveldb/db/libleveldb_a-db_impl.obj `if test -f 'leveldb/db/db_impl.cc'; then $(CYGPATH_W) 'leveldb/db/db_impl.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/db_impl.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Po
+#	$(AM_V_CXX)source='leveldb/db/db_impl.cc' object='leveldb/db/libleveldb_a-db_impl.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-db_impl.obj `if test -f 'leveldb/db/db_impl.cc'; then $(CYGPATH_W) 'leveldb/db/db_impl.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/db_impl.cc'; fi`
+
+leveldb/db/libleveldb_a-db_iter.o: leveldb/db/db_iter.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-db_iter.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Tpo -c -o leveldb/db/libleveldb_a-db_iter.o `test -f 'leveldb/db/db_iter.cc' || echo '$(srcdir)/'`leveldb/db/db_iter.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Po
+#	$(AM_V_CXX)source='leveldb/db/db_iter.cc' object='leveldb/db/libleveldb_a-db_iter.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-db_iter.o `test -f 'leveldb/db/db_iter.cc' || echo '$(srcdir)/'`leveldb/db/db_iter.cc
+
+leveldb/db/libleveldb_a-db_iter.obj: leveldb/db/db_iter.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-db_iter.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Tpo -c -o leveldb/db/libleveldb_a-db_iter.obj `if test -f 'leveldb/db/db_iter.cc'; then $(CYGPATH_W) 'leveldb/db/db_iter.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/db_iter.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Po
+#	$(AM_V_CXX)source='leveldb/db/db_iter.cc' object='leveldb/db/libleveldb_a-db_iter.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-db_iter.obj `if test -f 'leveldb/db/db_iter.cc'; then $(CYGPATH_W) 'leveldb/db/db_iter.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/db_iter.cc'; fi`
+
+leveldb/db/libleveldb_a-dumpfile.o: leveldb/db/dumpfile.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-dumpfile.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Tpo -c -o leveldb/db/libleveldb_a-dumpfile.o `test -f 'leveldb/db/dumpfile.cc' || echo '$(srcdir)/'`leveldb/db/dumpfile.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Po
+#	$(AM_V_CXX)source='leveldb/db/dumpfile.cc' object='leveldb/db/libleveldb_a-dumpfile.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-dumpfile.o `test -f 'leveldb/db/dumpfile.cc' || echo '$(srcdir)/'`leveldb/db/dumpfile.cc
+
+leveldb/db/libleveldb_a-dumpfile.obj: leveldb/db/dumpfile.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-dumpfile.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Tpo -c -o leveldb/db/libleveldb_a-dumpfile.obj `if test -f 'leveldb/db/dumpfile.cc'; then $(CYGPATH_W) 'leveldb/db/dumpfile.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/dumpfile.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Po
+#	$(AM_V_CXX)source='leveldb/db/dumpfile.cc' object='leveldb/db/libleveldb_a-dumpfile.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-dumpfile.obj `if test -f 'leveldb/db/dumpfile.cc'; then $(CYGPATH_W) 'leveldb/db/dumpfile.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/dumpfile.cc'; fi`
+
+leveldb/db/libleveldb_a-filename.o: leveldb/db/filename.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-filename.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-filename.Tpo -c -o leveldb/db/libleveldb_a-filename.o `test -f 'leveldb/db/filename.cc' || echo '$(srcdir)/'`leveldb/db/filename.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-filename.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-filename.Po
+#	$(AM_V_CXX)source='leveldb/db/filename.cc' object='leveldb/db/libleveldb_a-filename.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-filename.o `test -f 'leveldb/db/filename.cc' || echo '$(srcdir)/'`leveldb/db/filename.cc
+
+leveldb/db/libleveldb_a-filename.obj: leveldb/db/filename.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-filename.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-filename.Tpo -c -o leveldb/db/libleveldb_a-filename.obj `if test -f 'leveldb/db/filename.cc'; then $(CYGPATH_W) 'leveldb/db/filename.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/filename.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-filename.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-filename.Po
+#	$(AM_V_CXX)source='leveldb/db/filename.cc' object='leveldb/db/libleveldb_a-filename.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-filename.obj `if test -f 'leveldb/db/filename.cc'; then $(CYGPATH_W) 'leveldb/db/filename.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/filename.cc'; fi`
+
+leveldb/db/libleveldb_a-log_reader.o: leveldb/db/log_reader.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-log_reader.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Tpo -c -o leveldb/db/libleveldb_a-log_reader.o `test -f 'leveldb/db/log_reader.cc' || echo '$(srcdir)/'`leveldb/db/log_reader.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Po
+#	$(AM_V_CXX)source='leveldb/db/log_reader.cc' object='leveldb/db/libleveldb_a-log_reader.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-log_reader.o `test -f 'leveldb/db/log_reader.cc' || echo '$(srcdir)/'`leveldb/db/log_reader.cc
+
+leveldb/db/libleveldb_a-log_reader.obj: leveldb/db/log_reader.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-log_reader.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Tpo -c -o leveldb/db/libleveldb_a-log_reader.obj `if test -f 'leveldb/db/log_reader.cc'; then $(CYGPATH_W) 'leveldb/db/log_reader.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/log_reader.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Po
+#	$(AM_V_CXX)source='leveldb/db/log_reader.cc' object='leveldb/db/libleveldb_a-log_reader.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-log_reader.obj `if test -f 'leveldb/db/log_reader.cc'; then $(CYGPATH_W) 'leveldb/db/log_reader.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/log_reader.cc'; fi`
+
+leveldb/db/libleveldb_a-log_writer.o: leveldb/db/log_writer.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-log_writer.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Tpo -c -o leveldb/db/libleveldb_a-log_writer.o `test -f 'leveldb/db/log_writer.cc' || echo '$(srcdir)/'`leveldb/db/log_writer.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Po
+#	$(AM_V_CXX)source='leveldb/db/log_writer.cc' object='leveldb/db/libleveldb_a-log_writer.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-log_writer.o `test -f 'leveldb/db/log_writer.cc' || echo '$(srcdir)/'`leveldb/db/log_writer.cc
+
+leveldb/db/libleveldb_a-log_writer.obj: leveldb/db/log_writer.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-log_writer.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Tpo -c -o leveldb/db/libleveldb_a-log_writer.obj `if test -f 'leveldb/db/log_writer.cc'; then $(CYGPATH_W) 'leveldb/db/log_writer.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/log_writer.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Po
+#	$(AM_V_CXX)source='leveldb/db/log_writer.cc' object='leveldb/db/libleveldb_a-log_writer.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-log_writer.obj `if test -f 'leveldb/db/log_writer.cc'; then $(CYGPATH_W) 'leveldb/db/log_writer.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/log_writer.cc'; fi`
+
+leveldb/db/libleveldb_a-memtable.o: leveldb/db/memtable.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-memtable.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Tpo -c -o leveldb/db/libleveldb_a-memtable.o `test -f 'leveldb/db/memtable.cc' || echo '$(srcdir)/'`leveldb/db/memtable.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Po
+#	$(AM_V_CXX)source='leveldb/db/memtable.cc' object='leveldb/db/libleveldb_a-memtable.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-memtable.o `test -f 'leveldb/db/memtable.cc' || echo '$(srcdir)/'`leveldb/db/memtable.cc
+
+leveldb/db/libleveldb_a-memtable.obj: leveldb/db/memtable.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-memtable.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Tpo -c -o leveldb/db/libleveldb_a-memtable.obj `if test -f 'leveldb/db/memtable.cc'; then $(CYGPATH_W) 'leveldb/db/memtable.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/memtable.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Po
+#	$(AM_V_CXX)source='leveldb/db/memtable.cc' object='leveldb/db/libleveldb_a-memtable.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-memtable.obj `if test -f 'leveldb/db/memtable.cc'; then $(CYGPATH_W) 'leveldb/db/memtable.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/memtable.cc'; fi`
+
+leveldb/db/libleveldb_a-repair.o: leveldb/db/repair.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-repair.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-repair.Tpo -c -o leveldb/db/libleveldb_a-repair.o `test -f 'leveldb/db/repair.cc' || echo '$(srcdir)/'`leveldb/db/repair.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-repair.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-repair.Po
+#	$(AM_V_CXX)source='leveldb/db/repair.cc' object='leveldb/db/libleveldb_a-repair.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-repair.o `test -f 'leveldb/db/repair.cc' || echo '$(srcdir)/'`leveldb/db/repair.cc
+
+leveldb/db/libleveldb_a-repair.obj: leveldb/db/repair.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-repair.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-repair.Tpo -c -o leveldb/db/libleveldb_a-repair.obj `if test -f 'leveldb/db/repair.cc'; then $(CYGPATH_W) 'leveldb/db/repair.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/repair.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-repair.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-repair.Po
+#	$(AM_V_CXX)source='leveldb/db/repair.cc' object='leveldb/db/libleveldb_a-repair.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-repair.obj `if test -f 'leveldb/db/repair.cc'; then $(CYGPATH_W) 'leveldb/db/repair.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/repair.cc'; fi`
+
+leveldb/db/libleveldb_a-table_cache.o: leveldb/db/table_cache.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-table_cache.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Tpo -c -o leveldb/db/libleveldb_a-table_cache.o `test -f 'leveldb/db/table_cache.cc' || echo '$(srcdir)/'`leveldb/db/table_cache.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Po
+#	$(AM_V_CXX)source='leveldb/db/table_cache.cc' object='leveldb/db/libleveldb_a-table_cache.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-table_cache.o `test -f 'leveldb/db/table_cache.cc' || echo '$(srcdir)/'`leveldb/db/table_cache.cc
+
+leveldb/db/libleveldb_a-table_cache.obj: leveldb/db/table_cache.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-table_cache.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Tpo -c -o leveldb/db/libleveldb_a-table_cache.obj `if test -f 'leveldb/db/table_cache.cc'; then $(CYGPATH_W) 'leveldb/db/table_cache.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/table_cache.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Po
+#	$(AM_V_CXX)source='leveldb/db/table_cache.cc' object='leveldb/db/libleveldb_a-table_cache.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-table_cache.obj `if test -f 'leveldb/db/table_cache.cc'; then $(CYGPATH_W) 'leveldb/db/table_cache.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/table_cache.cc'; fi`
+
+leveldb/db/libleveldb_a-version_edit.o: leveldb/db/version_edit.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-version_edit.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Tpo -c -o leveldb/db/libleveldb_a-version_edit.o `test -f 'leveldb/db/version_edit.cc' || echo '$(srcdir)/'`leveldb/db/version_edit.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Po
+#	$(AM_V_CXX)source='leveldb/db/version_edit.cc' object='leveldb/db/libleveldb_a-version_edit.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-version_edit.o `test -f 'leveldb/db/version_edit.cc' || echo '$(srcdir)/'`leveldb/db/version_edit.cc
+
+leveldb/db/libleveldb_a-version_edit.obj: leveldb/db/version_edit.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-version_edit.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Tpo -c -o leveldb/db/libleveldb_a-version_edit.obj `if test -f 'leveldb/db/version_edit.cc'; then $(CYGPATH_W) 'leveldb/db/version_edit.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/version_edit.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Po
+#	$(AM_V_CXX)source='leveldb/db/version_edit.cc' object='leveldb/db/libleveldb_a-version_edit.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-version_edit.obj `if test -f 'leveldb/db/version_edit.cc'; then $(CYGPATH_W) 'leveldb/db/version_edit.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/version_edit.cc'; fi`
+
+leveldb/db/libleveldb_a-version_set.o: leveldb/db/version_set.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-version_set.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Tpo -c -o leveldb/db/libleveldb_a-version_set.o `test -f 'leveldb/db/version_set.cc' || echo '$(srcdir)/'`leveldb/db/version_set.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Po
+#	$(AM_V_CXX)source='leveldb/db/version_set.cc' object='leveldb/db/libleveldb_a-version_set.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-version_set.o `test -f 'leveldb/db/version_set.cc' || echo '$(srcdir)/'`leveldb/db/version_set.cc
+
+leveldb/db/libleveldb_a-version_set.obj: leveldb/db/version_set.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-version_set.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Tpo -c -o leveldb/db/libleveldb_a-version_set.obj `if test -f 'leveldb/db/version_set.cc'; then $(CYGPATH_W) 'leveldb/db/version_set.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/version_set.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Po
+#	$(AM_V_CXX)source='leveldb/db/version_set.cc' object='leveldb/db/libleveldb_a-version_set.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-version_set.obj `if test -f 'leveldb/db/version_set.cc'; then $(CYGPATH_W) 'leveldb/db/version_set.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/version_set.cc'; fi`
+
+leveldb/db/libleveldb_a-write_batch.o: leveldb/db/write_batch.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-write_batch.o -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Tpo -c -o leveldb/db/libleveldb_a-write_batch.o `test -f 'leveldb/db/write_batch.cc' || echo '$(srcdir)/'`leveldb/db/write_batch.cc
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Po
+#	$(AM_V_CXX)source='leveldb/db/write_batch.cc' object='leveldb/db/libleveldb_a-write_batch.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-write_batch.o `test -f 'leveldb/db/write_batch.cc' || echo '$(srcdir)/'`leveldb/db/write_batch.cc
+
+leveldb/db/libleveldb_a-write_batch.obj: leveldb/db/write_batch.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/db/libleveldb_a-write_batch.obj -MD -MP -MF leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Tpo -c -o leveldb/db/libleveldb_a-write_batch.obj `if test -f 'leveldb/db/write_batch.cc'; then $(CYGPATH_W) 'leveldb/db/write_batch.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/write_batch.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Tpo leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Po
+#	$(AM_V_CXX)source='leveldb/db/write_batch.cc' object='leveldb/db/libleveldb_a-write_batch.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/db/libleveldb_a-write_batch.obj `if test -f 'leveldb/db/write_batch.cc'; then $(CYGPATH_W) 'leveldb/db/write_batch.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/db/write_batch.cc'; fi`
+
+leveldb/table/libleveldb_a-block_builder.o: leveldb/table/block_builder.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-block_builder.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Tpo -c -o leveldb/table/libleveldb_a-block_builder.o `test -f 'leveldb/table/block_builder.cc' || echo '$(srcdir)/'`leveldb/table/block_builder.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Po
+#	$(AM_V_CXX)source='leveldb/table/block_builder.cc' object='leveldb/table/libleveldb_a-block_builder.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-block_builder.o `test -f 'leveldb/table/block_builder.cc' || echo '$(srcdir)/'`leveldb/table/block_builder.cc
+
+leveldb/table/libleveldb_a-block_builder.obj: leveldb/table/block_builder.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-block_builder.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Tpo -c -o leveldb/table/libleveldb_a-block_builder.obj `if test -f 'leveldb/table/block_builder.cc'; then $(CYGPATH_W) 'leveldb/table/block_builder.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/block_builder.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Po
+#	$(AM_V_CXX)source='leveldb/table/block_builder.cc' object='leveldb/table/libleveldb_a-block_builder.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-block_builder.obj `if test -f 'leveldb/table/block_builder.cc'; then $(CYGPATH_W) 'leveldb/table/block_builder.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/block_builder.cc'; fi`
+
+leveldb/table/libleveldb_a-block.o: leveldb/table/block.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-block.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-block.Tpo -c -o leveldb/table/libleveldb_a-block.o `test -f 'leveldb/table/block.cc' || echo '$(srcdir)/'`leveldb/table/block.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-block.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-block.Po
+#	$(AM_V_CXX)source='leveldb/table/block.cc' object='leveldb/table/libleveldb_a-block.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-block.o `test -f 'leveldb/table/block.cc' || echo '$(srcdir)/'`leveldb/table/block.cc
+
+leveldb/table/libleveldb_a-block.obj: leveldb/table/block.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-block.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-block.Tpo -c -o leveldb/table/libleveldb_a-block.obj `if test -f 'leveldb/table/block.cc'; then $(CYGPATH_W) 'leveldb/table/block.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/block.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-block.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-block.Po
+#	$(AM_V_CXX)source='leveldb/table/block.cc' object='leveldb/table/libleveldb_a-block.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-block.obj `if test -f 'leveldb/table/block.cc'; then $(CYGPATH_W) 'leveldb/table/block.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/block.cc'; fi`
+
+leveldb/table/libleveldb_a-filter_block.o: leveldb/table/filter_block.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-filter_block.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Tpo -c -o leveldb/table/libleveldb_a-filter_block.o `test -f 'leveldb/table/filter_block.cc' || echo '$(srcdir)/'`leveldb/table/filter_block.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Po
+#	$(AM_V_CXX)source='leveldb/table/filter_block.cc' object='leveldb/table/libleveldb_a-filter_block.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-filter_block.o `test -f 'leveldb/table/filter_block.cc' || echo '$(srcdir)/'`leveldb/table/filter_block.cc
+
+leveldb/table/libleveldb_a-filter_block.obj: leveldb/table/filter_block.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-filter_block.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Tpo -c -o leveldb/table/libleveldb_a-filter_block.obj `if test -f 'leveldb/table/filter_block.cc'; then $(CYGPATH_W) 'leveldb/table/filter_block.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/filter_block.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Po
+#	$(AM_V_CXX)source='leveldb/table/filter_block.cc' object='leveldb/table/libleveldb_a-filter_block.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-filter_block.obj `if test -f 'leveldb/table/filter_block.cc'; then $(CYGPATH_W) 'leveldb/table/filter_block.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/filter_block.cc'; fi`
+
+leveldb/table/libleveldb_a-format.o: leveldb/table/format.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-format.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-format.Tpo -c -o leveldb/table/libleveldb_a-format.o `test -f 'leveldb/table/format.cc' || echo '$(srcdir)/'`leveldb/table/format.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-format.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-format.Po
+#	$(AM_V_CXX)source='leveldb/table/format.cc' object='leveldb/table/libleveldb_a-format.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-format.o `test -f 'leveldb/table/format.cc' || echo '$(srcdir)/'`leveldb/table/format.cc
+
+leveldb/table/libleveldb_a-format.obj: leveldb/table/format.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-format.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-format.Tpo -c -o leveldb/table/libleveldb_a-format.obj `if test -f 'leveldb/table/format.cc'; then $(CYGPATH_W) 'leveldb/table/format.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/format.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-format.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-format.Po
+#	$(AM_V_CXX)source='leveldb/table/format.cc' object='leveldb/table/libleveldb_a-format.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-format.obj `if test -f 'leveldb/table/format.cc'; then $(CYGPATH_W) 'leveldb/table/format.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/format.cc'; fi`
+
+leveldb/table/libleveldb_a-iterator.o: leveldb/table/iterator.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-iterator.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Tpo -c -o leveldb/table/libleveldb_a-iterator.o `test -f 'leveldb/table/iterator.cc' || echo '$(srcdir)/'`leveldb/table/iterator.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Po
+#	$(AM_V_CXX)source='leveldb/table/iterator.cc' object='leveldb/table/libleveldb_a-iterator.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-iterator.o `test -f 'leveldb/table/iterator.cc' || echo '$(srcdir)/'`leveldb/table/iterator.cc
+
+leveldb/table/libleveldb_a-iterator.obj: leveldb/table/iterator.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-iterator.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Tpo -c -o leveldb/table/libleveldb_a-iterator.obj `if test -f 'leveldb/table/iterator.cc'; then $(CYGPATH_W) 'leveldb/table/iterator.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/iterator.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Po
+#	$(AM_V_CXX)source='leveldb/table/iterator.cc' object='leveldb/table/libleveldb_a-iterator.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-iterator.obj `if test -f 'leveldb/table/iterator.cc'; then $(CYGPATH_W) 'leveldb/table/iterator.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/iterator.cc'; fi`
+
+leveldb/table/libleveldb_a-merger.o: leveldb/table/merger.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-merger.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-merger.Tpo -c -o leveldb/table/libleveldb_a-merger.o `test -f 'leveldb/table/merger.cc' || echo '$(srcdir)/'`leveldb/table/merger.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-merger.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-merger.Po
+#	$(AM_V_CXX)source='leveldb/table/merger.cc' object='leveldb/table/libleveldb_a-merger.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-merger.o `test -f 'leveldb/table/merger.cc' || echo '$(srcdir)/'`leveldb/table/merger.cc
+
+leveldb/table/libleveldb_a-merger.obj: leveldb/table/merger.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-merger.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-merger.Tpo -c -o leveldb/table/libleveldb_a-merger.obj `if test -f 'leveldb/table/merger.cc'; then $(CYGPATH_W) 'leveldb/table/merger.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/merger.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-merger.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-merger.Po
+#	$(AM_V_CXX)source='leveldb/table/merger.cc' object='leveldb/table/libleveldb_a-merger.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-merger.obj `if test -f 'leveldb/table/merger.cc'; then $(CYGPATH_W) 'leveldb/table/merger.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/merger.cc'; fi`
+
+leveldb/table/libleveldb_a-table_builder.o: leveldb/table/table_builder.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-table_builder.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Tpo -c -o leveldb/table/libleveldb_a-table_builder.o `test -f 'leveldb/table/table_builder.cc' || echo '$(srcdir)/'`leveldb/table/table_builder.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Po
+#	$(AM_V_CXX)source='leveldb/table/table_builder.cc' object='leveldb/table/libleveldb_a-table_builder.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-table_builder.o `test -f 'leveldb/table/table_builder.cc' || echo '$(srcdir)/'`leveldb/table/table_builder.cc
+
+leveldb/table/libleveldb_a-table_builder.obj: leveldb/table/table_builder.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-table_builder.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Tpo -c -o leveldb/table/libleveldb_a-table_builder.obj `if test -f 'leveldb/table/table_builder.cc'; then $(CYGPATH_W) 'leveldb/table/table_builder.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/table_builder.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Po
+#	$(AM_V_CXX)source='leveldb/table/table_builder.cc' object='leveldb/table/libleveldb_a-table_builder.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-table_builder.obj `if test -f 'leveldb/table/table_builder.cc'; then $(CYGPATH_W) 'leveldb/table/table_builder.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/table_builder.cc'; fi`
+
+leveldb/table/libleveldb_a-table.o: leveldb/table/table.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-table.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-table.Tpo -c -o leveldb/table/libleveldb_a-table.o `test -f 'leveldb/table/table.cc' || echo '$(srcdir)/'`leveldb/table/table.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-table.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-table.Po
+#	$(AM_V_CXX)source='leveldb/table/table.cc' object='leveldb/table/libleveldb_a-table.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-table.o `test -f 'leveldb/table/table.cc' || echo '$(srcdir)/'`leveldb/table/table.cc
+
+leveldb/table/libleveldb_a-table.obj: leveldb/table/table.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-table.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-table.Tpo -c -o leveldb/table/libleveldb_a-table.obj `if test -f 'leveldb/table/table.cc'; then $(CYGPATH_W) 'leveldb/table/table.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/table.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-table.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-table.Po
+#	$(AM_V_CXX)source='leveldb/table/table.cc' object='leveldb/table/libleveldb_a-table.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-table.obj `if test -f 'leveldb/table/table.cc'; then $(CYGPATH_W) 'leveldb/table/table.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/table.cc'; fi`
+
+leveldb/table/libleveldb_a-two_level_iterator.o: leveldb/table/two_level_iterator.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-two_level_iterator.o -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Tpo -c -o leveldb/table/libleveldb_a-two_level_iterator.o `test -f 'leveldb/table/two_level_iterator.cc' || echo '$(srcdir)/'`leveldb/table/two_level_iterator.cc
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Po
+#	$(AM_V_CXX)source='leveldb/table/two_level_iterator.cc' object='leveldb/table/libleveldb_a-two_level_iterator.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-two_level_iterator.o `test -f 'leveldb/table/two_level_iterator.cc' || echo '$(srcdir)/'`leveldb/table/two_level_iterator.cc
+
+leveldb/table/libleveldb_a-two_level_iterator.obj: leveldb/table/two_level_iterator.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/table/libleveldb_a-two_level_iterator.obj -MD -MP -MF leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Tpo -c -o leveldb/table/libleveldb_a-two_level_iterator.obj `if test -f 'leveldb/table/two_level_iterator.cc'; then $(CYGPATH_W) 'leveldb/table/two_level_iterator.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/two_level_iterator.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Tpo leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Po
+#	$(AM_V_CXX)source='leveldb/table/two_level_iterator.cc' object='leveldb/table/libleveldb_a-two_level_iterator.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/table/libleveldb_a-two_level_iterator.obj `if test -f 'leveldb/table/two_level_iterator.cc'; then $(CYGPATH_W) 'leveldb/table/two_level_iterator.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/table/two_level_iterator.cc'; fi`
+
+leveldb/util/libleveldb_a-arena.o: leveldb/util/arena.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-arena.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-arena.Tpo -c -o leveldb/util/libleveldb_a-arena.o `test -f 'leveldb/util/arena.cc' || echo '$(srcdir)/'`leveldb/util/arena.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-arena.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-arena.Po
+#	$(AM_V_CXX)source='leveldb/util/arena.cc' object='leveldb/util/libleveldb_a-arena.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-arena.o `test -f 'leveldb/util/arena.cc' || echo '$(srcdir)/'`leveldb/util/arena.cc
+
+leveldb/util/libleveldb_a-arena.obj: leveldb/util/arena.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-arena.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-arena.Tpo -c -o leveldb/util/libleveldb_a-arena.obj `if test -f 'leveldb/util/arena.cc'; then $(CYGPATH_W) 'leveldb/util/arena.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/arena.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-arena.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-arena.Po
+#	$(AM_V_CXX)source='leveldb/util/arena.cc' object='leveldb/util/libleveldb_a-arena.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-arena.obj `if test -f 'leveldb/util/arena.cc'; then $(CYGPATH_W) 'leveldb/util/arena.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/arena.cc'; fi`
+
+leveldb/util/libleveldb_a-bloom.o: leveldb/util/bloom.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-bloom.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Tpo -c -o leveldb/util/libleveldb_a-bloom.o `test -f 'leveldb/util/bloom.cc' || echo '$(srcdir)/'`leveldb/util/bloom.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Po
+#	$(AM_V_CXX)source='leveldb/util/bloom.cc' object='leveldb/util/libleveldb_a-bloom.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-bloom.o `test -f 'leveldb/util/bloom.cc' || echo '$(srcdir)/'`leveldb/util/bloom.cc
+
+leveldb/util/libleveldb_a-bloom.obj: leveldb/util/bloom.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-bloom.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Tpo -c -o leveldb/util/libleveldb_a-bloom.obj `if test -f 'leveldb/util/bloom.cc'; then $(CYGPATH_W) 'leveldb/util/bloom.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/bloom.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Po
+#	$(AM_V_CXX)source='leveldb/util/bloom.cc' object='leveldb/util/libleveldb_a-bloom.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-bloom.obj `if test -f 'leveldb/util/bloom.cc'; then $(CYGPATH_W) 'leveldb/util/bloom.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/bloom.cc'; fi`
+
+leveldb/util/libleveldb_a-cache.o: leveldb/util/cache.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-cache.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-cache.Tpo -c -o leveldb/util/libleveldb_a-cache.o `test -f 'leveldb/util/cache.cc' || echo '$(srcdir)/'`leveldb/util/cache.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-cache.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-cache.Po
+#	$(AM_V_CXX)source='leveldb/util/cache.cc' object='leveldb/util/libleveldb_a-cache.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-cache.o `test -f 'leveldb/util/cache.cc' || echo '$(srcdir)/'`leveldb/util/cache.cc
+
+leveldb/util/libleveldb_a-cache.obj: leveldb/util/cache.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-cache.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-cache.Tpo -c -o leveldb/util/libleveldb_a-cache.obj `if test -f 'leveldb/util/cache.cc'; then $(CYGPATH_W) 'leveldb/util/cache.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/cache.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-cache.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-cache.Po
+#	$(AM_V_CXX)source='leveldb/util/cache.cc' object='leveldb/util/libleveldb_a-cache.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-cache.obj `if test -f 'leveldb/util/cache.cc'; then $(CYGPATH_W) 'leveldb/util/cache.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/cache.cc'; fi`
+
+leveldb/util/libleveldb_a-coding.o: leveldb/util/coding.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-coding.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-coding.Tpo -c -o leveldb/util/libleveldb_a-coding.o `test -f 'leveldb/util/coding.cc' || echo '$(srcdir)/'`leveldb/util/coding.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-coding.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-coding.Po
+#	$(AM_V_CXX)source='leveldb/util/coding.cc' object='leveldb/util/libleveldb_a-coding.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-coding.o `test -f 'leveldb/util/coding.cc' || echo '$(srcdir)/'`leveldb/util/coding.cc
+
+leveldb/util/libleveldb_a-coding.obj: leveldb/util/coding.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-coding.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-coding.Tpo -c -o leveldb/util/libleveldb_a-coding.obj `if test -f 'leveldb/util/coding.cc'; then $(CYGPATH_W) 'leveldb/util/coding.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/coding.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-coding.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-coding.Po
+#	$(AM_V_CXX)source='leveldb/util/coding.cc' object='leveldb/util/libleveldb_a-coding.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-coding.obj `if test -f 'leveldb/util/coding.cc'; then $(CYGPATH_W) 'leveldb/util/coding.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/coding.cc'; fi`
+
+leveldb/util/libleveldb_a-comparator.o: leveldb/util/comparator.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-comparator.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Tpo -c -o leveldb/util/libleveldb_a-comparator.o `test -f 'leveldb/util/comparator.cc' || echo '$(srcdir)/'`leveldb/util/comparator.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Po
+#	$(AM_V_CXX)source='leveldb/util/comparator.cc' object='leveldb/util/libleveldb_a-comparator.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-comparator.o `test -f 'leveldb/util/comparator.cc' || echo '$(srcdir)/'`leveldb/util/comparator.cc
+
+leveldb/util/libleveldb_a-comparator.obj: leveldb/util/comparator.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-comparator.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Tpo -c -o leveldb/util/libleveldb_a-comparator.obj `if test -f 'leveldb/util/comparator.cc'; then $(CYGPATH_W) 'leveldb/util/comparator.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/comparator.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Po
+#	$(AM_V_CXX)source='leveldb/util/comparator.cc' object='leveldb/util/libleveldb_a-comparator.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-comparator.obj `if test -f 'leveldb/util/comparator.cc'; then $(CYGPATH_W) 'leveldb/util/comparator.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/comparator.cc'; fi`
+
+leveldb/util/libleveldb_a-crc32c.o: leveldb/util/crc32c.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-crc32c.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Tpo -c -o leveldb/util/libleveldb_a-crc32c.o `test -f 'leveldb/util/crc32c.cc' || echo '$(srcdir)/'`leveldb/util/crc32c.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Po
+#	$(AM_V_CXX)source='leveldb/util/crc32c.cc' object='leveldb/util/libleveldb_a-crc32c.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-crc32c.o `test -f 'leveldb/util/crc32c.cc' || echo '$(srcdir)/'`leveldb/util/crc32c.cc
+
+leveldb/util/libleveldb_a-crc32c.obj: leveldb/util/crc32c.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-crc32c.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Tpo -c -o leveldb/util/libleveldb_a-crc32c.obj `if test -f 'leveldb/util/crc32c.cc'; then $(CYGPATH_W) 'leveldb/util/crc32c.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/crc32c.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Po
+#	$(AM_V_CXX)source='leveldb/util/crc32c.cc' object='leveldb/util/libleveldb_a-crc32c.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-crc32c.obj `if test -f 'leveldb/util/crc32c.cc'; then $(CYGPATH_W) 'leveldb/util/crc32c.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/crc32c.cc'; fi`
+
+leveldb/util/libleveldb_a-env.o: leveldb/util/env.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-env.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-env.Tpo -c -o leveldb/util/libleveldb_a-env.o `test -f 'leveldb/util/env.cc' || echo '$(srcdir)/'`leveldb/util/env.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-env.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-env.Po
+#	$(AM_V_CXX)source='leveldb/util/env.cc' object='leveldb/util/libleveldb_a-env.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-env.o `test -f 'leveldb/util/env.cc' || echo '$(srcdir)/'`leveldb/util/env.cc
+
+leveldb/util/libleveldb_a-env.obj: leveldb/util/env.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-env.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-env.Tpo -c -o leveldb/util/libleveldb_a-env.obj `if test -f 'leveldb/util/env.cc'; then $(CYGPATH_W) 'leveldb/util/env.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/env.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-env.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-env.Po
+#	$(AM_V_CXX)source='leveldb/util/env.cc' object='leveldb/util/libleveldb_a-env.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-env.obj `if test -f 'leveldb/util/env.cc'; then $(CYGPATH_W) 'leveldb/util/env.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/env.cc'; fi`
+
+leveldb/util/libleveldb_a-env_posix.o: leveldb/util/env_posix.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-env_posix.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Tpo -c -o leveldb/util/libleveldb_a-env_posix.o `test -f 'leveldb/util/env_posix.cc' || echo '$(srcdir)/'`leveldb/util/env_posix.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Po
+#	$(AM_V_CXX)source='leveldb/util/env_posix.cc' object='leveldb/util/libleveldb_a-env_posix.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-env_posix.o `test -f 'leveldb/util/env_posix.cc' || echo '$(srcdir)/'`leveldb/util/env_posix.cc
+
+leveldb/util/libleveldb_a-env_posix.obj: leveldb/util/env_posix.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-env_posix.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Tpo -c -o leveldb/util/libleveldb_a-env_posix.obj `if test -f 'leveldb/util/env_posix.cc'; then $(CYGPATH_W) 'leveldb/util/env_posix.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/env_posix.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Po
+#	$(AM_V_CXX)source='leveldb/util/env_posix.cc' object='leveldb/util/libleveldb_a-env_posix.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-env_posix.obj `if test -f 'leveldb/util/env_posix.cc'; then $(CYGPATH_W) 'leveldb/util/env_posix.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/env_posix.cc'; fi`
+
+leveldb/util/libleveldb_a-filter_policy.o: leveldb/util/filter_policy.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-filter_policy.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Tpo -c -o leveldb/util/libleveldb_a-filter_policy.o `test -f 'leveldb/util/filter_policy.cc' || echo '$(srcdir)/'`leveldb/util/filter_policy.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Po
+#	$(AM_V_CXX)source='leveldb/util/filter_policy.cc' object='leveldb/util/libleveldb_a-filter_policy.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-filter_policy.o `test -f 'leveldb/util/filter_policy.cc' || echo '$(srcdir)/'`leveldb/util/filter_policy.cc
+
+leveldb/util/libleveldb_a-filter_policy.obj: leveldb/util/filter_policy.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-filter_policy.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Tpo -c -o leveldb/util/libleveldb_a-filter_policy.obj `if test -f 'leveldb/util/filter_policy.cc'; then $(CYGPATH_W) 'leveldb/util/filter_policy.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/filter_policy.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Po
+#	$(AM_V_CXX)source='leveldb/util/filter_policy.cc' object='leveldb/util/libleveldb_a-filter_policy.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-filter_policy.obj `if test -f 'leveldb/util/filter_policy.cc'; then $(CYGPATH_W) 'leveldb/util/filter_policy.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/filter_policy.cc'; fi`
+
+leveldb/util/libleveldb_a-hash.o: leveldb/util/hash.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-hash.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-hash.Tpo -c -o leveldb/util/libleveldb_a-hash.o `test -f 'leveldb/util/hash.cc' || echo '$(srcdir)/'`leveldb/util/hash.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-hash.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-hash.Po
+#	$(AM_V_CXX)source='leveldb/util/hash.cc' object='leveldb/util/libleveldb_a-hash.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-hash.o `test -f 'leveldb/util/hash.cc' || echo '$(srcdir)/'`leveldb/util/hash.cc
+
+leveldb/util/libleveldb_a-hash.obj: leveldb/util/hash.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-hash.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-hash.Tpo -c -o leveldb/util/libleveldb_a-hash.obj `if test -f 'leveldb/util/hash.cc'; then $(CYGPATH_W) 'leveldb/util/hash.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/hash.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-hash.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-hash.Po
+#	$(AM_V_CXX)source='leveldb/util/hash.cc' object='leveldb/util/libleveldb_a-hash.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-hash.obj `if test -f 'leveldb/util/hash.cc'; then $(CYGPATH_W) 'leveldb/util/hash.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/hash.cc'; fi`
+
+leveldb/util/libleveldb_a-histogram.o: leveldb/util/histogram.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-histogram.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Tpo -c -o leveldb/util/libleveldb_a-histogram.o `test -f 'leveldb/util/histogram.cc' || echo '$(srcdir)/'`leveldb/util/histogram.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Po
+#	$(AM_V_CXX)source='leveldb/util/histogram.cc' object='leveldb/util/libleveldb_a-histogram.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-histogram.o `test -f 'leveldb/util/histogram.cc' || echo '$(srcdir)/'`leveldb/util/histogram.cc
+
+leveldb/util/libleveldb_a-histogram.obj: leveldb/util/histogram.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-histogram.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Tpo -c -o leveldb/util/libleveldb_a-histogram.obj `if test -f 'leveldb/util/histogram.cc'; then $(CYGPATH_W) 'leveldb/util/histogram.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/histogram.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Po
+#	$(AM_V_CXX)source='leveldb/util/histogram.cc' object='leveldb/util/libleveldb_a-histogram.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-histogram.obj `if test -f 'leveldb/util/histogram.cc'; then $(CYGPATH_W) 'leveldb/util/histogram.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/histogram.cc'; fi`
+
+leveldb/util/libleveldb_a-logging.o: leveldb/util/logging.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-logging.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-logging.Tpo -c -o leveldb/util/libleveldb_a-logging.o `test -f 'leveldb/util/logging.cc' || echo '$(srcdir)/'`leveldb/util/logging.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-logging.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-logging.Po
+#	$(AM_V_CXX)source='leveldb/util/logging.cc' object='leveldb/util/libleveldb_a-logging.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-logging.o `test -f 'leveldb/util/logging.cc' || echo '$(srcdir)/'`leveldb/util/logging.cc
+
+leveldb/util/libleveldb_a-logging.obj: leveldb/util/logging.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-logging.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-logging.Tpo -c -o leveldb/util/libleveldb_a-logging.obj `if test -f 'leveldb/util/logging.cc'; then $(CYGPATH_W) 'leveldb/util/logging.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/logging.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-logging.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-logging.Po
+#	$(AM_V_CXX)source='leveldb/util/logging.cc' object='leveldb/util/libleveldb_a-logging.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-logging.obj `if test -f 'leveldb/util/logging.cc'; then $(CYGPATH_W) 'leveldb/util/logging.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/logging.cc'; fi`
+
+leveldb/util/libleveldb_a-options.o: leveldb/util/options.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-options.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-options.Tpo -c -o leveldb/util/libleveldb_a-options.o `test -f 'leveldb/util/options.cc' || echo '$(srcdir)/'`leveldb/util/options.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-options.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-options.Po
+#	$(AM_V_CXX)source='leveldb/util/options.cc' object='leveldb/util/libleveldb_a-options.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-options.o `test -f 'leveldb/util/options.cc' || echo '$(srcdir)/'`leveldb/util/options.cc
+
+leveldb/util/libleveldb_a-options.obj: leveldb/util/options.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-options.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-options.Tpo -c -o leveldb/util/libleveldb_a-options.obj `if test -f 'leveldb/util/options.cc'; then $(CYGPATH_W) 'leveldb/util/options.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/options.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-options.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-options.Po
+#	$(AM_V_CXX)source='leveldb/util/options.cc' object='leveldb/util/libleveldb_a-options.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-options.obj `if test -f 'leveldb/util/options.cc'; then $(CYGPATH_W) 'leveldb/util/options.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/options.cc'; fi`
+
+leveldb/util/libleveldb_a-status.o: leveldb/util/status.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-status.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-status.Tpo -c -o leveldb/util/libleveldb_a-status.o `test -f 'leveldb/util/status.cc' || echo '$(srcdir)/'`leveldb/util/status.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-status.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-status.Po
+#	$(AM_V_CXX)source='leveldb/util/status.cc' object='leveldb/util/libleveldb_a-status.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-status.o `test -f 'leveldb/util/status.cc' || echo '$(srcdir)/'`leveldb/util/status.cc
+
+leveldb/util/libleveldb_a-status.obj: leveldb/util/status.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-status.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-status.Tpo -c -o leveldb/util/libleveldb_a-status.obj `if test -f 'leveldb/util/status.cc'; then $(CYGPATH_W) 'leveldb/util/status.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/status.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-status.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-status.Po
+#	$(AM_V_CXX)source='leveldb/util/status.cc' object='leveldb/util/libleveldb_a-status.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-status.obj `if test -f 'leveldb/util/status.cc'; then $(CYGPATH_W) 'leveldb/util/status.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/status.cc'; fi`
+
+leveldb/util/libleveldb_a-env_win.o: leveldb/util/env_win.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-env_win.o -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Tpo -c -o leveldb/util/libleveldb_a-env_win.o `test -f 'leveldb/util/env_win.cc' || echo '$(srcdir)/'`leveldb/util/env_win.cc
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Po
+#	$(AM_V_CXX)source='leveldb/util/env_win.cc' object='leveldb/util/libleveldb_a-env_win.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-env_win.o `test -f 'leveldb/util/env_win.cc' || echo '$(srcdir)/'`leveldb/util/env_win.cc
+
+leveldb/util/libleveldb_a-env_win.obj: leveldb/util/env_win.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/util/libleveldb_a-env_win.obj -MD -MP -MF leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Tpo -c -o leveldb/util/libleveldb_a-env_win.obj `if test -f 'leveldb/util/env_win.cc'; then $(CYGPATH_W) 'leveldb/util/env_win.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/env_win.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Tpo leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Po
+#	$(AM_V_CXX)source='leveldb/util/env_win.cc' object='leveldb/util/libleveldb_a-env_win.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/util/libleveldb_a-env_win.obj `if test -f 'leveldb/util/env_win.cc'; then $(CYGPATH_W) 'leveldb/util/env_win.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/util/env_win.cc'; fi`
+
+leveldb/port/libleveldb_a-port_win.o: leveldb/port/port_win.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/port/libleveldb_a-port_win.o -MD -MP -MF leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Tpo -c -o leveldb/port/libleveldb_a-port_win.o `test -f 'leveldb/port/port_win.cc' || echo '$(srcdir)/'`leveldb/port/port_win.cc
+	$(AM_V_at)$(am__mv) leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Tpo leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Po
+#	$(AM_V_CXX)source='leveldb/port/port_win.cc' object='leveldb/port/libleveldb_a-port_win.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/port/libleveldb_a-port_win.o `test -f 'leveldb/port/port_win.cc' || echo '$(srcdir)/'`leveldb/port/port_win.cc
+
+leveldb/port/libleveldb_a-port_win.obj: leveldb/port/port_win.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/port/libleveldb_a-port_win.obj -MD -MP -MF leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Tpo -c -o leveldb/port/libleveldb_a-port_win.obj `if test -f 'leveldb/port/port_win.cc'; then $(CYGPATH_W) 'leveldb/port/port_win.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/port/port_win.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Tpo leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Po
+#	$(AM_V_CXX)source='leveldb/port/port_win.cc' object='leveldb/port/libleveldb_a-port_win.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/port/libleveldb_a-port_win.obj `if test -f 'leveldb/port/port_win.cc'; then $(CYGPATH_W) 'leveldb/port/port_win.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/port/port_win.cc'; fi`
+
+leveldb/port/libleveldb_a-port_posix.o: leveldb/port/port_posix.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/port/libleveldb_a-port_posix.o -MD -MP -MF leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Tpo -c -o leveldb/port/libleveldb_a-port_posix.o `test -f 'leveldb/port/port_posix.cc' || echo '$(srcdir)/'`leveldb/port/port_posix.cc
+	$(AM_V_at)$(am__mv) leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Tpo leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Po
+#	$(AM_V_CXX)source='leveldb/port/port_posix.cc' object='leveldb/port/libleveldb_a-port_posix.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/port/libleveldb_a-port_posix.o `test -f 'leveldb/port/port_posix.cc' || echo '$(srcdir)/'`leveldb/port/port_posix.cc
+
+leveldb/port/libleveldb_a-port_posix.obj: leveldb/port/port_posix.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/port/libleveldb_a-port_posix.obj -MD -MP -MF leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Tpo -c -o leveldb/port/libleveldb_a-port_posix.obj `if test -f 'leveldb/port/port_posix.cc'; then $(CYGPATH_W) 'leveldb/port/port_posix.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/port/port_posix.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Tpo leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Po
+#	$(AM_V_CXX)source='leveldb/port/port_posix.cc' object='leveldb/port/libleveldb_a-port_posix.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/port/libleveldb_a-port_posix.obj `if test -f 'leveldb/port/port_posix.cc'; then $(CYGPATH_W) 'leveldb/port/port_posix.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/port/port_posix.cc'; fi`
+
+leveldb/port/libleveldb_sse42_a-port_posix_sse.o: leveldb/port/port_posix_sse.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_sse42_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_sse42_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/port/libleveldb_sse42_a-port_posix_sse.o -MD -MP -MF leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Tpo -c -o leveldb/port/libleveldb_sse42_a-port_posix_sse.o `test -f 'leveldb/port/port_posix_sse.cc' || echo '$(srcdir)/'`leveldb/port/port_posix_sse.cc
+	$(AM_V_at)$(am__mv) leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Tpo leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Po
+#	$(AM_V_CXX)source='leveldb/port/port_posix_sse.cc' object='leveldb/port/libleveldb_sse42_a-port_posix_sse.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_sse42_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_sse42_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/port/libleveldb_sse42_a-port_posix_sse.o `test -f 'leveldb/port/port_posix_sse.cc' || echo '$(srcdir)/'`leveldb/port/port_posix_sse.cc
+
+leveldb/port/libleveldb_sse42_a-port_posix_sse.obj: leveldb/port/port_posix_sse.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_sse42_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_sse42_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/port/libleveldb_sse42_a-port_posix_sse.obj -MD -MP -MF leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Tpo -c -o leveldb/port/libleveldb_sse42_a-port_posix_sse.obj `if test -f 'leveldb/port/port_posix_sse.cc'; then $(CYGPATH_W) 'leveldb/port/port_posix_sse.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/port/port_posix_sse.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Tpo leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Po
+#	$(AM_V_CXX)source='leveldb/port/port_posix_sse.cc' object='leveldb/port/libleveldb_sse42_a-port_posix_sse.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libleveldb_sse42_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libleveldb_sse42_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/port/libleveldb_sse42_a-port_posix_sse.obj `if test -f 'leveldb/port/port_posix_sse.cc'; then $(CYGPATH_W) 'leveldb/port/port_posix_sse.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/port/port_posix_sse.cc'; fi`
+
+leveldb/helpers/memenv/libmemenv_a-memenv.o: leveldb/helpers/memenv/memenv.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libmemenv_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libmemenv_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/helpers/memenv/libmemenv_a-memenv.o -MD -MP -MF leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Tpo -c -o leveldb/helpers/memenv/libmemenv_a-memenv.o `test -f 'leveldb/helpers/memenv/memenv.cc' || echo '$(srcdir)/'`leveldb/helpers/memenv/memenv.cc
+	$(AM_V_at)$(am__mv) leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Tpo leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Po
+#	$(AM_V_CXX)source='leveldb/helpers/memenv/memenv.cc' object='leveldb/helpers/memenv/libmemenv_a-memenv.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libmemenv_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libmemenv_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/helpers/memenv/libmemenv_a-memenv.o `test -f 'leveldb/helpers/memenv/memenv.cc' || echo '$(srcdir)/'`leveldb/helpers/memenv/memenv.cc
+
+leveldb/helpers/memenv/libmemenv_a-memenv.obj: leveldb/helpers/memenv/memenv.cc
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libmemenv_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libmemenv_a_CXXFLAGS) $(CXXFLAGS) -MT leveldb/helpers/memenv/libmemenv_a-memenv.obj -MD -MP -MF leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Tpo -c -o leveldb/helpers/memenv/libmemenv_a-memenv.obj `if test -f 'leveldb/helpers/memenv/memenv.cc'; then $(CYGPATH_W) 'leveldb/helpers/memenv/memenv.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/helpers/memenv/memenv.cc'; fi`
+	$(AM_V_at)$(am__mv) leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Tpo leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Po
+#	$(AM_V_CXX)source='leveldb/helpers/memenv/memenv.cc' object='leveldb/helpers/memenv/libmemenv_a-memenv.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(leveldb_libmemenv_a_CPPFLAGS) $(CPPFLAGS) $(leveldb_libmemenv_a_CXXFLAGS) $(CXXFLAGS) -c -o leveldb/helpers/memenv/libmemenv_a-memenv.obj `if test -f 'leveldb/helpers/memenv/memenv.cc'; then $(CYGPATH_W) 'leveldb/helpers/memenv/memenv.cc'; else $(CYGPATH_W) '$(srcdir)/leveldb/helpers/memenv/memenv.cc'; fi`
 
 rpc/libbitcoin_cli_a-client.o: rpc/client.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_cli_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_cli_a_CXXFLAGS) $(CXXFLAGS) -MT rpc/libbitcoin_cli_a-client.o -MD -MP -MF rpc/$(DEPDIR)/libbitcoin_cli_a-client.Tpo -c -o rpc/libbitcoin_cli_a-client.o `test -f 'rpc/client.cpp' || echo '$(srcdir)/'`rpc/client.cpp
@@ -3541,48 +4819,6 @@ libbitcoin_common_a-transaction_builder.obj: transaction_builder.cpp
 #	$(AM_V_CXX)source='transaction_builder.cpp' object='libbitcoin_common_a-transaction_builder.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_common_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_common_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_common_a-transaction_builder.obj `if test -f 'transaction_builder.cpp'; then $(CYGPATH_W) 'transaction_builder.cpp'; else $(CYGPATH_W) '$(srcdir)/transaction_builder.cpp'; fi`
-
-amqp/libbitcoin_proton_a-amqpabstractnotifier.o: amqp/amqpabstractnotifier.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -MT amqp/libbitcoin_proton_a-amqpabstractnotifier.o -MD -MP -MF amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Tpo -c -o amqp/libbitcoin_proton_a-amqpabstractnotifier.o `test -f 'amqp/amqpabstractnotifier.cpp' || echo '$(srcdir)/'`amqp/amqpabstractnotifier.cpp
-	$(AM_V_at)$(am__mv) amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Tpo amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Po
-#	$(AM_V_CXX)source='amqp/amqpabstractnotifier.cpp' object='amqp/libbitcoin_proton_a-amqpabstractnotifier.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -c -o amqp/libbitcoin_proton_a-amqpabstractnotifier.o `test -f 'amqp/amqpabstractnotifier.cpp' || echo '$(srcdir)/'`amqp/amqpabstractnotifier.cpp
-
-amqp/libbitcoin_proton_a-amqpabstractnotifier.obj: amqp/amqpabstractnotifier.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -MT amqp/libbitcoin_proton_a-amqpabstractnotifier.obj -MD -MP -MF amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Tpo -c -o amqp/libbitcoin_proton_a-amqpabstractnotifier.obj `if test -f 'amqp/amqpabstractnotifier.cpp'; then $(CYGPATH_W) 'amqp/amqpabstractnotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/amqp/amqpabstractnotifier.cpp'; fi`
-	$(AM_V_at)$(am__mv) amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Tpo amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Po
-#	$(AM_V_CXX)source='amqp/amqpabstractnotifier.cpp' object='amqp/libbitcoin_proton_a-amqpabstractnotifier.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -c -o amqp/libbitcoin_proton_a-amqpabstractnotifier.obj `if test -f 'amqp/amqpabstractnotifier.cpp'; then $(CYGPATH_W) 'amqp/amqpabstractnotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/amqp/amqpabstractnotifier.cpp'; fi`
-
-amqp/libbitcoin_proton_a-amqpnotificationinterface.o: amqp/amqpnotificationinterface.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -MT amqp/libbitcoin_proton_a-amqpnotificationinterface.o -MD -MP -MF amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Tpo -c -o amqp/libbitcoin_proton_a-amqpnotificationinterface.o `test -f 'amqp/amqpnotificationinterface.cpp' || echo '$(srcdir)/'`amqp/amqpnotificationinterface.cpp
-	$(AM_V_at)$(am__mv) amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Tpo amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Po
-#	$(AM_V_CXX)source='amqp/amqpnotificationinterface.cpp' object='amqp/libbitcoin_proton_a-amqpnotificationinterface.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -c -o amqp/libbitcoin_proton_a-amqpnotificationinterface.o `test -f 'amqp/amqpnotificationinterface.cpp' || echo '$(srcdir)/'`amqp/amqpnotificationinterface.cpp
-
-amqp/libbitcoin_proton_a-amqpnotificationinterface.obj: amqp/amqpnotificationinterface.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -MT amqp/libbitcoin_proton_a-amqpnotificationinterface.obj -MD -MP -MF amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Tpo -c -o amqp/libbitcoin_proton_a-amqpnotificationinterface.obj `if test -f 'amqp/amqpnotificationinterface.cpp'; then $(CYGPATH_W) 'amqp/amqpnotificationinterface.cpp'; else $(CYGPATH_W) '$(srcdir)/amqp/amqpnotificationinterface.cpp'; fi`
-	$(AM_V_at)$(am__mv) amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Tpo amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Po
-#	$(AM_V_CXX)source='amqp/amqpnotificationinterface.cpp' object='amqp/libbitcoin_proton_a-amqpnotificationinterface.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -c -o amqp/libbitcoin_proton_a-amqpnotificationinterface.obj `if test -f 'amqp/amqpnotificationinterface.cpp'; then $(CYGPATH_W) 'amqp/amqpnotificationinterface.cpp'; else $(CYGPATH_W) '$(srcdir)/amqp/amqpnotificationinterface.cpp'; fi`
-
-amqp/libbitcoin_proton_a-amqppublishnotifier.o: amqp/amqppublishnotifier.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -MT amqp/libbitcoin_proton_a-amqppublishnotifier.o -MD -MP -MF amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Tpo -c -o amqp/libbitcoin_proton_a-amqppublishnotifier.o `test -f 'amqp/amqppublishnotifier.cpp' || echo '$(srcdir)/'`amqp/amqppublishnotifier.cpp
-	$(AM_V_at)$(am__mv) amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Tpo amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Po
-#	$(AM_V_CXX)source='amqp/amqppublishnotifier.cpp' object='amqp/libbitcoin_proton_a-amqppublishnotifier.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -c -o amqp/libbitcoin_proton_a-amqppublishnotifier.o `test -f 'amqp/amqppublishnotifier.cpp' || echo '$(srcdir)/'`amqp/amqppublishnotifier.cpp
-
-amqp/libbitcoin_proton_a-amqppublishnotifier.obj: amqp/amqppublishnotifier.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -MT amqp/libbitcoin_proton_a-amqppublishnotifier.obj -MD -MP -MF amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Tpo -c -o amqp/libbitcoin_proton_a-amqppublishnotifier.obj `if test -f 'amqp/amqppublishnotifier.cpp'; then $(CYGPATH_W) 'amqp/amqppublishnotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/amqp/amqppublishnotifier.cpp'; fi`
-	$(AM_V_at)$(am__mv) amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Tpo amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Po
-#	$(AM_V_CXX)source='amqp/amqppublishnotifier.cpp' object='amqp/libbitcoin_proton_a-amqppublishnotifier.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_proton_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_proton_a_CXXFLAGS) $(CXXFLAGS) -c -o amqp/libbitcoin_proton_a-amqppublishnotifier.obj `if test -f 'amqp/amqppublishnotifier.cpp'; then $(CYGPATH_W) 'amqp/amqppublishnotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/amqp/amqppublishnotifier.cpp'; fi`
 
 libbitcoin_server_a-sendalert.o: sendalert.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-sendalert.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-sendalert.Tpo -c -o libbitcoin_server_a-sendalert.o `test -f 'sendalert.cpp' || echo '$(srcdir)/'`sendalert.cpp
@@ -4158,19 +5394,19 @@ libbitcoin_server_a-validationinterface.obj: validationinterface.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-validationinterface.obj `if test -f 'validationinterface.cpp'; then $(CYGPATH_W) 'validationinterface.cpp'; else $(CYGPATH_W) '$(srcdir)/validationinterface.cpp'; fi`
 
-support/libbitcoin_util_a-pagelocker.o: support/pagelocker.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-pagelocker.o -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo -c -o support/libbitcoin_util_a-pagelocker.o `test -f 'support/pagelocker.cpp' || echo '$(srcdir)/'`support/pagelocker.cpp
-	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
-#	$(AM_V_CXX)source='support/pagelocker.cpp' object='support/libbitcoin_util_a-pagelocker.o' libtool=no \
+support/libbitcoin_util_a-lockedpool.o: support/lockedpool.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-lockedpool.o -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo -c -o support/libbitcoin_util_a-lockedpool.o `test -f 'support/lockedpool.cpp' || echo '$(srcdir)/'`support/lockedpool.cpp
+	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
+#	$(AM_V_CXX)source='support/lockedpool.cpp' object='support/libbitcoin_util_a-lockedpool.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-pagelocker.o `test -f 'support/pagelocker.cpp' || echo '$(srcdir)/'`support/pagelocker.cpp
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-lockedpool.o `test -f 'support/lockedpool.cpp' || echo '$(srcdir)/'`support/lockedpool.cpp
 
-support/libbitcoin_util_a-pagelocker.obj: support/pagelocker.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-pagelocker.obj -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo -c -o support/libbitcoin_util_a-pagelocker.obj `if test -f 'support/pagelocker.cpp'; then $(CYGPATH_W) 'support/pagelocker.cpp'; else $(CYGPATH_W) '$(srcdir)/support/pagelocker.cpp'; fi`
-	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
-#	$(AM_V_CXX)source='support/pagelocker.cpp' object='support/libbitcoin_util_a-pagelocker.obj' libtool=no \
+support/libbitcoin_util_a-lockedpool.obj: support/lockedpool.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-lockedpool.obj -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo -c -o support/libbitcoin_util_a-lockedpool.obj `if test -f 'support/lockedpool.cpp'; then $(CYGPATH_W) 'support/lockedpool.cpp'; else $(CYGPATH_W) '$(srcdir)/support/lockedpool.cpp'; fi`
+	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
+#	$(AM_V_CXX)source='support/lockedpool.cpp' object='support/libbitcoin_util_a-lockedpool.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-pagelocker.obj `if test -f 'support/pagelocker.cpp'; then $(CYGPATH_W) 'support/pagelocker.cpp'; else $(CYGPATH_W) '$(srcdir)/support/pagelocker.cpp'; fi`
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-lockedpool.obj `if test -f 'support/lockedpool.cpp'; then $(CYGPATH_W) 'support/lockedpool.cpp'; else $(CYGPATH_W) '$(srcdir)/support/lockedpool.cpp'; fi`
 
 libbitcoin_util_a-chainparamsbase.o: chainparamsbase.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_util_a-chainparamsbase.o -MD -MP -MF $(DEPDIR)/libbitcoin_util_a-chainparamsbase.Tpo -c -o libbitcoin_util_a-chainparamsbase.o `test -f 'chainparamsbase.cpp' || echo '$(srcdir)/'`chainparamsbase.cpp
@@ -4241,6 +5477,20 @@ compat/libbitcoin_util_a-strnlen.obj: compat/strnlen.cpp
 #	$(AM_V_CXX)source='compat/strnlen.cpp' object='compat/libbitcoin_util_a-strnlen.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o compat/libbitcoin_util_a-strnlen.obj `if test -f 'compat/strnlen.cpp'; then $(CYGPATH_W) 'compat/strnlen.cpp'; else $(CYGPATH_W) '$(srcdir)/compat/strnlen.cpp'; fi`
+
+libbitcoin_util_a-fs.o: fs.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_util_a-fs.o -MD -MP -MF $(DEPDIR)/libbitcoin_util_a-fs.Tpo -c -o libbitcoin_util_a-fs.o `test -f 'fs.cpp' || echo '$(srcdir)/'`fs.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_util_a-fs.Tpo $(DEPDIR)/libbitcoin_util_a-fs.Po
+#	$(AM_V_CXX)source='fs.cpp' object='libbitcoin_util_a-fs.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_util_a-fs.o `test -f 'fs.cpp' || echo '$(srcdir)/'`fs.cpp
+
+libbitcoin_util_a-fs.obj: fs.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_util_a-fs.obj -MD -MP -MF $(DEPDIR)/libbitcoin_util_a-fs.Tpo -c -o libbitcoin_util_a-fs.obj `if test -f 'fs.cpp'; then $(CYGPATH_W) 'fs.cpp'; else $(CYGPATH_W) '$(srcdir)/fs.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_util_a-fs.Tpo $(DEPDIR)/libbitcoin_util_a-fs.Po
+#	$(AM_V_CXX)source='fs.cpp' object='libbitcoin_util_a-fs.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_util_a-fs.obj `if test -f 'fs.cpp'; then $(CYGPATH_W) 'fs.cpp'; else $(CYGPATH_W) '$(srcdir)/fs.cpp'; fi`
 
 libbitcoin_util_a-random.o: random.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_util_a-random.o -MD -MP -MF $(DEPDIR)/libbitcoin_util_a-random.Tpo -c -o libbitcoin_util_a-random.o `test -f 'random.cpp' || echo '$(srcdir)/'`random.cpp
@@ -4942,110 +6192,264 @@ zcash/libzcash_a-zip32.obj: zcash/zip32.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_a_CPPFLAGS) $(CPPFLAGS) $(libzcash_a_CXXFLAGS) $(CXXFLAGS) -c -o zcash/libzcash_a-zip32.obj `if test -f 'zcash/zip32.cpp'; then $(CYGPATH_W) 'zcash/zip32.cpp'; else $(CYGPATH_W) '$(srcdir)/zcash/zip32.cpp'; fi`
 
-crypto/libzcashconsensus_la-equihash.lo: crypto/equihash.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcashconsensus_la-equihash.lo -MD -MP -MF crypto/$(DEPDIR)/libzcashconsensus_la-equihash.Tpo -c -o crypto/libzcashconsensus_la-equihash.lo `test -f 'crypto/equihash.cpp' || echo '$(srcdir)/'`crypto/equihash.cpp
-	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcashconsensus_la-equihash.Tpo crypto/$(DEPDIR)/libzcashconsensus_la-equihash.Plo
-#	$(AM_V_CXX)source='crypto/equihash.cpp' object='crypto/libzcashconsensus_la-equihash.lo' libtool=yes \
+crypto/libzcash_script_la-equihash.lo: crypto/equihash.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcash_script_la-equihash.lo -MD -MP -MF crypto/$(DEPDIR)/libzcash_script_la-equihash.Tpo -c -o crypto/libzcash_script_la-equihash.lo `test -f 'crypto/equihash.cpp' || echo '$(srcdir)/'`crypto/equihash.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcash_script_la-equihash.Tpo crypto/$(DEPDIR)/libzcash_script_la-equihash.Plo
+#	$(AM_V_CXX)source='crypto/equihash.cpp' object='crypto/libzcash_script_la-equihash.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcashconsensus_la-equihash.lo `test -f 'crypto/equihash.cpp' || echo '$(srcdir)/'`crypto/equihash.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcash_script_la-equihash.lo `test -f 'crypto/equihash.cpp' || echo '$(srcdir)/'`crypto/equihash.cpp
 
-crypto/libzcashconsensus_la-hmac_sha512.lo: crypto/hmac_sha512.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcashconsensus_la-hmac_sha512.lo -MD -MP -MF crypto/$(DEPDIR)/libzcashconsensus_la-hmac_sha512.Tpo -c -o crypto/libzcashconsensus_la-hmac_sha512.lo `test -f 'crypto/hmac_sha512.cpp' || echo '$(srcdir)/'`crypto/hmac_sha512.cpp
-	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcashconsensus_la-hmac_sha512.Tpo crypto/$(DEPDIR)/libzcashconsensus_la-hmac_sha512.Plo
-#	$(AM_V_CXX)source='crypto/hmac_sha512.cpp' object='crypto/libzcashconsensus_la-hmac_sha512.lo' libtool=yes \
+crypto/libzcash_script_la-hmac_sha512.lo: crypto/hmac_sha512.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcash_script_la-hmac_sha512.lo -MD -MP -MF crypto/$(DEPDIR)/libzcash_script_la-hmac_sha512.Tpo -c -o crypto/libzcash_script_la-hmac_sha512.lo `test -f 'crypto/hmac_sha512.cpp' || echo '$(srcdir)/'`crypto/hmac_sha512.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcash_script_la-hmac_sha512.Tpo crypto/$(DEPDIR)/libzcash_script_la-hmac_sha512.Plo
+#	$(AM_V_CXX)source='crypto/hmac_sha512.cpp' object='crypto/libzcash_script_la-hmac_sha512.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcashconsensus_la-hmac_sha512.lo `test -f 'crypto/hmac_sha512.cpp' || echo '$(srcdir)/'`crypto/hmac_sha512.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcash_script_la-hmac_sha512.lo `test -f 'crypto/hmac_sha512.cpp' || echo '$(srcdir)/'`crypto/hmac_sha512.cpp
 
-crypto/libzcashconsensus_la-ripemd160.lo: crypto/ripemd160.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcashconsensus_la-ripemd160.lo -MD -MP -MF crypto/$(DEPDIR)/libzcashconsensus_la-ripemd160.Tpo -c -o crypto/libzcashconsensus_la-ripemd160.lo `test -f 'crypto/ripemd160.cpp' || echo '$(srcdir)/'`crypto/ripemd160.cpp
-	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcashconsensus_la-ripemd160.Tpo crypto/$(DEPDIR)/libzcashconsensus_la-ripemd160.Plo
-#	$(AM_V_CXX)source='crypto/ripemd160.cpp' object='crypto/libzcashconsensus_la-ripemd160.lo' libtool=yes \
+crypto/libzcash_script_la-ripemd160.lo: crypto/ripemd160.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcash_script_la-ripemd160.lo -MD -MP -MF crypto/$(DEPDIR)/libzcash_script_la-ripemd160.Tpo -c -o crypto/libzcash_script_la-ripemd160.lo `test -f 'crypto/ripemd160.cpp' || echo '$(srcdir)/'`crypto/ripemd160.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcash_script_la-ripemd160.Tpo crypto/$(DEPDIR)/libzcash_script_la-ripemd160.Plo
+#	$(AM_V_CXX)source='crypto/ripemd160.cpp' object='crypto/libzcash_script_la-ripemd160.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcashconsensus_la-ripemd160.lo `test -f 'crypto/ripemd160.cpp' || echo '$(srcdir)/'`crypto/ripemd160.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcash_script_la-ripemd160.lo `test -f 'crypto/ripemd160.cpp' || echo '$(srcdir)/'`crypto/ripemd160.cpp
 
-crypto/libzcashconsensus_la-sha1.lo: crypto/sha1.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcashconsensus_la-sha1.lo -MD -MP -MF crypto/$(DEPDIR)/libzcashconsensus_la-sha1.Tpo -c -o crypto/libzcashconsensus_la-sha1.lo `test -f 'crypto/sha1.cpp' || echo '$(srcdir)/'`crypto/sha1.cpp
-	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcashconsensus_la-sha1.Tpo crypto/$(DEPDIR)/libzcashconsensus_la-sha1.Plo
-#	$(AM_V_CXX)source='crypto/sha1.cpp' object='crypto/libzcashconsensus_la-sha1.lo' libtool=yes \
+crypto/libzcash_script_la-sha1.lo: crypto/sha1.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcash_script_la-sha1.lo -MD -MP -MF crypto/$(DEPDIR)/libzcash_script_la-sha1.Tpo -c -o crypto/libzcash_script_la-sha1.lo `test -f 'crypto/sha1.cpp' || echo '$(srcdir)/'`crypto/sha1.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcash_script_la-sha1.Tpo crypto/$(DEPDIR)/libzcash_script_la-sha1.Plo
+#	$(AM_V_CXX)source='crypto/sha1.cpp' object='crypto/libzcash_script_la-sha1.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcashconsensus_la-sha1.lo `test -f 'crypto/sha1.cpp' || echo '$(srcdir)/'`crypto/sha1.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcash_script_la-sha1.lo `test -f 'crypto/sha1.cpp' || echo '$(srcdir)/'`crypto/sha1.cpp
 
-crypto/libzcashconsensus_la-sha256.lo: crypto/sha256.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcashconsensus_la-sha256.lo -MD -MP -MF crypto/$(DEPDIR)/libzcashconsensus_la-sha256.Tpo -c -o crypto/libzcashconsensus_la-sha256.lo `test -f 'crypto/sha256.cpp' || echo '$(srcdir)/'`crypto/sha256.cpp
-	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcashconsensus_la-sha256.Tpo crypto/$(DEPDIR)/libzcashconsensus_la-sha256.Plo
-#	$(AM_V_CXX)source='crypto/sha256.cpp' object='crypto/libzcashconsensus_la-sha256.lo' libtool=yes \
+crypto/libzcash_script_la-sha256.lo: crypto/sha256.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcash_script_la-sha256.lo -MD -MP -MF crypto/$(DEPDIR)/libzcash_script_la-sha256.Tpo -c -o crypto/libzcash_script_la-sha256.lo `test -f 'crypto/sha256.cpp' || echo '$(srcdir)/'`crypto/sha256.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcash_script_la-sha256.Tpo crypto/$(DEPDIR)/libzcash_script_la-sha256.Plo
+#	$(AM_V_CXX)source='crypto/sha256.cpp' object='crypto/libzcash_script_la-sha256.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcashconsensus_la-sha256.lo `test -f 'crypto/sha256.cpp' || echo '$(srcdir)/'`crypto/sha256.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcash_script_la-sha256.lo `test -f 'crypto/sha256.cpp' || echo '$(srcdir)/'`crypto/sha256.cpp
 
-crypto/libzcashconsensus_la-sha512.lo: crypto/sha512.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcashconsensus_la-sha512.lo -MD -MP -MF crypto/$(DEPDIR)/libzcashconsensus_la-sha512.Tpo -c -o crypto/libzcashconsensus_la-sha512.lo `test -f 'crypto/sha512.cpp' || echo '$(srcdir)/'`crypto/sha512.cpp
-	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcashconsensus_la-sha512.Tpo crypto/$(DEPDIR)/libzcashconsensus_la-sha512.Plo
-#	$(AM_V_CXX)source='crypto/sha512.cpp' object='crypto/libzcashconsensus_la-sha512.lo' libtool=yes \
+crypto/libzcash_script_la-sha512.lo: crypto/sha512.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT crypto/libzcash_script_la-sha512.lo -MD -MP -MF crypto/$(DEPDIR)/libzcash_script_la-sha512.Tpo -c -o crypto/libzcash_script_la-sha512.lo `test -f 'crypto/sha512.cpp' || echo '$(srcdir)/'`crypto/sha512.cpp
+	$(AM_V_at)$(am__mv) crypto/$(DEPDIR)/libzcash_script_la-sha512.Tpo crypto/$(DEPDIR)/libzcash_script_la-sha512.Plo
+#	$(AM_V_CXX)source='crypto/sha512.cpp' object='crypto/libzcash_script_la-sha512.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcashconsensus_la-sha512.lo `test -f 'crypto/sha512.cpp' || echo '$(srcdir)/'`crypto/sha512.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o crypto/libzcash_script_la-sha512.lo `test -f 'crypto/sha512.cpp' || echo '$(srcdir)/'`crypto/sha512.cpp
 
-libzcashconsensus_la-hash.lo: hash.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT libzcashconsensus_la-hash.lo -MD -MP -MF $(DEPDIR)/libzcashconsensus_la-hash.Tpo -c -o libzcashconsensus_la-hash.lo `test -f 'hash.cpp' || echo '$(srcdir)/'`hash.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcashconsensus_la-hash.Tpo $(DEPDIR)/libzcashconsensus_la-hash.Plo
-#	$(AM_V_CXX)source='hash.cpp' object='libzcashconsensus_la-hash.lo' libtool=yes \
+libzcash_script_la-hash.lo: hash.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT libzcash_script_la-hash.lo -MD -MP -MF $(DEPDIR)/libzcash_script_la-hash.Tpo -c -o libzcash_script_la-hash.lo `test -f 'hash.cpp' || echo '$(srcdir)/'`hash.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcash_script_la-hash.Tpo $(DEPDIR)/libzcash_script_la-hash.Plo
+#	$(AM_V_CXX)source='hash.cpp' object='libzcash_script_la-hash.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcashconsensus_la-hash.lo `test -f 'hash.cpp' || echo '$(srcdir)/'`hash.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcash_script_la-hash.lo `test -f 'hash.cpp' || echo '$(srcdir)/'`hash.cpp
 
-primitives/libzcashconsensus_la-transaction.lo: primitives/transaction.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT primitives/libzcashconsensus_la-transaction.lo -MD -MP -MF primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Tpo -c -o primitives/libzcashconsensus_la-transaction.lo `test -f 'primitives/transaction.cpp' || echo '$(srcdir)/'`primitives/transaction.cpp
-	$(AM_V_at)$(am__mv) primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Tpo primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo
-#	$(AM_V_CXX)source='primitives/transaction.cpp' object='primitives/libzcashconsensus_la-transaction.lo' libtool=yes \
+primitives/libzcash_script_la-transaction.lo: primitives/transaction.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT primitives/libzcash_script_la-transaction.lo -MD -MP -MF primitives/$(DEPDIR)/libzcash_script_la-transaction.Tpo -c -o primitives/libzcash_script_la-transaction.lo `test -f 'primitives/transaction.cpp' || echo '$(srcdir)/'`primitives/transaction.cpp
+	$(AM_V_at)$(am__mv) primitives/$(DEPDIR)/libzcash_script_la-transaction.Tpo primitives/$(DEPDIR)/libzcash_script_la-transaction.Plo
+#	$(AM_V_CXX)source='primitives/transaction.cpp' object='primitives/libzcash_script_la-transaction.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o primitives/libzcashconsensus_la-transaction.lo `test -f 'primitives/transaction.cpp' || echo '$(srcdir)/'`primitives/transaction.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o primitives/libzcash_script_la-transaction.lo `test -f 'primitives/transaction.cpp' || echo '$(srcdir)/'`primitives/transaction.cpp
 
-libzcashconsensus_la-pubkey.lo: pubkey.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT libzcashconsensus_la-pubkey.lo -MD -MP -MF $(DEPDIR)/libzcashconsensus_la-pubkey.Tpo -c -o libzcashconsensus_la-pubkey.lo `test -f 'pubkey.cpp' || echo '$(srcdir)/'`pubkey.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcashconsensus_la-pubkey.Tpo $(DEPDIR)/libzcashconsensus_la-pubkey.Plo
-#	$(AM_V_CXX)source='pubkey.cpp' object='libzcashconsensus_la-pubkey.lo' libtool=yes \
+libzcash_script_la-pubkey.lo: pubkey.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT libzcash_script_la-pubkey.lo -MD -MP -MF $(DEPDIR)/libzcash_script_la-pubkey.Tpo -c -o libzcash_script_la-pubkey.lo `test -f 'pubkey.cpp' || echo '$(srcdir)/'`pubkey.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcash_script_la-pubkey.Tpo $(DEPDIR)/libzcash_script_la-pubkey.Plo
+#	$(AM_V_CXX)source='pubkey.cpp' object='libzcash_script_la-pubkey.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcashconsensus_la-pubkey.lo `test -f 'pubkey.cpp' || echo '$(srcdir)/'`pubkey.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcash_script_la-pubkey.lo `test -f 'pubkey.cpp' || echo '$(srcdir)/'`pubkey.cpp
 
-script/libzcashconsensus_la-snowgemconsensus.lo: script/snowgemconsensus.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT script/libzcashconsensus_la-snowgemconsensus.lo -MD -MP -MF script/$(DEPDIR)/libzcashconsensus_la-snowgemconsensus.Tpo -c -o script/libzcashconsensus_la-snowgemconsensus.lo `test -f 'script/snowgemconsensus.cpp' || echo '$(srcdir)/'`script/snowgemconsensus.cpp
-	$(AM_V_at)$(am__mv) script/$(DEPDIR)/libzcashconsensus_la-snowgemconsensus.Tpo script/$(DEPDIR)/libzcashconsensus_la-snowgemconsensus.Plo
-#	$(AM_V_CXX)source='script/snowgemconsensus.cpp' object='script/libzcashconsensus_la-snowgemconsensus.lo' libtool=yes \
+script/libzcash_script_la-snowgemconsensus.lo: script/snowgemconsensus.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT script/libzcash_script_la-snowgemconsensus.lo -MD -MP -MF script/$(DEPDIR)/libzcash_script_la-snowgemconsensus.Tpo -c -o script/libzcash_script_la-snowgemconsensus.lo `test -f 'script/snowgemconsensus.cpp' || echo '$(srcdir)/'`script/snowgemconsensus.cpp
+	$(AM_V_at)$(am__mv) script/$(DEPDIR)/libzcash_script_la-snowgemconsensus.Tpo script/$(DEPDIR)/libzcash_script_la-snowgemconsensus.Plo
+#	$(AM_V_CXX)source='script/snowgemconsensus.cpp' object='script/libzcash_script_la-snowgemconsensus.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o script/libzcashconsensus_la-snowgemconsensus.lo `test -f 'script/snowgemconsensus.cpp' || echo '$(srcdir)/'`script/snowgemconsensus.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o script/libzcash_script_la-snowgemconsensus.lo `test -f 'script/snowgemconsensus.cpp' || echo '$(srcdir)/'`script/snowgemconsensus.cpp
 
-script/libzcashconsensus_la-interpreter.lo: script/interpreter.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT script/libzcashconsensus_la-interpreter.lo -MD -MP -MF script/$(DEPDIR)/libzcashconsensus_la-interpreter.Tpo -c -o script/libzcashconsensus_la-interpreter.lo `test -f 'script/interpreter.cpp' || echo '$(srcdir)/'`script/interpreter.cpp
-	$(AM_V_at)$(am__mv) script/$(DEPDIR)/libzcashconsensus_la-interpreter.Tpo script/$(DEPDIR)/libzcashconsensus_la-interpreter.Plo
-#	$(AM_V_CXX)source='script/interpreter.cpp' object='script/libzcashconsensus_la-interpreter.lo' libtool=yes \
+script/libzcash_script_la-interpreter.lo: script/interpreter.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT script/libzcash_script_la-interpreter.lo -MD -MP -MF script/$(DEPDIR)/libzcash_script_la-interpreter.Tpo -c -o script/libzcash_script_la-interpreter.lo `test -f 'script/interpreter.cpp' || echo '$(srcdir)/'`script/interpreter.cpp
+	$(AM_V_at)$(am__mv) script/$(DEPDIR)/libzcash_script_la-interpreter.Tpo script/$(DEPDIR)/libzcash_script_la-interpreter.Plo
+#	$(AM_V_CXX)source='script/interpreter.cpp' object='script/libzcash_script_la-interpreter.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o script/libzcashconsensus_la-interpreter.lo `test -f 'script/interpreter.cpp' || echo '$(srcdir)/'`script/interpreter.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o script/libzcash_script_la-interpreter.lo `test -f 'script/interpreter.cpp' || echo '$(srcdir)/'`script/interpreter.cpp
 
-script/libzcashconsensus_la-script.lo: script/script.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT script/libzcashconsensus_la-script.lo -MD -MP -MF script/$(DEPDIR)/libzcashconsensus_la-script.Tpo -c -o script/libzcashconsensus_la-script.lo `test -f 'script/script.cpp' || echo '$(srcdir)/'`script/script.cpp
-	$(AM_V_at)$(am__mv) script/$(DEPDIR)/libzcashconsensus_la-script.Tpo script/$(DEPDIR)/libzcashconsensus_la-script.Plo
-#	$(AM_V_CXX)source='script/script.cpp' object='script/libzcashconsensus_la-script.lo' libtool=yes \
+script/libzcash_script_la-script.lo: script/script.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT script/libzcash_script_la-script.lo -MD -MP -MF script/$(DEPDIR)/libzcash_script_la-script.Tpo -c -o script/libzcash_script_la-script.lo `test -f 'script/script.cpp' || echo '$(srcdir)/'`script/script.cpp
+	$(AM_V_at)$(am__mv) script/$(DEPDIR)/libzcash_script_la-script.Tpo script/$(DEPDIR)/libzcash_script_la-script.Plo
+#	$(AM_V_CXX)source='script/script.cpp' object='script/libzcash_script_la-script.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o script/libzcashconsensus_la-script.lo `test -f 'script/script.cpp' || echo '$(srcdir)/'`script/script.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o script/libzcash_script_la-script.lo `test -f 'script/script.cpp' || echo '$(srcdir)/'`script/script.cpp
 
-libzcashconsensus_la-uint256.lo: uint256.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT libzcashconsensus_la-uint256.lo -MD -MP -MF $(DEPDIR)/libzcashconsensus_la-uint256.Tpo -c -o libzcashconsensus_la-uint256.lo `test -f 'uint256.cpp' || echo '$(srcdir)/'`uint256.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcashconsensus_la-uint256.Tpo $(DEPDIR)/libzcashconsensus_la-uint256.Plo
-#	$(AM_V_CXX)source='uint256.cpp' object='libzcashconsensus_la-uint256.lo' libtool=yes \
+libzcash_script_la-uint256.lo: uint256.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT libzcash_script_la-uint256.lo -MD -MP -MF $(DEPDIR)/libzcash_script_la-uint256.Tpo -c -o libzcash_script_la-uint256.lo `test -f 'uint256.cpp' || echo '$(srcdir)/'`uint256.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcash_script_la-uint256.Tpo $(DEPDIR)/libzcash_script_la-uint256.Plo
+#	$(AM_V_CXX)source='uint256.cpp' object='libzcash_script_la-uint256.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcashconsensus_la-uint256.lo `test -f 'uint256.cpp' || echo '$(srcdir)/'`uint256.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcash_script_la-uint256.lo `test -f 'uint256.cpp' || echo '$(srcdir)/'`uint256.cpp
 
-libzcashconsensus_la-utilstrencodings.lo: utilstrencodings.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT libzcashconsensus_la-utilstrencodings.lo -MD -MP -MF $(DEPDIR)/libzcashconsensus_la-utilstrencodings.Tpo -c -o libzcashconsensus_la-utilstrencodings.lo `test -f 'utilstrencodings.cpp' || echo '$(srcdir)/'`utilstrencodings.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcashconsensus_la-utilstrencodings.Tpo $(DEPDIR)/libzcashconsensus_la-utilstrencodings.Plo
-#	$(AM_V_CXX)source='utilstrencodings.cpp' object='libzcashconsensus_la-utilstrencodings.lo' libtool=yes \
+libzcash_script_la-utilstrencodings.lo: utilstrencodings.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT libzcash_script_la-utilstrencodings.lo -MD -MP -MF $(DEPDIR)/libzcash_script_la-utilstrencodings.Tpo -c -o libzcash_script_la-utilstrencodings.lo `test -f 'utilstrencodings.cpp' || echo '$(srcdir)/'`utilstrencodings.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libzcash_script_la-utilstrencodings.Tpo $(DEPDIR)/libzcash_script_la-utilstrencodings.Plo
+#	$(AM_V_CXX)source='utilstrencodings.cpp' object='libzcash_script_la-utilstrencodings.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcashconsensus_la-utilstrencodings.lo `test -f 'utilstrencodings.cpp' || echo '$(srcdir)/'`utilstrencodings.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o libzcash_script_la-utilstrencodings.lo `test -f 'utilstrencodings.cpp' || echo '$(srcdir)/'`utilstrencodings.cpp
 
-compat/libzcashconsensus_la-glibc_compat.lo: compat/glibc_compat.cpp
-	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -MT compat/libzcashconsensus_la-glibc_compat.lo -MD -MP -MF compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Tpo -c -o compat/libzcashconsensus_la-glibc_compat.lo `test -f 'compat/glibc_compat.cpp' || echo '$(srcdir)/'`compat/glibc_compat.cpp
-	$(AM_V_at)$(am__mv) compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Tpo compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo
-#	$(AM_V_CXX)source='compat/glibc_compat.cpp' object='compat/libzcashconsensus_la-glibc_compat.lo' libtool=yes \
+compat/libzcash_script_la-glibc_compat.lo: compat/glibc_compat.cpp
+	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -MT compat/libzcash_script_la-glibc_compat.lo -MD -MP -MF compat/$(DEPDIR)/libzcash_script_la-glibc_compat.Tpo -c -o compat/libzcash_script_la-glibc_compat.lo `test -f 'compat/glibc_compat.cpp' || echo '$(srcdir)/'`compat/glibc_compat.cpp
+	$(AM_V_at)$(am__mv) compat/$(DEPDIR)/libzcash_script_la-glibc_compat.Tpo compat/$(DEPDIR)/libzcash_script_la-glibc_compat.Plo
+#	$(AM_V_CXX)source='compat/glibc_compat.cpp' object='compat/libzcash_script_la-glibc_compat.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcashconsensus_la_CPPFLAGS) $(CPPFLAGS) $(libzcashconsensus_la_CXXFLAGS) $(CXXFLAGS) -c -o compat/libzcashconsensus_la-glibc_compat.lo `test -f 'compat/glibc_compat.cpp' || echo '$(srcdir)/'`compat/glibc_compat.cpp
+#	$(AM_V_CXX_no)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzcash_script_la_CPPFLAGS) $(CPPFLAGS) $(libzcash_script_la_CXXFLAGS) $(CXXFLAGS) -c -o compat/libzcash_script_la-glibc_compat.lo `test -f 'compat/glibc_compat.cpp' || echo '$(srcdir)/'`compat/glibc_compat.cpp
+
+bench/bench_bitcoin-bench_bitcoin.o: bench/bench_bitcoin.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-bench_bitcoin.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Tpo -c -o bench/bench_bitcoin-bench_bitcoin.o `test -f 'bench/bench_bitcoin.cpp' || echo '$(srcdir)/'`bench/bench_bitcoin.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Tpo bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Po
+#	$(AM_V_CXX)source='bench/bench_bitcoin.cpp' object='bench/bench_bitcoin-bench_bitcoin.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-bench_bitcoin.o `test -f 'bench/bench_bitcoin.cpp' || echo '$(srcdir)/'`bench/bench_bitcoin.cpp
+
+bench/bench_bitcoin-bench_bitcoin.obj: bench/bench_bitcoin.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-bench_bitcoin.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Tpo -c -o bench/bench_bitcoin-bench_bitcoin.obj `if test -f 'bench/bench_bitcoin.cpp'; then $(CYGPATH_W) 'bench/bench_bitcoin.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/bench_bitcoin.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Tpo bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Po
+#	$(AM_V_CXX)source='bench/bench_bitcoin.cpp' object='bench/bench_bitcoin-bench_bitcoin.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-bench_bitcoin.obj `if test -f 'bench/bench_bitcoin.cpp'; then $(CYGPATH_W) 'bench/bench_bitcoin.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/bench_bitcoin.cpp'; fi`
+
+bench/bench_bitcoin-bench.o: bench/bench.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-bench.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-bench.Tpo -c -o bench/bench_bitcoin-bench.o `test -f 'bench/bench.cpp' || echo '$(srcdir)/'`bench/bench.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-bench.Tpo bench/$(DEPDIR)/bench_bitcoin-bench.Po
+#	$(AM_V_CXX)source='bench/bench.cpp' object='bench/bench_bitcoin-bench.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-bench.o `test -f 'bench/bench.cpp' || echo '$(srcdir)/'`bench/bench.cpp
+
+bench/bench_bitcoin-bench.obj: bench/bench.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-bench.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-bench.Tpo -c -o bench/bench_bitcoin-bench.obj `if test -f 'bench/bench.cpp'; then $(CYGPATH_W) 'bench/bench.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/bench.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-bench.Tpo bench/$(DEPDIR)/bench_bitcoin-bench.Po
+#	$(AM_V_CXX)source='bench/bench.cpp' object='bench/bench_bitcoin-bench.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-bench.obj `if test -f 'bench/bench.cpp'; then $(CYGPATH_W) 'bench/bench.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/bench.cpp'; fi`
+
+bench/bench_bitcoin-checkqueue.o: bench/checkqueue.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-checkqueue.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-checkqueue.Tpo -c -o bench/bench_bitcoin-checkqueue.o `test -f 'bench/checkqueue.cpp' || echo '$(srcdir)/'`bench/checkqueue.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-checkqueue.Tpo bench/$(DEPDIR)/bench_bitcoin-checkqueue.Po
+#	$(AM_V_CXX)source='bench/checkqueue.cpp' object='bench/bench_bitcoin-checkqueue.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-checkqueue.o `test -f 'bench/checkqueue.cpp' || echo '$(srcdir)/'`bench/checkqueue.cpp
+
+bench/bench_bitcoin-checkqueue.obj: bench/checkqueue.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-checkqueue.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-checkqueue.Tpo -c -o bench/bench_bitcoin-checkqueue.obj `if test -f 'bench/checkqueue.cpp'; then $(CYGPATH_W) 'bench/checkqueue.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/checkqueue.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-checkqueue.Tpo bench/$(DEPDIR)/bench_bitcoin-checkqueue.Po
+#	$(AM_V_CXX)source='bench/checkqueue.cpp' object='bench/bench_bitcoin-checkqueue.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-checkqueue.obj `if test -f 'bench/checkqueue.cpp'; then $(CYGPATH_W) 'bench/checkqueue.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/checkqueue.cpp'; fi`
+
+bench/bench_bitcoin-Examples.o: bench/Examples.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-Examples.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-Examples.Tpo -c -o bench/bench_bitcoin-Examples.o `test -f 'bench/Examples.cpp' || echo '$(srcdir)/'`bench/Examples.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-Examples.Tpo bench/$(DEPDIR)/bench_bitcoin-Examples.Po
+#	$(AM_V_CXX)source='bench/Examples.cpp' object='bench/bench_bitcoin-Examples.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-Examples.o `test -f 'bench/Examples.cpp' || echo '$(srcdir)/'`bench/Examples.cpp
+
+bench/bench_bitcoin-Examples.obj: bench/Examples.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-Examples.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-Examples.Tpo -c -o bench/bench_bitcoin-Examples.obj `if test -f 'bench/Examples.cpp'; then $(CYGPATH_W) 'bench/Examples.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/Examples.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-Examples.Tpo bench/$(DEPDIR)/bench_bitcoin-Examples.Po
+#	$(AM_V_CXX)source='bench/Examples.cpp' object='bench/bench_bitcoin-Examples.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-Examples.obj `if test -f 'bench/Examples.cpp'; then $(CYGPATH_W) 'bench/Examples.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/Examples.cpp'; fi`
+
+bench/bench_bitcoin-rollingbloom.o: bench/rollingbloom.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-rollingbloom.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Tpo -c -o bench/bench_bitcoin-rollingbloom.o `test -f 'bench/rollingbloom.cpp' || echo '$(srcdir)/'`bench/rollingbloom.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Tpo bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po
+#	$(AM_V_CXX)source='bench/rollingbloom.cpp' object='bench/bench_bitcoin-rollingbloom.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-rollingbloom.o `test -f 'bench/rollingbloom.cpp' || echo '$(srcdir)/'`bench/rollingbloom.cpp
+
+bench/bench_bitcoin-rollingbloom.obj: bench/rollingbloom.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-rollingbloom.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Tpo -c -o bench/bench_bitcoin-rollingbloom.obj `if test -f 'bench/rollingbloom.cpp'; then $(CYGPATH_W) 'bench/rollingbloom.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/rollingbloom.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Tpo bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po
+#	$(AM_V_CXX)source='bench/rollingbloom.cpp' object='bench/bench_bitcoin-rollingbloom.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-rollingbloom.obj `if test -f 'bench/rollingbloom.cpp'; then $(CYGPATH_W) 'bench/rollingbloom.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/rollingbloom.cpp'; fi`
+
+bench/bench_bitcoin-verification.o: bench/verification.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-verification.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-verification.Tpo -c -o bench/bench_bitcoin-verification.o `test -f 'bench/verification.cpp' || echo '$(srcdir)/'`bench/verification.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-verification.Tpo bench/$(DEPDIR)/bench_bitcoin-verification.Po
+#	$(AM_V_CXX)source='bench/verification.cpp' object='bench/bench_bitcoin-verification.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-verification.o `test -f 'bench/verification.cpp' || echo '$(srcdir)/'`bench/verification.cpp
+
+bench/bench_bitcoin-verification.obj: bench/verification.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-verification.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-verification.Tpo -c -o bench/bench_bitcoin-verification.obj `if test -f 'bench/verification.cpp'; then $(CYGPATH_W) 'bench/verification.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/verification.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-verification.Tpo bench/$(DEPDIR)/bench_bitcoin-verification.Po
+#	$(AM_V_CXX)source='bench/verification.cpp' object='bench/bench_bitcoin-verification.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-verification.obj `if test -f 'bench/verification.cpp'; then $(CYGPATH_W) 'bench/verification.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/verification.cpp'; fi`
+
+bench/bench_bitcoin-crypto_hash.o: bench/crypto_hash.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-crypto_hash.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Tpo -c -o bench/bench_bitcoin-crypto_hash.o `test -f 'bench/crypto_hash.cpp' || echo '$(srcdir)/'`bench/crypto_hash.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Tpo bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Po
+#	$(AM_V_CXX)source='bench/crypto_hash.cpp' object='bench/bench_bitcoin-crypto_hash.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-crypto_hash.o `test -f 'bench/crypto_hash.cpp' || echo '$(srcdir)/'`bench/crypto_hash.cpp
+
+bench/bench_bitcoin-crypto_hash.obj: bench/crypto_hash.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-crypto_hash.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Tpo -c -o bench/bench_bitcoin-crypto_hash.obj `if test -f 'bench/crypto_hash.cpp'; then $(CYGPATH_W) 'bench/crypto_hash.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/crypto_hash.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Tpo bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Po
+#	$(AM_V_CXX)source='bench/crypto_hash.cpp' object='bench/bench_bitcoin-crypto_hash.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-crypto_hash.obj `if test -f 'bench/crypto_hash.cpp'; then $(CYGPATH_W) 'bench/crypto_hash.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/crypto_hash.cpp'; fi`
+
+bench/bench_bitcoin-base58.o: bench/base58.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-base58.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-base58.Tpo -c -o bench/bench_bitcoin-base58.o `test -f 'bench/base58.cpp' || echo '$(srcdir)/'`bench/base58.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-base58.Tpo bench/$(DEPDIR)/bench_bitcoin-base58.Po
+#	$(AM_V_CXX)source='bench/base58.cpp' object='bench/bench_bitcoin-base58.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-base58.o `test -f 'bench/base58.cpp' || echo '$(srcdir)/'`bench/base58.cpp
+
+bench/bench_bitcoin-base58.obj: bench/base58.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-base58.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-base58.Tpo -c -o bench/bench_bitcoin-base58.obj `if test -f 'bench/base58.cpp'; then $(CYGPATH_W) 'bench/base58.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/base58.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-base58.Tpo bench/$(DEPDIR)/bench_bitcoin-base58.Po
+#	$(AM_V_CXX)source='bench/base58.cpp' object='bench/bench_bitcoin-base58.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-base58.obj `if test -f 'bench/base58.cpp'; then $(CYGPATH_W) 'bench/base58.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/base58.cpp'; fi`
+
+bench/bench_bitcoin-lockedpool.o: bench/lockedpool.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-lockedpool.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-lockedpool.Tpo -c -o bench/bench_bitcoin-lockedpool.o `test -f 'bench/lockedpool.cpp' || echo '$(srcdir)/'`bench/lockedpool.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-lockedpool.Tpo bench/$(DEPDIR)/bench_bitcoin-lockedpool.Po
+#	$(AM_V_CXX)source='bench/lockedpool.cpp' object='bench/bench_bitcoin-lockedpool.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-lockedpool.o `test -f 'bench/lockedpool.cpp' || echo '$(srcdir)/'`bench/lockedpool.cpp
+
+bench/bench_bitcoin-lockedpool.obj: bench/lockedpool.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-lockedpool.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-lockedpool.Tpo -c -o bench/bench_bitcoin-lockedpool.obj `if test -f 'bench/lockedpool.cpp'; then $(CYGPATH_W) 'bench/lockedpool.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/lockedpool.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-lockedpool.Tpo bench/$(DEPDIR)/bench_bitcoin-lockedpool.Po
+#	$(AM_V_CXX)source='bench/lockedpool.cpp' object='bench/bench_bitcoin-lockedpool.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-lockedpool.obj `if test -f 'bench/lockedpool.cpp'; then $(CYGPATH_W) 'bench/lockedpool.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/lockedpool.cpp'; fi`
+
+bench/bench_bitcoin-perf.o: bench/perf.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-perf.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-perf.Tpo -c -o bench/bench_bitcoin-perf.o `test -f 'bench/perf.cpp' || echo '$(srcdir)/'`bench/perf.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-perf.Tpo bench/$(DEPDIR)/bench_bitcoin-perf.Po
+#	$(AM_V_CXX)source='bench/perf.cpp' object='bench/bench_bitcoin-perf.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-perf.o `test -f 'bench/perf.cpp' || echo '$(srcdir)/'`bench/perf.cpp
+
+bench/bench_bitcoin-perf.obj: bench/perf.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-perf.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-perf.Tpo -c -o bench/bench_bitcoin-perf.obj `if test -f 'bench/perf.cpp'; then $(CYGPATH_W) 'bench/perf.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/perf.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-perf.Tpo bench/$(DEPDIR)/bench_bitcoin-perf.Po
+#	$(AM_V_CXX)source='bench/perf.cpp' object='bench/bench_bitcoin-perf.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-perf.obj `if test -f 'bench/perf.cpp'; then $(CYGPATH_W) 'bench/perf.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/perf.cpp'; fi`
+
+bench/bench_bitcoin-prevector_destructor.o: bench/prevector_destructor.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-prevector_destructor.o -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Tpo -c -o bench/bench_bitcoin-prevector_destructor.o `test -f 'bench/prevector_destructor.cpp' || echo '$(srcdir)/'`bench/prevector_destructor.cpp
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Tpo bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po
+#	$(AM_V_CXX)source='bench/prevector_destructor.cpp' object='bench/bench_bitcoin-prevector_destructor.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-prevector_destructor.o `test -f 'bench/prevector_destructor.cpp' || echo '$(srcdir)/'`bench/prevector_destructor.cpp
+
+bench/bench_bitcoin-prevector_destructor.obj: bench/prevector_destructor.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -MT bench/bench_bitcoin-prevector_destructor.obj -MD -MP -MF bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Tpo -c -o bench/bench_bitcoin-prevector_destructor.obj `if test -f 'bench/prevector_destructor.cpp'; then $(CYGPATH_W) 'bench/prevector_destructor.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/prevector_destructor.cpp'; fi`
+	$(AM_V_at)$(am__mv) bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Tpo bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po
+#	$(AM_V_CXX)source='bench/prevector_destructor.cpp' object='bench/bench_bitcoin-prevector_destructor.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_bench_bitcoin_CPPFLAGS) $(CPPFLAGS) $(bench_bench_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o bench/bench_bitcoin-prevector_destructor.obj `if test -f 'bench/prevector_destructor.cpp'; then $(CYGPATH_W) 'bench/prevector_destructor.cpp'; else $(CYGPATH_W) '$(srcdir)/bench/prevector_destructor.cpp'; fi`
 
 snowgem_cli-bitcoin-cli.o: bitcoin-cli.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(snowgem_cli_CPPFLAGS) $(CPPFLAGS) $(snowgem_cli_CXXFLAGS) $(CXXFLAGS) -MT snowgem_cli-bitcoin-cli.o -MD -MP -MF $(DEPDIR)/snowgem_cli-bitcoin-cli.Tpo -c -o snowgem_cli-bitcoin-cli.o `test -f 'bitcoin-cli.cpp' || echo '$(srcdir)/'`bitcoin-cli.cpp
@@ -6321,11 +7725,36 @@ test/test_bitcoin-rpc_wallet_tests.obj: test/rpc_wallet_tests.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_test_bitcoin_CPPFLAGS) $(CPPFLAGS) $(test_test_bitcoin_CXXFLAGS) $(CXXFLAGS) -c -o test/test_bitcoin-rpc_wallet_tests.obj `if test -f 'test/rpc_wallet_tests.cpp'; then $(CYGPATH_W) 'test/rpc_wallet_tests.cpp'; else $(CYGPATH_W) '$(srcdir)/test/rpc_wallet_tests.cpp'; fi`
 
+.cpp.o:
+	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+	$(am__mv) $$depbase.Tpo $$depbase.Po
+#	$(AM_V_CXX)source='$<' object='$@' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+	$(am__mv) $$depbase.Tpo $$depbase.Po
+#	$(AM_V_CXX)source='$<' object='$@' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cpp.lo:
+	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+	$(am__mv) $$depbase.Tpo $$depbase.Plo
+#	$(AM_V_CXX)source='$<' object='$@' libtool=yes \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(LTCXXCOMPILE) -c -o $@ $<
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
+	-rm -rf bench/.libs bench/_libs
 	-rm -rf compat/.libs compat/_libs
 	-rm -rf crypto/.libs crypto/_libs
 	-rm -rf primitives/.libs primitives/_libs
@@ -6614,13 +8043,13 @@ snowgem-gtest.log: snowgem-gtest$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-.test$(EXEEXT).log:
-	@p='$<'; \
-	$(am__set_b); \
-	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
+#.test$(EXEEXT).log:
+#	@p='$<'; \
+#	$(am__set_b); \
+#	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
+#	--log-file $$b.log --trs-file $$b.trs \
+#	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
+#	"$$tst" $(AM_TESTS_FD_REDIRECT)
 
 distdir: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) distdir-am
@@ -6722,8 +8151,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-rm -f amqp/$(DEPDIR)/$(am__dirstamp)
-	-rm -f amqp/$(am__dirstamp)
+	-rm -f bench/$(DEPDIR)/$(am__dirstamp)
+	-rm -f bench/$(am__dirstamp)
 	-rm -f compat/$(DEPDIR)/$(am__dirstamp)
 	-rm -f compat/$(am__dirstamp)
 	-rm -f consensus/$(DEPDIR)/$(am__dirstamp)
@@ -6732,6 +8161,17 @@ distclean-generic:
 	-rm -f crypto/$(am__dirstamp)
 	-rm -f gtest/$(DEPDIR)/$(am__dirstamp)
 	-rm -f gtest/$(am__dirstamp)
+	-rm -f leveldb/$(am__dirstamp)
+	-rm -f leveldb/db/$(DEPDIR)/$(am__dirstamp)
+	-rm -f leveldb/db/$(am__dirstamp)
+	-rm -f leveldb/helpers/memenv/$(DEPDIR)/$(am__dirstamp)
+	-rm -f leveldb/helpers/memenv/$(am__dirstamp)
+	-rm -f leveldb/port/$(DEPDIR)/$(am__dirstamp)
+	-rm -f leveldb/port/$(am__dirstamp)
+	-rm -f leveldb/table/$(DEPDIR)/$(am__dirstamp)
+	-rm -f leveldb/table/$(am__dirstamp)
+	-rm -f leveldb/util/$(DEPDIR)/$(am__dirstamp)
+	-rm -f leveldb/util/$(am__dirstamp)
 	-rm -f policy/$(DEPDIR)/$(am__dirstamp)
 	-rm -f policy/$(am__dirstamp)
 	-rm -f primitives/$(DEPDIR)/$(am__dirstamp)
@@ -6820,6 +8260,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-validationinterface.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-chainparamsbase.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-clientversion.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_util_a-fs.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-random.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-sync.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-uint256.Po
@@ -6839,23 +8280,33 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-hash.Plo
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-pubkey.Plo
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-uint256.Plo
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-utilstrencodings.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-hash.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-pubkey.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-uint256.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-utilstrencodings.Plo
 	-rm -f ./$(DEPDIR)/snowgem_cli-bitcoin-cli.Po
 	-rm -f ./$(DEPDIR)/snowgem_tx-bitcoin-tx.Po
 	-rm -f ./$(DEPDIR)/snowgemd-bitcoind.Po
-	-rm -f amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Po
-	-rm -f amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Po
-	-rm -f amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-Examples.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-base58.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-bench.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-checkqueue.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-lockedpool.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-perf.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-verification.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po
-	-rm -f compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo
+	-rm -f compat/$(DEPDIR)/libzcash_script_la-glibc_compat.Plo
 	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-params.Po
 	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po
+	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Po
+	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha512.Po
@@ -6863,12 +8314,12 @@ distclean: distclean-recursive
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-sha1.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-sha256.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-sha512.Po
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-equihash.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-hmac_sha512.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-ripemd160.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-sha1.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-sha256.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-sha512.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-equihash.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-hmac_sha512.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-ripemd160.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-sha1.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-sha256.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-sha512.Plo
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-json_test_vectors.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-main.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po
@@ -6900,10 +8351,53 @@ distclean: distclean-recursive
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_validation.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_zip32.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-utils.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-builder.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-c.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-filename.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-repair.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Po
+	-rm -f leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Po
+	-rm -f leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Po
+	-rm -f leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Po
+	-rm -f leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-block.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-format.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-merger.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-table.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-arena.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-cache.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-coding.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-env.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-hash.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-logging.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-options.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-status.Po
 	-rm -f policy/$(DEPDIR)/libbitcoin_server_a-fees.Po
 	-rm -f primitives/$(DEPDIR)/libbitcoin_common_a-block.Po
 	-rm -f primitives/$(DEPDIR)/libbitcoin_common_a-transaction.Po
-	-rm -f primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo
+	-rm -f primitives/$(DEPDIR)/libzcash_script_la-transaction.Plo
 	-rm -f rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po
@@ -6920,11 +8414,11 @@ distclean: distclean-recursive
 	-rm -f script/$(DEPDIR)/libbitcoin_common_a-sign.Po
 	-rm -f script/$(DEPDIR)/libbitcoin_common_a-standard.Po
 	-rm -f script/$(DEPDIR)/libbitcoin_server_a-sigcache.Po
-	-rm -f script/$(DEPDIR)/libzcashconsensus_la-interpreter.Plo
-	-rm -f script/$(DEPDIR)/libzcashconsensus_la-script.Plo
-	-rm -f script/$(DEPDIR)/libzcashconsensus_la-snowgemconsensus.Plo
+	-rm -f script/$(DEPDIR)/libzcash_script_la-interpreter.Plo
+	-rm -f script/$(DEPDIR)/libzcash_script_la-script.Plo
+	-rm -f script/$(DEPDIR)/libzcash_script_la-snowgemconsensus.Plo
 	-rm -f support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po
-	-rm -f support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
+	-rm -f support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-DoS_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-accounting_tests.Po
@@ -7108,6 +8602,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-validationinterface.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-chainparamsbase.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-clientversion.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_util_a-fs.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-random.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-sync.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-uint256.Po
@@ -7127,23 +8622,33 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-hash.Plo
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-pubkey.Plo
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-uint256.Plo
-	-rm -f ./$(DEPDIR)/libzcashconsensus_la-utilstrencodings.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-hash.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-pubkey.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-uint256.Plo
+	-rm -f ./$(DEPDIR)/libzcash_script_la-utilstrencodings.Plo
 	-rm -f ./$(DEPDIR)/snowgem_cli-bitcoin-cli.Po
 	-rm -f ./$(DEPDIR)/snowgem_tx-bitcoin-tx.Po
 	-rm -f ./$(DEPDIR)/snowgemd-bitcoind.Po
-	-rm -f amqp/$(DEPDIR)/libbitcoin_proton_a-amqpabstractnotifier.Po
-	-rm -f amqp/$(DEPDIR)/libbitcoin_proton_a-amqpnotificationinterface.Po
-	-rm -f amqp/$(DEPDIR)/libbitcoin_proton_a-amqppublishnotifier.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-Examples.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-base58.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-bench.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-bench_bitcoin.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-checkqueue.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-crypto_hash.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-lockedpool.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-perf.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po
+	-rm -f bench/$(DEPDIR)/bench_bitcoin-verification.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-strnlen.Po
-	-rm -f compat/$(DEPDIR)/libzcashconsensus_la-glibc_compat.Plo
+	-rm -f compat/$(DEPDIR)/libzcash_script_la-glibc_compat.Plo
 	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-params.Po
 	-rm -f consensus/$(DEPDIR)/libbitcoin_common_a-upgrades.Po
+	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-aes.Po
+	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-chacha20.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-equihash.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha256.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-hmac_sha512.Po
@@ -7151,12 +8656,12 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-sha1.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-sha256.Po
 	-rm -f crypto/$(DEPDIR)/libbitcoin_crypto_a-sha512.Po
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-equihash.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-hmac_sha512.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-ripemd160.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-sha1.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-sha256.Plo
-	-rm -f crypto/$(DEPDIR)/libzcashconsensus_la-sha512.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-equihash.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-hmac_sha512.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-ripemd160.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-sha1.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-sha256.Plo
+	-rm -f crypto/$(DEPDIR)/libzcash_script_la-sha512.Plo
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-json_test_vectors.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-main.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_checkblock.Po
@@ -7188,10 +8693,53 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_validation.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-test_zip32.Po
 	-rm -f gtest/$(DEPDIR)/snowgem_gtest-utils.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-builder.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-c.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-db_impl.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-db_iter.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-dbformat.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-dumpfile.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-filename.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-log_reader.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-log_writer.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-memtable.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-repair.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-table_cache.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-version_edit.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-version_set.Po
+	-rm -f leveldb/db/$(DEPDIR)/libleveldb_a-write_batch.Po
+	-rm -f leveldb/helpers/memenv/$(DEPDIR)/libmemenv_a-memenv.Po
+	-rm -f leveldb/port/$(DEPDIR)/libleveldb_a-port_posix.Po
+	-rm -f leveldb/port/$(DEPDIR)/libleveldb_a-port_win.Po
+	-rm -f leveldb/port/$(DEPDIR)/libleveldb_sse42_a-port_posix_sse.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-block.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-block_builder.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-filter_block.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-format.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-iterator.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-merger.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-table.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-table_builder.Po
+	-rm -f leveldb/table/$(DEPDIR)/libleveldb_a-two_level_iterator.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-arena.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-bloom.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-cache.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-coding.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-comparator.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-crc32c.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-env.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-env_posix.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-env_win.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-filter_policy.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-hash.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-histogram.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-logging.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-options.Po
+	-rm -f leveldb/util/$(DEPDIR)/libleveldb_a-status.Po
 	-rm -f policy/$(DEPDIR)/libbitcoin_server_a-fees.Po
 	-rm -f primitives/$(DEPDIR)/libbitcoin_common_a-block.Po
 	-rm -f primitives/$(DEPDIR)/libbitcoin_common_a-transaction.Po
-	-rm -f primitives/$(DEPDIR)/libzcashconsensus_la-transaction.Plo
+	-rm -f primitives/$(DEPDIR)/libzcash_script_la-transaction.Plo
 	-rm -f rpc/$(DEPDIR)/libbitcoin_cli_a-client.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-blockchain.Po
 	-rm -f rpc/$(DEPDIR)/libbitcoin_server_a-masternode-budget.Po
@@ -7208,11 +8756,11 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f script/$(DEPDIR)/libbitcoin_common_a-sign.Po
 	-rm -f script/$(DEPDIR)/libbitcoin_common_a-standard.Po
 	-rm -f script/$(DEPDIR)/libbitcoin_server_a-sigcache.Po
-	-rm -f script/$(DEPDIR)/libzcashconsensus_la-interpreter.Plo
-	-rm -f script/$(DEPDIR)/libzcashconsensus_la-script.Plo
-	-rm -f script/$(DEPDIR)/libzcashconsensus_la-snowgemconsensus.Plo
+	-rm -f script/$(DEPDIR)/libzcash_script_la-interpreter.Plo
+	-rm -f script/$(DEPDIR)/libzcash_script_la-script.Plo
+	-rm -f script/$(DEPDIR)/libzcash_script_la-snowgemconsensus.Plo
 	-rm -f support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po
-	-rm -f support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
+	-rm -f support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-DoS_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-accounting_tests.Po
@@ -7340,21 +8888,27 @@ uninstall-am: uninstall-binPROGRAMS uninstall-includeHEADERS \
 
 .PRECIOUS: Makefile
 
-$(LIBUNIVALUE): $(wildcard univalue/lib/*) $(wildcard univalue/include/*)
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
+#$(CARGO_CONFIGURED):
+#	$(AM_V_at)rm -f $(top_srcdir)/.cargo/.configured-for-offline $(top_srcdir)/.cargo/config
+#	$(AM_V_at)touch $@
+$(CARGO_CONFIGURED): $(top_srcdir)/.cargo/config.offline
+	$(AM_V_at)rm -f $(top_srcdir)/.cargo/.configured-for-online
+	$(AM_V_at)cp $< $(top_srcdir)/.cargo/config
+	$(AM_V_at)echo "directory = \"$(RUST_VENDORED_SOURCES)\"" >>$(top_srcdir)/.cargo/config
+	$(AM_V_at)touch $@
 
-# NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
-$(LIBLEVELDB): $(LIBMEMENV)
+cargo-build: $(CARGO_CONFIGURED)
+	$(RUST_ENV_VARS) $(CARGO) build $(RUST_BUILD_OPTS) $(rust_verbose) --manifest-path $(top_srcdir)/Cargo.toml
 
-$(LIBLEVELDB) $(LIBMEMENV):
-	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \
-	  CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
-          OPT="$(AM_CXXFLAGS) $(PIE_FLAGS) $(CXXFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) -D__STDC_LIMIT_MACROS"
+$(LIBRUSTZCASH): cargo-build
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
-.PHONY: FORCE check-symbols check-security
+$(LIBUNIVALUE): $(wildcard univalue/lib/*) $(wildcard univalue/include/*)
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
+
+.PHONY: FORCE cargo-build check-symbols check-security
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
@@ -7426,6 +8980,14 @@ snowgem-gtest_check: snowgem-gtest FORCE
 
 snowgem-gtest-expected-failures: snowgem-gtest FORCE
 	./snowgem-gtest --gtest_filter=*DISABLED_* --gtest_also_run_disabled_tests
+
+bitcoin_bench: $(BENCH_BINARY)
+
+bench: $(BENCH_BINARY) FORCE
+	$(BENCH_BINARY)
+
+bitcoin_bench_clean : FORCE
+	rm -f $(CLEAN_BITCOIN_BENCH) $(bench_bench_bitcoin_OBJECTS) $(BENCH_BINARY)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

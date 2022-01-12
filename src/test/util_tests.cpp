@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "util.h"
-
+#include "test_random.h"
 #include "clientversion.h"
 #include "primitives/transaction.h"
 #include "random.h"

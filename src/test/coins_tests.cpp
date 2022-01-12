@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "coins.h"
+#include "test_random.h"
 #include "consensus/validation.h"
 #include "main.h"
 #include "primitives/transaction.h"

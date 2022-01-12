@@ -52,7 +52,7 @@ public:
     }
 
     void BuildWitnessCache(const CBlockIndex* pindex, bool witnessOnly) {
-        CWallet::BuildWitnessCache(pindex, witnessOnly);
+        CWallet::BuildWitnessCache(Params(), pindex, witnessOnly);
     }
     void DecrementNoteWitnesses(const CBlockIndex* pindex) {
         CWallet::DecrementNoteWitnesses(pindex);

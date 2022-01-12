@@ -782,7 +782,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
     }
 
     LogPrint("masternode", "CMasternodePing::CheckAndUpdate - New Ping - %s - %lli\n", blockHash.ToString(), sigTime);
-    LogPrint("masternode", "CMasternodePing::CheckAndUpdate - pmn->GetMinMasternodePaymentsProto - %d\n", (int64_t)(masternodePayments.GetMinMasternodePaymentsProto()));
+    // LogPrint("masternode", "CMasternodePing::CheckAndUpdate - pmn->GetMinMasternodePaymentsProto - %d\n", (int64_t)(masternodePayments.GetMinMasternodePaymentsProto()));
 
     // see if we have this Masternode
     if (isMasternodeFound && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {

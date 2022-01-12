@@ -459,7 +459,7 @@ void test_simple_joinsplit_invalidity(uint32_t consensusBranchId, CMutableTransa
         jsdesc->nullifiers[1] = GetRandHash();
 
         BOOST_CHECK(CheckTransactionWithoutProofVerification(newTx, state));
-        BOOST_CHECK(!ContextualCheckTransaction(newTx, state, 0, 100));
+        BOOST_CHECK(!ContextualCheckTransaction(newTx, state, Params(), 0, true));
         BOOST_CHECK(state.GetRejectReason() == "bad-txns-invalid-joinsplit-signature");
 
         // Empty output script.
@@ -472,7 +472,7 @@ void test_simple_joinsplit_invalidity(uint32_t consensusBranchId, CMutableTransa
                                     joinSplitPrivKey) == 0);
 
         BOOST_CHECK(CheckTransactionWithoutProofVerification(newTx, state));
-        BOOST_CHECK(ContextualCheckTransaction(newTx, state, 0, 100));
+        BOOST_CHECK(ContextualCheckTransaction(newTx, state, Params(), 0, 100));
     }
     {
         // Ensure that values within the joinsplit are well-formed.
@@ -777,6 +777,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard)
 BOOST_AUTO_TEST_CASE(test_IsStandardV2)
 {
     LOCK(cs_main);
+    auto chainparams = Params();
     CBasicKeyStore keystore;
     CCoinsView coinsDummy;
     CCoinsViewCache coins(&coinsDummy);
@@ -788,7 +789,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandardV2)
     t.vin[0].prevout.n = 1;
     t.vin[0].scriptSig << std::vector<unsigned char>(65, 0);
     t.vout.resize(1);
-    t.vout[0].nValue = 90 * CENT;
+    t.vout[0].nValue = 90*CENT;
     CKey key;
     key.MakeNewKey(true);
     t.vout[0].scriptPubKey = GetScriptForDestination(key.GetPubKey().GetID());
@@ -803,15 +804,15 @@ BOOST_AUTO_TEST_CASE(test_IsStandardV2)
     BOOST_CHECK(IsStandardTx(t, reason, chainparams));
 
     // ... and when that JoinSplit takes from a transparent input.
-    JSDescription* jsdesc = &t.vjoinsplit[0];
-    jsdesc->vpub_old = 10 * CENT;
-    t.vout[0].nValue -= 10 * CENT;
+    JSDescription *jsdesc = &t.vjoinsplit[0];
+    jsdesc->vpub_old = 10*CENT;
+    t.vout[0].nValue -= 10*CENT;
     BOOST_CHECK(IsStandardTx(t, reason, chainparams));
 
     // A v2 transaction with JoinSplits but no transparent inputs is standard.
     jsdesc->vpub_old = 0;
-    jsdesc->vpub_new = 100 * CENT;
-    t.vout[0].nValue = 90 * CENT;
+    jsdesc->vpub_new = 100*CENT;
+    t.vout[0].nValue = 90*CENT;
     t.vin.resize(0);
     BOOST_CHECK(IsStandardTx(t, reason, chainparams));
 
@@ -821,7 +822,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandardV2)
 
     // v3 is not standard.
     t.nVersion = 3;
-    t.vout[0].nValue = 90 * CENT;
+    t.vout[0].nValue = 90*CENT;
     BOOST_CHECK(!IsStandardTx(t, reason, chainparams));
 }
 

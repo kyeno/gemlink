@@ -134,6 +134,15 @@ public:
  */
 
 //! total number of buckets for tried addresses
+#define ADDRMAN_TRIED_BUCKET_COUNT_LOG2 8
+
+//! total number of buckets for new addresses
+#define ADDRMAN_NEW_BUCKET_COUNT_LOG2 10
+
+//! maximum allowed number of entries in buckets for new and tried addresses
+#define ADDRMAN_BUCKET_SIZE_LOG2 6
+
+//! total number of buckets for tried addresses
 #define ADDRMAN_TRIED_BUCKET_COUNT 256
 
 //! total number of buckets for new addresses
@@ -207,6 +216,9 @@ private:
 protected:
     //! secret key to randomize bucket select with
     uint256 nKey;
+
+    //! Source of random numbers for randomization in inner loops
+    FastRandomContext insecure_rand;
 
     //! Find an entry.
     CAddrInfo* Find(const CNetAddr& addr, int *pnId = NULL);

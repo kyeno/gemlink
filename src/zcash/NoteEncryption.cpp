@@ -127,7 +127,7 @@ boost::optional<SaplingEncCiphertext> SaplingNoteEncryption::encrypt_to_recipien
 
     uint256 dhsecret;
 
-    if (!librustzcash_sapling_ka_agree(pk_d.begin(), esk.begin(), dhsecret.begin())) {
+    if (!librustzcash_sapling_ka_agree(false, pk_d.begin(), esk.begin(), dhsecret.begin())) {
         return boost::none;
     }
 
@@ -160,7 +160,7 @@ boost::optional<SaplingEncPlaintext> AttemptSaplingEncDecryption(
 {
     uint256 dhsecret;
 
-    if (!librustzcash_sapling_ka_agree(epk.begin(), ivk.begin(), dhsecret.begin())) {
+    if (!librustzcash_sapling_ka_agree(false, epk.begin(), ivk.begin(), dhsecret.begin())) {
         return boost::none;
     }
 
@@ -196,7 +196,7 @@ boost::optional<SaplingEncPlaintext> AttemptSaplingEncDecryption (
 {
     uint256 dhsecret;
 
-    if (!librustzcash_sapling_ka_agree(pk_d.begin(), esk.begin(), dhsecret.begin())) {
+    if (!librustzcash_sapling_ka_agree(false, pk_d.begin(), esk.begin(), dhsecret.begin())) {
         return boost::none;
     }
 
