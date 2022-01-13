@@ -1,0 +1,10 @@
+/mnt/m/github/gemlink/gemlink/target/x86_64-unknown-linux-gnu/release/deps/futures_task-c466950b61653520.rmeta: /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/lib.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/spawn.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/future_obj.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/noop_waker.rs
+
+/mnt/m/github/gemlink/gemlink/target/x86_64-unknown-linux-gnu/release/deps/libfutures_task-c466950b61653520.rlib: /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/lib.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/spawn.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/future_obj.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/noop_waker.rs
+
+/mnt/m/github/gemlink/gemlink/target/x86_64-unknown-linux-gnu/release/deps/futures_task-c466950b61653520.d: /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/lib.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/spawn.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/future_obj.rs /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/noop_waker.rs
+
+/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/lib.rs:
+/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/spawn.rs:
+/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/future_obj.rs:
+/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources/futures-task/src/noop_waker.rs:

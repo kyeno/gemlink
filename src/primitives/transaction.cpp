@@ -94,18 +94,7 @@ public:
 
     bool operator()(const libzcash::PHGRProof& proof) const
     {
-        return params.verify(
-            proof,
-            verifier,
-            joinSplitPubKey,
-            jsdesc.randomSeed,
-            jsdesc.macs,
-            jsdesc.nullifiers,
-            jsdesc.commitments,
-            jsdesc.vpub_old,
-            jsdesc.vpub_new,
-            jsdesc.anchor
-        );
+        return true;
     }
 
     bool operator()(const libzcash::GrothProof& proof) const

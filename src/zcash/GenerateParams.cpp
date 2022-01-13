@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv)
 {
-    if (init_and_check_sodium() == -1) {
+    if (sodium_init() == -1) {
         return 1;
     }
 

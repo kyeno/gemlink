@@ -316,13 +316,19 @@ TransactionBuilderResult TransactionBuilder::Build()
         auto enc = res.get();
         auto encryptor = enc.second;
 
+        libzcash::SaplingPaymentAddress address(output.note.d, output.note.pk_d);
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        ss << address;
+        std::vector<unsigned char> addressBytes(ss.begin(), ss.end());
+        
+        uint256 rcm = output.note.r;
+
         OutputDescription odesc;
         if (!librustzcash_sapling_output_proof(
                 ctx,
                 encryptor.get_esk().begin(),
-                output.note.d.data(),
-                output.note.pk_d.begin(),
-                output.note.r.begin(),
+                addressBytes.data(),
+                rcm.begin(),
                 output.note.value(),
                 odesc.cv.begin(),
                 odesc.zkproof.begin())) {
