@@ -266,7 +266,6 @@ static const CRPCCommand vRPCCommands[] =
 
 	
     /* MN features */
-    {"snowgem",             "masternode",               &masternode, true},
     {"snowgem",             "listmasternodes",          &listmasternodes, true},
     {"snowgem",             "getmasternodecount",       &getmasternodecount, true},
     {"snowgem",             "masternodeconnect",        &masternodeconnect, true},
