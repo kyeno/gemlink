@@ -464,7 +464,7 @@ am_libbitcoin_server_a_OBJECTS =  \
 libbitcoin_server_a_OBJECTS = $(am_libbitcoin_server_a_OBJECTS)
 libbitcoin_util_a_AR = $(AR) $(ARFLAGS)
 libbitcoin_util_a_LIBADD =
-am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
+am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	chainparamsbase.cpp clientversion.cpp compat/glibc_sanity.cpp \
 	compat/glibcxx_sanity.cpp compat/strnlen.cpp random.cpp \
 	rpc/protocol.cpp support/cleanse.cpp sync.cpp uint256.cpp \
@@ -494,7 +494,7 @@ am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
 	script/sign.h script/standard.h serialize.h spork.h sporkdb.h \
 	streams.h support/allocators/secure.h \
 	support/allocators/zeroafterfree.h support/cleanse.h \
-	support/events.h support/pagelocker.h sync.h threadsafety.h \
+	support/events.h support/lockedpool.h sync.h threadsafety.h \
 	timedata.h tinyformat.h torcontrol.h transaction_builder.h \
 	txdb.h txmempool.h ui_interface.h uint256.h uint252.h undo.h \
 	util.h utilmoneystr.h utilstrencodings.h utiltime.h \
@@ -515,7 +515,7 @@ am__libbitcoin_util_a_SOURCES_DIST = support/pagelocker.cpp \
 	zcash/zip32.h compat/glibc_compat.cpp
 #am__objects_5 = compat/libbitcoin_util_a-glibc_compat.$(OBJEXT)
 am_libbitcoin_util_a_OBJECTS =  \
-	support/libbitcoin_util_a-pagelocker.$(OBJEXT) \
+	support/libbitcoin_util_a-lockedpool.$(OBJEXT) \
 	libbitcoin_util_a-chainparamsbase.$(OBJEXT) \
 	libbitcoin_util_a-clientversion.$(OBJEXT) \
 	compat/libbitcoin_util_a-glibc_sanity.$(OBJEXT) \
@@ -1125,7 +1125,7 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	script/$(DEPDIR)/libzcash_script_la-script.Plo \
 	script/$(DEPDIR)/libzcash_script_la-zcash_script.Plo \
 	support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po \
-	support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po \
+	support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po \
 	test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po \
 	test/$(DEPDIR)/test_bitcoin-DoS_tests.Po \
 	test/$(DEPDIR)/test_bitcoin-accounting_tests.Po \
@@ -1877,7 +1877,7 @@ BITCOIN_CORE_H = \
   support/allocators/zeroafterfree.h \
   support/cleanse.h \
   support/events.h \
-  support/pagelocker.h \
+  support/lockedpool.h \
   sync.h \
   threadsafety.h \
   timedata.h \
@@ -2066,7 +2066,7 @@ libbitcoin_common_a_SOURCES = \
 # backward-compatibility objects and their sanity checks are linked.
 libbitcoin_util_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_util_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-libbitcoin_util_a_SOURCES = support/pagelocker.cpp chainparamsbase.cpp \
+libbitcoin_util_a_SOURCES = support/lockedpool.cpp chainparamsbase.cpp \
 	clientversion.cpp compat/glibc_sanity.cpp \
 	compat/glibcxx_sanity.cpp compat/strnlen.cpp random.cpp \
 	rpc/protocol.cpp support/cleanse.cpp sync.cpp uint256.cpp \
@@ -2874,7 +2874,7 @@ support/$(am__dirstamp):
 support/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) support/$(DEPDIR)
 	@: > support/$(DEPDIR)/$(am__dirstamp)
-support/libbitcoin_util_a-pagelocker.$(OBJEXT):  \
+support/libbitcoin_util_a-lockedpool.$(OBJEXT):  \
 	support/$(am__dirstamp) support/$(DEPDIR)/$(am__dirstamp)
 compat/$(am__dirstamp):
 	@$(MKDIR_P) compat
@@ -3512,7 +3512,7 @@ include script/$(DEPDIR)/libzcash_script_la-interpreter.Plo # am--include-marker
 include script/$(DEPDIR)/libzcash_script_la-script.Plo # am--include-marker
 include script/$(DEPDIR)/libzcash_script_la-zcash_script.Plo # am--include-marker
 include support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po # am--include-marker
-include support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po # am--include-marker
+include support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-DoS_tests.Po # am--include-marker
 include test/$(DEPDIR)/test_bitcoin-accounting_tests.Po # am--include-marker
@@ -5307,19 +5307,19 @@ libbitcoin_server_a-validationinterface.obj: validationinterface.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-validationinterface.obj `if test -f 'validationinterface.cpp'; then $(CYGPATH_W) 'validationinterface.cpp'; else $(CYGPATH_W) '$(srcdir)/validationinterface.cpp'; fi`
 
-support/libbitcoin_util_a-pagelocker.o: support/pagelocker.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-pagelocker.o -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo -c -o support/libbitcoin_util_a-pagelocker.o `test -f 'support/pagelocker.cpp' || echo '$(srcdir)/'`support/pagelocker.cpp
-	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
-#	$(AM_V_CXX)source='support/pagelocker.cpp' object='support/libbitcoin_util_a-pagelocker.o' libtool=no \
+support/libbitcoin_util_a-lockedpool.o: support/lockedpool.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-lockedpool.o -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo -c -o support/libbitcoin_util_a-lockedpool.o `test -f 'support/lockedpool.cpp' || echo '$(srcdir)/'`support/lockedpool.cpp
+	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
+#	$(AM_V_CXX)source='support/lockedpool.cpp' object='support/libbitcoin_util_a-lockedpool.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-pagelocker.o `test -f 'support/pagelocker.cpp' || echo '$(srcdir)/'`support/pagelocker.cpp
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-lockedpool.o `test -f 'support/lockedpool.cpp' || echo '$(srcdir)/'`support/lockedpool.cpp
 
-support/libbitcoin_util_a-pagelocker.obj: support/pagelocker.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-pagelocker.obj -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo -c -o support/libbitcoin_util_a-pagelocker.obj `if test -f 'support/pagelocker.cpp'; then $(CYGPATH_W) 'support/pagelocker.cpp'; else $(CYGPATH_W) '$(srcdir)/support/pagelocker.cpp'; fi`
-	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Tpo support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
-#	$(AM_V_CXX)source='support/pagelocker.cpp' object='support/libbitcoin_util_a-pagelocker.obj' libtool=no \
+support/libbitcoin_util_a-lockedpool.obj: support/lockedpool.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT support/libbitcoin_util_a-lockedpool.obj -MD -MP -MF support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo -c -o support/libbitcoin_util_a-lockedpool.obj `if test -f 'support/lockedpool.cpp'; then $(CYGPATH_W) 'support/lockedpool.cpp'; else $(CYGPATH_W) '$(srcdir)/support/lockedpool.cpp'; fi`
+	$(AM_V_at)$(am__mv) support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Tpo support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
+#	$(AM_V_CXX)source='support/lockedpool.cpp' object='support/libbitcoin_util_a-lockedpool.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-pagelocker.obj `if test -f 'support/pagelocker.cpp'; then $(CYGPATH_W) 'support/pagelocker.cpp'; else $(CYGPATH_W) '$(srcdir)/support/pagelocker.cpp'; fi`
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -c -o support/libbitcoin_util_a-lockedpool.obj `if test -f 'support/lockedpool.cpp'; then $(CYGPATH_W) 'support/lockedpool.cpp'; else $(CYGPATH_W) '$(srcdir)/support/lockedpool.cpp'; fi`
 
 libbitcoin_util_a-chainparamsbase.o: chainparamsbase.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_util_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_util_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_util_a-chainparamsbase.o -MD -MP -MF $(DEPDIR)/libbitcoin_util_a-chainparamsbase.Tpo -c -o libbitcoin_util_a-chainparamsbase.o `test -f 'chainparamsbase.cpp' || echo '$(srcdir)/'`chainparamsbase.cpp
@@ -8343,7 +8343,7 @@ distclean: distclean-recursive
 	-rm -f script/$(DEPDIR)/libzcash_script_la-script.Plo
 	-rm -f script/$(DEPDIR)/libzcash_script_la-zcash_script.Plo
 	-rm -f support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po
-	-rm -f support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
+	-rm -f support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-DoS_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-accounting_tests.Po
@@ -8683,7 +8683,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f script/$(DEPDIR)/libzcash_script_la-script.Plo
 	-rm -f script/$(DEPDIR)/libzcash_script_la-zcash_script.Plo
 	-rm -f support/$(DEPDIR)/libbitcoin_util_a-cleanse.Po
-	-rm -f support/$(DEPDIR)/libbitcoin_util_a-pagelocker.Po
+	-rm -f support/$(DEPDIR)/libbitcoin_util_a-lockedpool.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-Checkpoints_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-DoS_tests.Po
 	-rm -f test/$(DEPDIR)/test_bitcoin-accounting_tests.Po
