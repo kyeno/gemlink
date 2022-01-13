@@ -375,7 +375,13 @@ int CMasternodePayments::GetMinMasternodePaymentsProto()
     else
     {
         int minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT;
-        if (NetworkUpgradeActive(nLastBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_KNOWHERE)) {
+        int nHeight = 0;
+        {
+            if (chainActive.Tip() != NULL) {
+                nHeight = chainActive.Tip()->nHeight;
+            }
+        }
+        if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_KNOWHERE)) {
             minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_KNOWHERE;
         }
         return minPeer;
