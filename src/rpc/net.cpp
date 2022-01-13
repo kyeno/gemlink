@@ -297,7 +297,7 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
     UniValue ret(UniValue::VARR);
     if (!fDns)
     {
-        BOOST_FOREACH (const std::string& strAddNode, laddedNodes) {
+        for (const std::string& strAddNode: laddedNodes) {
             UniValue obj(UniValue::VOBJ);
             obj.push_back(Pair("addednode", strAddNode));
             ret.push_back(obj);

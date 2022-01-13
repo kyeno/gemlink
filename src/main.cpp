@@ -4152,10 +4152,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state,
 
     // ----------- swiftTX transaction scanning -----------
     if (IsSporkActive(SPORK_3_SWIFTTX_BLOCK_FILTERING)) {
-        BOOST_FOREACH (const CTransaction& tx, block.vtx) {
+        for (const CTransaction& tx: block.vtx) {
             if (!tx.IsCoinBase()) {
                 //only reject blocks when it's based on complete consensus
-                BOOST_FOREACH (const CTxIn& in, tx.vin) {
+                for (const CTxIn& in: tx.vin) {
                     if (mapLockedInputs.count(in.prevout)) {
                         if (mapLockedInputs[in.prevout] != tx.GetHash()) {
                             mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
@@ -6391,7 +6391,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                     return true;
                 }
 
-                std::string strMessage = tx.GetHash().ToString() + boost::lexical_cast<std::string>(sigTime);
+                std::string strMessage = tx.GetHash().ToString() + std::to_string(sigTime);
 
                 std::string errorMessage = "";
                 if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {

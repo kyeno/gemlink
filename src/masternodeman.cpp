@@ -237,7 +237,7 @@ void CMasternodeMan::Check()
 {
     LOCK(cs);
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         mn.Check();
     }
 }
@@ -357,7 +357,7 @@ int CMasternodeMan::stable_size ()
     int64_t nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE;
     int64_t nMasternode_Age = 0;
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         if (mn.protocolVersion < nMinProtocol) {
             continue; // Skip obsolete versions
         }
@@ -382,7 +382,7 @@ int CMasternodeMan::CountEnabled(int protocolVersion)
     int i = 0;
     protocolVersion = protocolVersion == -1 ? masternodePayments.GetMinMasternodePaymentsProto() : protocolVersion;
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         mn.Check();
         if (mn.protocolVersion < protocolVersion || !mn.IsEnabled()) continue;
         i++;
@@ -395,7 +395,7 @@ void CMasternodeMan::CountNetworks(int protocolVersion, int& ipv4, int& ipv6, in
 {
     protocolVersion = protocolVersion == -1 ? masternodePayments.GetMinMasternodePaymentsProto() : protocolVersion;
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         mn.Check();
         std::string strHost;
         int port;
@@ -442,7 +442,7 @@ CMasternode* CMasternodeMan::Find(const CScript& payee)
     LOCK(cs);
     CScript payee2;
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         payee2 = GetScriptForDestination(mn.pubKeyCollateralAddress.GetID());
         if (payee2 == payee)
             return &mn;
@@ -454,7 +454,7 @@ CMasternode* CMasternodeMan::Find(const CTxIn& vin)
 {
     LOCK(cs);
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         if (mn.vin.prevout == vin.prevout)
             return &mn;
     }
@@ -466,7 +466,7 @@ CMasternode* CMasternodeMan::Find(const CPubKey& pubKeyMasternode)
 {
     LOCK(cs);
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         if (mn.pubKeyMasternode == pubKeyMasternode)
             return &mn;
     }
@@ -477,7 +477,7 @@ CMasternode* CMasternodeMan::Find(const CAddress& addr)
 {
     LOCK(cs);
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         if ((CNetAddr)(mn.addr) == (CNetAddr)addr)
             return &mn;
     }
@@ -499,7 +499,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     */
 
     int nMnCount = CountEnabled();
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         mn.Check();
         if (!mn.IsEnabled()) continue;
 
@@ -539,7 +539,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     int nTenthNetwork = nMnCount / 10;
     int nCountTenth = 0;
     arith_uint256 nHighest = 0;
-    BOOST_FOREACH (PAIRTYPE(int64_t, CTxIn) & s, vecMasternodeLastPaid) {
+    for (PAIRTYPE(int64_t, CTxIn) & s: vecMasternodeLastPaid) {
         CMasternode* pmn = Find(s.second);
         if (!pmn) break;
 
@@ -568,10 +568,10 @@ CMasternode* CMasternodeMan::FindRandomNotInVec(std::vector<CTxIn>& vecToExclude
     LogPrint("masternode", "CMasternodeMan::FindRandomNotInVec - rand %d\n", rand);
     bool found;
 
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         if (mn.protocolVersion < protocolVersion || !mn.IsEnabled()) continue;
         found = false;
-        BOOST_FOREACH (CTxIn& usedVin, vecToExclude) {
+        for (CTxIn& usedVin: vecToExclude) {
             if (mn.vin.prevout == usedVin.prevout) {
                 found = true;
                 break;
@@ -596,7 +596,7 @@ CMasternode* CMasternodeMan::GetCurrentMasterNode(int mod, int64_t nBlockHeight,
     if(!GetBlockHash(blockHash, nBlockHeight)) return NULL;
 
     // scan for winner
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         mn.Check();
         if (mn.protocolVersion < minProtocol || !mn.IsEnabled()) continue;
 
@@ -625,7 +625,7 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
     if (!GetBlockHash(blockHash, nBlockHeight)) return -1;
 
     // scan for winner
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         if (mn.protocolVersion < minProtocol) {
             LogPrint("masternode","Skipping Masternode with obsolete version %d\n", mn.protocolVersion);
             continue;                                                       // Skip obsolete versions
@@ -651,7 +651,7 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
     sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
 
     int rank = 0;
-    BOOST_FOREACH (PAIRTYPE(int64_t, CTxIn) & s, vecMasternodeScores) {
+    for (PAIRTYPE(int64_t, CTxIn) & s: vecMasternodeScores) {
         rank++;
         if (s.second.prevout == vin.prevout) {
             return rank;
@@ -671,7 +671,7 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
     if (!GetBlockHash(blockHash, nBlockHeight)) return vecMasternodeRanks;
 
     // scan for winner
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         mn.Check();
 
         if (mn.protocolVersion < minProtocol) continue;
@@ -690,7 +690,7 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
     sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreMN());
 
     int rank = 0;
-    BOOST_FOREACH (PAIRTYPE(int64_t, CMasternode) & s, vecMasternodeScores) {
+    for (PAIRTYPE(int64_t, CMasternode) & s: vecMasternodeScores) {
         rank++;
         vecMasternodeRanks.push_back(make_pair(rank, s.second));
     }
@@ -709,7 +709,7 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
     }
 
     // scan for winner
-    BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+    for (CMasternode& mn: vMasternodes) {
         if (mn.protocolVersion < minProtocol) continue;
         if (fOnlyActive) {
             mn.Check();
@@ -725,7 +725,7 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
     sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
 
     int rank = 0;
-    BOOST_FOREACH (PAIRTYPE(int64_t, CTxIn) & s, vecMasternodeScores) {
+    for (PAIRTYPE(int64_t, CTxIn) & s: vecMasternodeScores) {
         rank++;
         if (rank == nRank) {
             return Find(s.second);
@@ -741,7 +741,7 @@ void CMasternodeMan::ProcessMasternodeConnections()
     if (NetworkIdFromCommandLine() == CBaseChainParams::REGTEST) return;
 
     LOCK(cs_vNodes);
-    BOOST_FOREACH (CNode* pnode, vNodes) {
+    for (CNode* pnode: vNodes) {
         if (pnode->fObfuScationMaster) {
             if (obfuScationPool.pSubmittedToMasternode != NULL && pnode->addr == obfuScationPool.pSubmittedToMasternode->addr) continue;
             LogPrint("masternode","Closing Masternode connection peer=%i \n", pnode->GetId());
@@ -856,7 +856,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         int nInvCount = 0;
 
-        BOOST_FOREACH (CMasternode& mn, vMasternodes) {
+        for (CMasternode& mn: vMasternodes) {
             if (mn.addr.IsRFC1918()) continue; //local network
 
             if (mn.IsEnabled()) {
@@ -918,7 +918,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         std::string vchPubKey(pubkey.begin(), pubkey.end());
         std::string vchPubKey2(pubkey2.begin(), pubkey2.end());
 
-        strMessage = addr.ToString() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion) + donationAddress.ToString() + boost::lexical_cast<std::string>(donationPercentage);
+        strMessage = addr.ToString() + std::to_string(sigTime) + vchPubKey + vchPubKey2 + std::to_string(protocolVersion) + donationAddress.ToString() + std::to_string(donationPercentage);
 
         if (protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
             LogPrint("masternode","dsee - ignoring outdated Masternode %s protocol version %d < %d\n", vin.prevout.hash.ToString(), protocolVersion, masternodePayments.GetMinMasternodePaymentsProto());
@@ -987,7 +987,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                     if (pmn->IsEnabled()) {
                         TRY_LOCK(cs_vNodes, lockNodes);
                         if (!lockNodes) return;
-                        BOOST_FOREACH (CNode* pnode, vNodes)
+                        for (CNode* pnode: vNodes)
                             if (pnode->nVersion >= masternodePayments.GetMinMasternodePaymentsProto())
                                 pnode->PushMessage("dsee", vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion, *(CScriptBase*)(&donationAddress), donationPercentage);
                     }
@@ -1076,7 +1076,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             if (mn.IsEnabled()) {
                 TRY_LOCK(cs_vNodes, lockNodes);
                 if (!lockNodes) return;
-                BOOST_FOREACH (CNode* pnode, vNodes)
+                for (CNode* pnode: vNodes)
                     if (pnode->nVersion >= masternodePayments.GetMinMasternodePaymentsProto())
                         pnode->PushMessage("dsee", vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion, *(CScriptBase*)(&donationAddress), donationPercentage);
             }
@@ -1131,7 +1131,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             // LogPrint("masternode","dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
             // take this only if it's newer
             if (sigTime - pmn->nLastDseep > MASTERNODE_MIN_MNP_SECONDS) {
-                std::string strMessage = pmn->addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
+                std::string strMessage = pmn->addr.ToString() + std::to_string(sigTime) + std::to_string(stop);
 
                 std::string errorMessage = "";
                 if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {
@@ -1148,7 +1148,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                     TRY_LOCK(cs_vNodes, lockNodes);
                     if (!lockNodes) return;
                     LogPrint("masternode", "dseep - relaying %s \n", vin.prevout.hash.ToString());
-                    BOOST_FOREACH (CNode* pnode, vNodes)
+                    for (CNode* pnode: vNodes)
                         if (pnode->nVersion >= masternodePayments.GetMinMasternodePaymentsProto())
                             pnode->PushMessage("dseep", vin, vchSig, sigTime, stop);
                 }

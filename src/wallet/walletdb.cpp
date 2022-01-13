@@ -292,7 +292,7 @@ CAmount CWalletDB::GetAccountCreditDebit(const string& strAccount)
     ListAccountCreditDebit(strAccount, entries);
 
     CAmount nCreditDebit = 0;
-    BOOST_FOREACH (const CAccountingEntry& entry, entries)
+    for (const CAccountingEntry& entry: entries)
         nCreditDebit += entry.nCreditDebit;
 
     return nCreditDebit;
@@ -1055,7 +1055,7 @@ DBErrors CWalletDB::ZapWalletTx(CWallet* pwallet, vector<CWalletTx>& vWtx)
         return err;
 
     // erase each wallet TX
-    BOOST_FOREACH (uint256& hash, vTxHash) {
+    for (uint256& hash: vTxHash) {
         if (!EraseTx(hash))
             return DB_CORRUPT;
     }

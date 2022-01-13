@@ -637,7 +637,7 @@ public:
 
     bool HasFulfilledRequest(std::string strRequest)
     {
-        BOOST_FOREACH (std::string& type, vecRequestsFulfilled) {
+        for (std::string& type: vecRequestsFulfilled) {
             if (type == strRequest) return true;
         }
         return false;

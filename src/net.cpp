@@ -1762,7 +1762,7 @@ void static Discover(boost::thread_group& threadGroup)
         vector<CNetAddr> vaddr;
         if (LookupHost(pszHostName, vaddr))
         {
-            BOOST_FOREACH (const CNetAddr &addr, vaddr)
+            for (const CNetAddr &addr, vaddr)
             {
                 if (AddLocal(addr, LOCAL_IF))
                     LogPrintf("%s: %s - %s\n", __func__, pszHostName, addr.ToString());
@@ -1954,7 +1954,7 @@ void RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
 
     //broadcast the new lock
     LOCK(cs_vNodes);
-    BOOST_FOREACH (CNode* pnode, vNodes) {
+    for (CNode* pnode: vNodes) {
         if (!relayToAll && !pnode->fRelayTxes)
             continue;
 
@@ -1965,7 +1965,7 @@ void RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
 void RelayInv(CInv& inv)
 {
     LOCK(cs_vNodes);
-    BOOST_FOREACH (CNode* pnode, vNodes){
+    for (CNode* pnode: vNodes){
     		if((pnode->nServices==NODE_BLOOM_WITHOUT_MN) && inv.IsMasterNodeType())continue;
         if (pnode->nVersion >= ActiveProtocol())
             pnode->PushInventory(inv);
