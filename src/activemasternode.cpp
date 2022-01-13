@@ -347,10 +347,10 @@ bool CActiveMasternode::GetMasterNodeVin(CTxIn& vin, CPubKey& pubkey, CKey& secr
     if (fImporting || fReindex)
         return false;
 
-    // Find possible candidates
-    TRY_LOCK(pwalletMain->cs_wallet, fWallet);
-    if (!fWallet)
-        return false;
+    // fix deadlock
+    // TRY_LOCK(pwalletMain->cs_wallet, fWallet);
+    // if (!fWallet)
+    //     return false;
 
     vector<COutput> possibleCoins = SelectCoinsMasternode();
     COutput* selectedOutput;
@@ -433,6 +433,8 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
 
     // Temporary unlock MN coins from masternode.conf
     if (GetBoolArg("-mnconflock", true)) {
+        // fix deadlock
+        LOCK(pwalletMain->cs_wallet);
         uint256 mnTxHash;
         for (CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries()) {
             mnTxHash.SetHex(mne.getTxHash());
@@ -452,6 +454,8 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
 
     // Lock MN coins from masternode.conf back if they where temporary unlocked
     if (!confLockedCoins.empty()) {
+        // fix deadlock
+        LOCK(pwalletMain->cs_wallet);
         for (COutPoint outpoint: confLockedCoins)
             pwalletMain->LockCoin(outpoint);
     }
