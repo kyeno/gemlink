@@ -1,5 +1,5 @@
 snowgem_packages := libsodium utfcpp
-packages := boost libevent zeromq $(snowgem_packages) googletest
+packages := boost openssl libevent zeromq $(snowgem_packages) googletest
 native_packages := native_clang native_ccache native_rust
 
 wallet_packages=bdb

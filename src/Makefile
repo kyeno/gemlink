@@ -667,8 +667,8 @@ am_snowgem_cli_OBJECTS = snowgem_cli-bitcoin-cli.$(OBJEXT) \
 snowgem_cli_OBJECTS = $(am_snowgem_cli_OBJECTS)
 snowgem_cli_DEPENDENCIES = $(LIBBITCOIN_CLI) $(LIBUNIVALUE) \
 	$(LIBBITCOIN_UTIL) $(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
-	$(LIBZCASH) $(LIBRUSTZCASH) $(LIBBITCOIN_CRYPTO) \
-	$(am__DEPENDENCIES_3)
+	$(am__DEPENDENCIES_3) $(LIBZCASH) $(LIBRUSTZCASH) \
+	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_3)
 snowgem_cli_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgem_cli_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgem_cli_LDFLAGS) $(LDFLAGS) -o $@
@@ -768,7 +768,8 @@ snowgemd_DEPENDENCIES = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) \
 	$(am__DEPENDENCIES_2) $(LIBSECP256K1) $(am__DEPENDENCIES_3) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
-	$(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_3)
+	$(am__DEPENDENCIES_3) $(LIBBITCOIN_CRYPTO) \
+	$(am__DEPENDENCIES_3)
 snowgemd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(snowgemd_CXXFLAGS) \
 	$(CXXFLAGS) $(snowgemd_LDFLAGS) $(LDFLAGS) -o $@
@@ -1661,6 +1662,8 @@ SED = /usr/bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
 SSE42_CXXFLAGS = 
+SSL_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
+SSL_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -lssl -lcrypto -ldl -pthread
 STRIP = /usr/bin/strip
 TESTDEFS = 
 VERSION = 3.1.4
@@ -1739,8 +1742,9 @@ EXTRA_LIBRARIES = $(LIBBITCOIN_CRYPTO) $(LIBBITCOIN_UTIL) \
 BITCOIN_CONFIG_INCLUDES = -I$(builddir)/config \
 	-I$(srcdir)/rust/include
 BITCOIN_INCLUDES = -I$(builddir) -I$(builddir)/obj $(BDB_CPPFLAGS) \
-	$(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) -I$(srcdir)/rust/include \
-	-I$(srcdir)/secp256k1/include -I$(srcdir)/univalue/include
+	$(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(SSL_CFLAGS) \
+	-I$(srcdir)/rust/include -I$(srcdir)/secp256k1/include \
+	-I$(srcdir)/univalue/include
 LIBBITCOIN_SERVER = libbitcoin_server.a
 LIBBITCOIN_COMMON = libbitcoin_common.a
 LIBBITCOIN_CLI = libbitcoin_cli.a
@@ -2089,7 +2093,7 @@ snowgemd_LDADD = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_WALLET) \
 	$(LIBBITCOIN_COMMON) $(LIBUNIVALUE) $(LIBBITCOIN_UTIL) \
 	$(LIBBITCOIN_ZMQ) $(LIBBITCOIN_CRYPTO) $(LIBZCASH) \
 	$(LIBRUSTZCASH) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) \
-	$(LIBSECP256K1) $(BOOST_LIBS) $(BDB_LIBS) \
+	$(LIBSECP256K1) $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) \
 	$(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) \
 	$(LIBBITCOIN_CRYPTO) $(LIBZCASH_LIBS)
 
@@ -2103,6 +2107,7 @@ snowgem_cli_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(BOOST_LIBS) \
+  $(SSL_LIBS) \
   $(EVENT_LIBS) \
   $(LIBZCASH) \
   $(LIBRUSTZCASH) \
