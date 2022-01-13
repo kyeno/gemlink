@@ -4170,7 +4170,7 @@ bool CWallet::SelectCoinsMinConf(const CAmount& nTargetValue, int nConfMine, int
     vector<pair<CAmount, pair<const CWalletTx*,unsigned int> > > vValue;
     CAmount nTotalLower = 0;
 
-    random_shuffle(vCoins.begin(), vCoins.end(), GetRandInt);
+    std::shuffle(vCoins.begin(), vCoins.end(), ZcashRandomEngine());
 
     BOOST_FOREACH(const COutput &output, vCoins)
     {
@@ -5321,7 +5321,7 @@ string CWallet::PrepareObfuscationDenominate(int minRounds, int maxRounds)
     }
 
     // randomize the output order
-    std::random_shuffle(vOut.begin(), vOut.end());
+    std::shuffle(vCoins.begin(), vCoins.end(), ZcashRandomEngine());
 
     // We also do not care about full amount as long as we have right denominations, just pass what we found
     obfuScationPool.SendObfuscationDenominate(vCoinsResult, vOut, nValueIn - nValueLeft);

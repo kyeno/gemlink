@@ -551,8 +551,8 @@ void CObfuscationPool::Check()
             }
 
             // shuffle the outputs for improved anonymity
-            std::random_shuffle(txNew.vin.begin(), txNew.vin.end(), randomizeList);
-            std::random_shuffle(txNew.vout.begin(), txNew.vout.end(), randomizeList);
+            std::shuffle(txNew.vin.begin(), txNew.vin.end(), ZcashRandomEngine());
+            std::shuffle(txNew.vout.begin(), txNew.vout.end(), ZcashRandomEngine());
 
 
             // LogPrint("obfuscation", "Transaction 1: %s\n", txNew.ToString());
