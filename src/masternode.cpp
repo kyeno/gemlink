@@ -747,6 +747,78 @@ std::string CMasternodePing::GetStrMessage() const
     return vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
 }
 
+// TODO gemlink - can remove after MORAG fork
+bool CMasternodePing::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
+{
+    std::string strError = "";
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+        uint256 hash = GetSignatureHash();
+
+        if (!CHashSigner::SignHash(hash, key, vchSig)) {
+            return error("%s : SignHash() failed", __func__);
+        }
+
+        if (!CHashSigner::VerifyHash(hash, pubKey, vchSig, strError)) {
+            return error("%s : VerifyHash() failed, error: %s", __func__, strError);
+        }
+
+    } else {
+        std::string errorMessage;
+        std::string strMessage = GetStrMessage();
+
+        if (!CMessageSigner::SignMessage(strMessage, vchSig, key)) {
+            LogPrint("masternode", "CMasternodePing::Sign() - Error: %s\n", errorMessage);
+            return false;
+        }
+
+        if (!VerifyMessage(pubKey, vchSig, strMessage, errorMessage)) {
+            LogPrint("masternode", "CMasternodePing::Sign() - Error: %s\n", errorMessage);
+            return false;
+        }
+
+        return true;
+    }
+}
+
+bool CMasternodePing::VerifyMessage(CPubKey pubkey, const vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const
+{
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << strMessageMagic;
+    ss << strMessage;
+
+    CPubKey pubkey2;
+
+    if (!pubkey2.RecoverCompact(ss.GetHash(), vchSig)) {
+        errorMessage = _("Error recovering public key.");
+        return false;
+    }
+
+    if (fDebug && pubkey2.GetID() != pubkey.GetID()) {
+        errorMessage = _("VerifyMessage -- keys don't match");
+    }
+    return (pubkey2.GetID() == pubkey.GetID());
+}
+
+bool CMasternodePing::CheckSignature(const CPubKey& pubKey) const
+{
+    std::string strError = "";
+
+    if (nMessVersion == MessageVersion::MESS_VER_HASH) {
+        uint256 hash = GetSignatureHash();
+        if (!CHashSigner::VerifyHash(hash, pubKey, vchSig, strError))
+            return error("%s : VerifyHash failed: %s", __func__, strError);
+
+    } else {
+        std::string strMessage = GetStrMessage();
+
+        if (!VerifyMessage(pubKey, vchSig, strMessage, strError)) {
+            return error("%s : VerifyMessage failed: %s", __func__, strError);
+        }
+    }
+    return true;
+}
+
 bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fCheckSigTimeOnly)
 {
     if (sigTime > GetAdjustedTime() + 60 * 60) {
@@ -760,7 +832,6 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
         nDos = 1;
         return false;
     }
-
 
     // see if we have this Masternode
     CMasternode* pmn = mnodeman.Find(vin);

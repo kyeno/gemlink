@@ -73,6 +73,10 @@ public:
     const CTxIn GetVin() const override { return vin; };
     bool CheckAndUpdate(int& nDos, bool fRequireEnabled = true, bool fCheckSigTimeOnly = false);
     void Relay();
+    // TODO gemlink can remove after morag fork
+    bool VerifyMessage(CPubKey pubkey, const vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const;
+    bool CheckSignature(const CPubKey& pubKey) const;
+    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode, bool fNewSigs);
 
     void swap(CMasternodePing& first, CMasternodePing& second) // nothrow
     {
