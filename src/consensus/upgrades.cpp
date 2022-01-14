@@ -10,51 +10,50 @@
  */
 const struct NUInfo NetworkUpgradeInfo[Consensus::MAX_NETWORK_UPGRADES] = {
     {
-        /*.nBranchId =*/ 0,
-        /*.strName =*/ "Sprout",
-        /*.strInfo =*/ "The Zcash network at launch",
+        /*.nBranchId =*/0,
+        /*.strName =*/"Sprout",
+        /*.strInfo =*/"The Zcash network at launch",
     },
     {
-        /*.nBranchId =*/ 0x74736554,
-        /*.strName =*/ "Test dummy",
-        /*.strInfo =*/ "Test dummy info",
+        /*.nBranchId =*/0x74736554,
+        /*.strName =*/"Test dummy",
+        /*.strInfo =*/"Test dummy info",
     },
     {
-        /*.nBranchId =*/ 0x5ba81b19,
-        /*.strName =*/ "Overwinter",
-        /*.strInfo =*/ "See https://z.cash/upgrade/overwinter.html for details.",
+        /*.nBranchId =*/0x5ba81b19,
+        /*.strName =*/"Overwinter",
+        /*.strInfo =*/"See https://z.cash/upgrade/overwinter.html for details.",
     },
     {
-        /*.nBranchId =*/ 0x76b809bb,
-        /*.strName =*/ "Sapling",
-        /*.strInfo =*/ "See https://z.cash/upgrade/sapling.html for details.",
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Sapling",
+        /*.strInfo =*/"See https://z.cash/upgrade/sapling.html for details.",
     },
     {
-        /*.nBranchId =*/ 0,
-        /*.strName =*/ "Difa",
-        /*.strInfo =*/ "SnowGem Blocksize and LWMA update",
+        /*.nBranchId =*/0,
+        /*.strName =*/"Difa",
+        /*.strInfo =*/"SnowGem Blocksize and LWMA update",
     },
     {
-        /*.nBranchId =*/ 0x76b809bb,
-        /*.strName =*/ "Alfheimr",
-        /*.strInfo =*/ "Masternodevoting, increase tx size to 400k",
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Alfheimr",
+        /*.strInfo =*/"Masternodevoting, increase tx size to 400k",
     },
     {
-        /*.nBranchId =*/ 0x76b809bb,
-        /*.strName =*/ "Knowhere",
-        /*.strInfo =*/ "Update payment reward",
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Knowhere",
+        /*.strInfo =*/"Update payment reward",
     },
     {
-        /*.nBranchId =*/ 0x76b809bb,
-        /*.strName =*/ "Wakanda",
-        /*.strInfo =*/ "Update new block consensus",
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Wakanda",
+        /*.strInfo =*/"Update new block consensus",
     },
     {
-        /*.nBranchId =*/ 0x76b809bb,
-        /*.strName =*/ "Atlantis",
-        /*.strInfo =*/ "Dropping private transactions",
-    }
-};
+        /*.nBranchId =*/0x76b809bb,
+        /*.strName =*/"Atlantis",
+        /*.strInfo =*/"Dropping private transactions",
+    }};
 
 const uint32_t SPROUT_BRANCH_ID = NetworkUpgradeInfo[Consensus::BASE_SPROUT].nBranchId;
 
@@ -93,7 +92,8 @@ bool NetworkUpgradeActive(
     return NetworkUpgradeState(nHeight, params, idx) == UPGRADE_ACTIVE;
 }
 
-int CurrentEpoch(int nHeight, const Consensus::Params& params) {
+int CurrentEpoch(int nHeight, const Consensus::Params& params)
+{
     for (auto idxInt = Consensus::MAX_NETWORK_UPGRADES - 1; idxInt >= Consensus::BASE_SPROUT; idxInt--) {
         if (NetworkUpgradeActive(nHeight, params, Consensus::UpgradeIndex(idxInt))) {
             return idxInt;
@@ -103,11 +103,13 @@ int CurrentEpoch(int nHeight, const Consensus::Params& params) {
     return Consensus::BASE_SPROUT;
 }
 
-uint32_t CurrentEpochBranchId(int nHeight, const Consensus::Params& params) {
+uint32_t CurrentEpochBranchId(int nHeight, const Consensus::Params& params)
+{
     return NetworkUpgradeInfo[CurrentEpoch(nHeight, params)].nBranchId;
 }
 
-bool IsConsensusBranchId(int branchId) {
+bool IsConsensusBranchId(int branchId)
+{
     for (int idx = Consensus::BASE_SPROUT; idx < Consensus::MAX_NETWORK_UPGRADES; idx++) {
         if (branchId == NetworkUpgradeInfo[idx].nBranchId) {
             return true;
@@ -148,7 +150,8 @@ bool IsActivationHeightForAnyUpgrade(
     return false;
 }
 
-boost::optional<int> NextEpoch(int nHeight, const Consensus::Params& params) {
+boost::optional<int> NextEpoch(int nHeight, const Consensus::Params& params)
+{
     if (nHeight < 0) {
         return boost::none;
     }

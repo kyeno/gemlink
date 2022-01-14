@@ -87,13 +87,13 @@ void CObfuScationRelay::Relay()
     int nRank1 = (rand() % nCount) + 1;
     int nRank2 = (rand() % nCount) + 1;
 
-    //keep picking another second number till we get one that doesn't match
+    // keep picking another second number till we get one that doesn't match
     while (nRank1 == nRank2)
         nRank2 = (rand() % nCount) + 1;
 
-    //printf("rank 1 - rank2 %d %d \n", nRank1, nRank2);
+    // printf("rank 1 - rank2 %d %d \n", nRank1, nRank2);
 
-    //relay this message through 2 separate nodes for redundancy
+    // relay this message through 2 separate nodes for redundancy
     RelayThroughNode(nRank1);
     RelayThroughNode(nRank2);
 }
@@ -103,15 +103,15 @@ void CObfuScationRelay::RelayThroughNode(int nRank)
     CMasternode* pmn = mnodeman.GetMasternodeByRank(nRank, nBlockHeight, ActiveProtocol());
 
     if (pmn != NULL) {
-        //printf("RelayThroughNode %s\n", pmn->addr.ToString().c_str());
+        // printf("RelayThroughNode %s\n", pmn->addr.ToString().c_str());
         CNode* pnode = ConnectNode((CAddress)pmn->addr, NULL, false);
         if (pnode) {
-            //printf("Connected\n");
+            // printf("Connected\n");
             pnode->PushMessage("dsr", (*this));
             pnode->Release();
             return;
         }
     } else {
-        //printf("RelayThroughNode NULL\n");
+        // printf("RelayThroughNode NULL\n");
     }
 }

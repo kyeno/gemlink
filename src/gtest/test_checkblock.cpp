@@ -1,28 +1,27 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "consensus/validation.h"
 #include "main.h"
 #include "zcash/Proof.hpp"
 
-class MockCValidationState : public CValidationState {
+class MockCValidationState : public CValidationState
+{
 public:
-    MOCK_METHOD5(DoS, bool(int level, bool ret,
-             unsigned char chRejectCodeIn, std::string strRejectReasonIn,
-             bool corruptionIn));
-    MOCK_METHOD3(Invalid, bool(bool ret,
-                 unsigned char _chRejectCode, std::string _strRejectReason));
+    MOCK_METHOD5(DoS, bool(int level, bool ret, unsigned char chRejectCodeIn, std::string strRejectReasonIn, bool corruptionIn));
+    MOCK_METHOD3(Invalid, bool(bool ret, unsigned char _chRejectCode, std::string _strRejectReason));
     MOCK_METHOD1(Error, bool(std::string strRejectReasonIn));
     MOCK_CONST_METHOD0(IsValid, bool());
     MOCK_CONST_METHOD0(IsInvalid, bool());
     MOCK_CONST_METHOD0(IsError, bool());
-    MOCK_CONST_METHOD1(IsInvalid, bool(int &nDoSOut));
+    MOCK_CONST_METHOD1(IsInvalid, bool(int& nDoSOut));
     MOCK_CONST_METHOD0(CorruptionPossible, bool());
     MOCK_CONST_METHOD0(GetRejectCode, unsigned char());
     MOCK_CONST_METHOD0(GetRejectReason, std::string());
 };
 
-TEST(CheckBlock, VersionTooLow) {
+TEST(CheckBlock, VersionTooLow)
+{
     auto verifier = libzcash::ProofVerifier::Strict();
 
     CBlock block;
@@ -36,7 +35,8 @@ TEST(CheckBlock, VersionTooLow) {
 
 // Test that a Sprout tx with negative version is still rejected
 // by CheckBlock under Sprout consensus rules.
-TEST(CheckBlock, BlockSproutRejectsBadVersion) {
+TEST(CheckBlock, BlockSproutRejectsBadVersion)
+{
     SelectParams(CBaseChainParams::MAIN);
 
     // Create a block with no height in scriptSig
@@ -48,18 +48,18 @@ TEST(CheckBlock, BlockSproutRejectsBadVersion) {
     mtx.vout[0].scriptPubKey = CScript() << OP_TRUE;
     mtx.vout[0].nValue = 0;
     mtx.vout.push_back(CTxOut(
-        GetBlockSubsidy(1, Params().GetConsensus())/5,
+        GetBlockSubsidy(1, Params().GetConsensus()) / 5,
         Params().GetFoundersRewardScriptAtHeight(1)));
     mtx.fOverwintered = false;
     mtx.nVersion = -1;
     mtx.nVersionGroupId = 0;
 
-    CTransaction tx {mtx};
+    CTransaction tx{mtx};
     CBlock block;
     block.vtx.push_back(tx);
 
     MockCValidationState state;
-    CBlockIndex indexPrev {Params().GenesisBlock()};
+    CBlockIndex indexPrev{Params().GenesisBlock()};
 
     auto verifier = libzcash::ProofVerifier::Strict();
 
@@ -68,20 +68,24 @@ TEST(CheckBlock, BlockSproutRejectsBadVersion) {
 }
 
 
-class ContextualCheckBlockTest : public ::testing::Test {
+class ContextualCheckBlockTest : public ::testing::Test
+{
 protected:
-    virtual void SetUp() {
+    virtual void SetUp()
+    {
         SelectParams(CBaseChainParams::MAIN);
     }
 
-    virtual void TearDown() {
+    virtual void TearDown()
+    {
         // Revert to test default. No-op on mainnet params.
         UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
         UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
     }
 
     // Returns a valid but empty mutable transaction at block height 1.
-    CMutableTransaction GetFirstBlockCoinbaseTx() {
+    CMutableTransaction GetFirstBlockCoinbaseTx()
+    {
         CMutableTransaction mtx;
 
         // No inputs.
@@ -98,8 +102,8 @@ protected:
 
         // Give it a Founder's Reward vout for height 1.
         mtx.vout.push_back(CTxOut(
-                    GetBlockSubsidy(1, Params().GetConsensus())/5,
-                    Params().GetFoundersRewardScriptAtHeight(1)));
+            GetBlockSubsidy(1, Params().GetConsensus()) / 5,
+            Params().GetFoundersRewardScriptAtHeight(1)));
 
         return mtx;
     }
@@ -108,13 +112,14 @@ protected:
     // ContextualCheckBlock. This is used in accepting (Sprout-Sprout,
     // Overwinter-Overwinter, ...) tests. You should not call it without
     // calling a SCOPED_TRACE macro first to usefully label any failures.
-    void ExpectValidBlockFromTx(const CTransaction& tx) {
+    void ExpectValidBlockFromTx(const CTransaction& tx)
+    {
         // Create a block and add the transaction to it.
         CBlock block;
         block.vtx.push_back(tx);
 
         // Set the previous block index to the genesis block.
-        CBlockIndex indexPrev {Params().GenesisBlock()};
+        CBlockIndex indexPrev{Params().GenesisBlock()};
 
         // We now expect this to be a valid block.
         MockCValidationState state;
@@ -125,24 +130,25 @@ protected:
     // ContextualCheckBlock. This is used in rejecting (Sprout-Overwinter,
     // Overwinter-Sprout, ...) tests. You should not call it without
     // calling a SCOPED_TRACE macro first to usefully label any failures.
-    void ExpectInvalidBlockFromTx(const CTransaction& tx, int level, std::string reason) {
+    void ExpectInvalidBlockFromTx(const CTransaction& tx, int level, std::string reason)
+    {
         // Create a block and add the transaction to it.
         CBlock block;
         block.vtx.push_back(tx);
 
         // Set the previous block index to the genesis block.
-        CBlockIndex indexPrev {Params().GenesisBlock()};
+        CBlockIndex indexPrev{Params().GenesisBlock()};
 
         // We now expect this to be an invalid block, for the given reason.
         MockCValidationState state;
         EXPECT_CALL(state, DoS(level, false, REJECT_INVALID, reason, false)).Times(1);
         EXPECT_FALSE(ContextualCheckBlock(block, state, &indexPrev));
     }
-
 };
 
 
-TEST_F(ContextualCheckBlockTest, BadCoinbaseHeight) {
+TEST_F(ContextualCheckBlockTest, BadCoinbaseHeight)
+{
     // Put a transaction in a block with no height in scriptSig
     CMutableTransaction mtx = GetFirstBlockCoinbaseTx();
     mtx.vin[0].scriptSig = CScript() << OP_0;
@@ -157,28 +163,28 @@ TEST_F(ContextualCheckBlockTest, BadCoinbaseHeight) {
 
     // Give the transaction a Founder's Reward vout
     mtx.vout.push_back(CTxOut(
-                GetBlockSubsidy(1, Params().GetConsensus())/5,
-                Params().GetFoundersRewardScriptAtHeight(1)));
+        GetBlockSubsidy(1, Params().GetConsensus()) / 5,
+        Params().GetFoundersRewardScriptAtHeight(1)));
 
     // Treating block as non-genesis should fail
-    CTransaction tx2 {mtx};
+    CTransaction tx2{mtx};
     block.vtx[0] = tx2;
     CBlock prev;
-    CBlockIndex indexPrev {prev};
+    CBlockIndex indexPrev{prev};
     indexPrev.nHeight = 0;
     EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-cb-height", false)).Times(1);
     EXPECT_FALSE(ContextualCheckBlock(block, state, &indexPrev));
 
     // Setting to an incorrect height should fail
     mtx.vin[0].scriptSig = CScript() << 2 << OP_0;
-    CTransaction tx3 {mtx};
+    CTransaction tx3{mtx};
     block.vtx[0] = tx3;
     EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-cb-height", false)).Times(1);
     EXPECT_FALSE(ContextualCheckBlock(block, state, &indexPrev));
 
     // After correcting the scriptSig, should pass
     mtx.vin[0].scriptSig = CScript() << 1 << OP_0;
-    CTransaction tx4 {mtx};
+    CTransaction tx4{mtx};
     block.vtx[0] = tx4;
     EXPECT_TRUE(ContextualCheckBlock(block, state, &indexPrev));
 }
@@ -189,7 +195,8 @@ TEST_F(ContextualCheckBlockTest, BadCoinbaseHeight) {
 
 // Test block evaluated under Sprout rules will accept Sprout transactions.
 // This test assumes that mainnet Overwinter activation is at least height 2.
-TEST_F(ContextualCheckBlockTest, BlockSproutRulesAcceptSproutTx) {
+TEST_F(ContextualCheckBlockTest, BlockSproutRulesAcceptSproutTx)
+{
     CMutableTransaction mtx = GetFirstBlockCoinbaseTx();
 
     // Make it a Sprout transaction w/o JoinSplits
@@ -202,7 +209,8 @@ TEST_F(ContextualCheckBlockTest, BlockSproutRulesAcceptSproutTx) {
 
 
 // Test block evaluated under Overwinter rules will accept Overwinter transactions.
-TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesAcceptOverwinterTx) {
+TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesAcceptOverwinterTx)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, 1);
 
@@ -219,7 +227,8 @@ TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesAcceptOverwinterTx) {
 
 
 // Test that a block evaluated under Sapling rules can contain Sapling transactions.
-TEST_F(ContextualCheckBlockTest, BlockSaplingRulesAcceptSaplingTx) {
+TEST_F(ContextualCheckBlockTest, BlockSaplingRulesAcceptSaplingTx)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, 1);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, 1);
@@ -243,7 +252,8 @@ TEST_F(ContextualCheckBlockTest, BlockSaplingRulesAcceptSaplingTx) {
 // Test that a block evaluated under Sprout rules cannot contain non-Sprout
 // transactions which require Overwinter to be active.  This test assumes that
 // mainnet Overwinter activation is at least height 2.
-TEST_F(ContextualCheckBlockTest, BlockSproutRulesRejectOtherTx) {
+TEST_F(ContextualCheckBlockTest, BlockSproutRulesRejectOtherTx)
+{
     CMutableTransaction mtx = GetFirstBlockCoinbaseTx();
 
     // Make it an Overwinter transaction
@@ -270,7 +280,8 @@ TEST_F(ContextualCheckBlockTest, BlockSproutRulesRejectOtherTx) {
 
 // Test block evaluated under Overwinter rules cannot contain non-Overwinter
 // transactions.
-TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesRejectOtherTx) {
+TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesRejectOtherTx)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, 1);
 
@@ -297,7 +308,8 @@ TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesRejectOtherTx) {
 
 
 // Test block evaluated under Sapling rules cannot contain non-Sapling transactions.
-TEST_F(ContextualCheckBlockTest, BlockSaplingRulesRejectOtherTx) {
+TEST_F(ContextualCheckBlockTest, BlockSaplingRulesRejectOtherTx)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, 1);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, 1);

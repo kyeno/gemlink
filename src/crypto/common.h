@@ -9,14 +9,14 @@
 #include "config/bitcoin-config.h"
 #endif
 
-#include <stdint.h>
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "compat/endian.h"
 
 #if defined(NDEBUG)
-# error "Zcash cannot be compiled without assertions."
+#error "Zcash cannot be compiled without assertions."
 #endif
 
 uint16_t static inline ReadLE16(const unsigned char* ptr)

@@ -17,8 +17,9 @@ public:
     CSHA256();
     CSHA256& Write(const unsigned char* data, size_t len);
     void Finalize(unsigned char hash[OUTPUT_SIZE]);
-    void FinalizeNoPadding(unsigned char hash[OUTPUT_SIZE]) {
-    	FinalizeNoPadding(hash, true);
+    void FinalizeNoPadding(unsigned char hash[OUTPUT_SIZE])
+    {
+        FinalizeNoPadding(hash, true);
     };
     CSHA256& Reset();
 

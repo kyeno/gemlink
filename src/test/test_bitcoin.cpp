@@ -11,11 +11,11 @@
 #include "key.h"
 #include "main.h"
 #include "random.h"
+#include "rpc/register.h"
+#include "rpc/server.h"
 #include "txdb.h"
 #include "txmempool.h"
 #include "ui_interface.h"
-#include "rpc/server.h"
-#include "rpc/register.h"
 #include "util.h"
 #ifdef ENABLE_WALLET
 #include "wallet/db.h"
@@ -30,7 +30,7 @@
 
 CClientUIInterface uiInterface; // Declared but not defined in ui_interface.h
 CWallet* pwalletMain;
-ZCJoinSplit *psnowgemParams;
+ZCJoinSplit* psnowgemParams;
 
 extern bool fPrintToConsole;
 extern void noui_connect();
@@ -61,8 +61,7 @@ JoinSplitTestingSetup::JoinSplitTestingSetup()
         "657e3d38dbb5cb5e7dd2970e8b03d69b4787dd907285b5a7f0790dcc8072f60bf593b32cc2d1c030e00ff5ae64bf84c5c3beb84ddc841d48264b4a171744d028",
         reinterpret_cast<const codeunit*>(sprout_groth16_str.c_str()),
         sprout_groth16_str.length(),
-        "e9b238411bd6c0ec4791e9d04245ec350c9c5744f5610dfcce4365d5ca49dfefd5054e371842b3f88fa1b9d7e8e075249b3ebabd167fa8b0f3161292d36c180a"
-    );
+        "e9b238411bd6c0ec4791e9d04245ec350c9c5744f5610dfcce4365d5ca49dfefd5054e371842b3f88fa1b9d7e8e075249b3ebabd167fa8b0f3161292d36c180a");
 }
 
 JoinSplitTestingSetup::~JoinSplitTestingSetup()
@@ -86,64 +85,65 @@ BasicTestingSetup::~BasicTestingSetup()
 
 TestingSetup::TestingSetup()
 {
-        // Ideally we'd move all the RPC tests to the functional testing framework
-        // instead of unit tests, but for now we need these here.
-        RegisterAllCoreRPCCommands(tableRPC);
+    // Ideally we'd move all the RPC tests to the functional testing framework
+    // instead of unit tests, but for now we need these here.
+    RegisterAllCoreRPCCommands(tableRPC);
 #ifdef ENABLE_WALLET
-        bitdb.MakeMock();
-        RegisterWalletRPCCommands(tableRPC);
+    bitdb.MakeMock();
+    RegisterWalletRPCCommands(tableRPC);
 #endif
 
-        // Save current path, in case a test changes it
-        orig_current_path = boost::filesystem::current_path();
+    // Save current path, in case a test changes it
+    orig_current_path = boost::filesystem::current_path();
 
-        ClearDatadirCache();
-        pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
-        boost::filesystem::create_directories(pathTemp);
-        mapArgs["-datadir"] = pathTemp.string();
-        pblocktree = new CBlockTreeDB(1 << 20, true);
-        pcoinsdbview = new CCoinsViewDB(1 << 23, true);
-        pcoinsTip = new CCoinsViewCache(pcoinsdbview);
-        InitBlockIndex();
+    ClearDatadirCache();
+    pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
+    boost::filesystem::create_directories(pathTemp);
+    mapArgs["-datadir"] = pathTemp.string();
+    pblocktree = new CBlockTreeDB(1 << 20, true);
+    pcoinsdbview = new CCoinsViewDB(1 << 23, true);
+    pcoinsTip = new CCoinsViewCache(pcoinsdbview);
+    InitBlockIndex();
 #ifdef ENABLE_WALLET
-        bool fFirstRun;
-        pwalletMain = new CWallet("wallet.dat");
-        pwalletMain->LoadWallet(fFirstRun);
-        RegisterValidationInterface(pwalletMain);
+    bool fFirstRun;
+    pwalletMain = new CWallet("wallet.dat");
+    pwalletMain->LoadWallet(fFirstRun);
+    RegisterValidationInterface(pwalletMain);
 #endif
-        nScriptCheckThreads = 3;
-        for (int i=0; i < nScriptCheckThreads-1; i++)
-            threadGroup.create_thread(&ThreadScriptCheck);
-        RegisterNodeSignals(GetNodeSignals());
+    nScriptCheckThreads = 3;
+    for (int i = 0; i < nScriptCheckThreads - 1; i++)
+        threadGroup.create_thread(&ThreadScriptCheck);
+    RegisterNodeSignals(GetNodeSignals());
 }
 
 TestingSetup::~TestingSetup()
 {
-        UnregisterNodeSignals(GetNodeSignals());
-        threadGroup.interrupt_all();
-        threadGroup.join_all();
+    UnregisterNodeSignals(GetNodeSignals());
+    threadGroup.interrupt_all();
+    threadGroup.join_all();
 #ifdef ENABLE_WALLET
-        UnregisterValidationInterface(pwalletMain);
-        delete pwalletMain;
-        pwalletMain = NULL;
+    UnregisterValidationInterface(pwalletMain);
+    delete pwalletMain;
+    pwalletMain = NULL;
 #endif
-        UnloadBlockIndex();
-        delete pcoinsTip;
-        delete pcoinsdbview;
-        delete pblocktree;
+    UnloadBlockIndex();
+    delete pcoinsTip;
+    delete pcoinsdbview;
+    delete pblocktree;
 #ifdef ENABLE_WALLET
-        bitdb.Flush(true);
-        bitdb.Reset();
+    bitdb.Flush(true);
+    bitdb.Reset();
 #endif
 
-        // Restore the previous current path so temporary directory can be deleted
-        boost::filesystem::current_path(orig_current_path);
+    // Restore the previous current path so temporary directory can be deleted
+    boost::filesystem::current_path(orig_current_path);
 
-        boost::filesystem::remove_all(pathTemp);
+    boost::filesystem::remove_all(pathTemp);
 }
 
 
-CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(CMutableTransaction &tx, CTxMemPool *pool) {
+CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(CMutableTransaction& tx, CTxMemPool* pool)
+{
     return CTxMemPoolEntry(tx, nFee, nTime, dPriority, nHeight,
                            pool ? pool->HasNoInputsOf(tx) : hadNoDependencies,
                            spendsCoinbase, nBranchId);
@@ -151,15 +151,15 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(CMutableTransaction &tx, CTxMemPo
 
 void Shutdown(void* parg)
 {
-  exit(0);
+    exit(0);
 }
 
 void StartShutdown()
 {
-  exit(0);
+    exit(0);
 }
 
 bool ShutdownRequested()
 {
-  return false;
+    return false;
 }

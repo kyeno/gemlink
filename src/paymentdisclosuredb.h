@@ -9,10 +9,10 @@
 #include "paymentdisclosure.h"
 
 #include <cstdint>
-#include <string>
-#include <mutex>
 #include <future>
 #include <memory>
+#include <mutex>
+#include <string>
 
 #include <boost/optional.hpp>
 

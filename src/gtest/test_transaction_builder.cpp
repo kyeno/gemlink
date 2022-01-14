@@ -15,13 +15,15 @@
 extern ZCJoinSplit* params;
 
 // Fake an empty view
-class TransactionBuilderCoinsViewDB : public CCoinsView {
+class TransactionBuilderCoinsViewDB : public CCoinsView
+{
 public:
     std::map<uint256, SproutMerkleTree> sproutTrees;
 
     TransactionBuilderCoinsViewDB() {}
 
-    bool GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const {
+    bool GetSproutAnchorAt(const uint256& rt, SproutMerkleTree& tree) const
+    {
         auto it = sproutTrees.find(rt);
         if (it != sproutTrees.end()) {
             tree = it->second;
@@ -31,44 +33,52 @@ public:
         }
     }
 
-    bool GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &tree) const {
+    bool GetSaplingAnchorAt(const uint256& rt, SaplingMerkleTree& tree) const
+    {
         return false;
     }
 
-    bool GetNullifier(const uint256 &nf, ShieldedType type) const {
+    bool GetNullifier(const uint256& nf, ShieldedType type) const
+    {
         return false;
     }
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const {
+    bool GetCoins(const uint256& txid, CCoins& coins) const
+    {
         return false;
     }
 
-    bool HaveCoins(const uint256 &txid) const {
+    bool HaveCoins(const uint256& txid) const
+    {
         return false;
     }
 
-    uint256 GetBestBlock() const {
+    uint256 GetBestBlock() const
+    {
         uint256 a;
         return a;
     }
 
-    uint256 GetBestAnchor(ShieldedType type) const {
+    uint256 GetBestAnchor(ShieldedType type) const
+    {
         uint256 a;
         return a;
     }
 
-    bool BatchWrite(CCoinsMap &mapCoins,
-                    const uint256 &hashBlock,
-                    const uint256 &hashSproutAnchor,
-                    const uint256 &hashSaplingAnchor,
-                    CAnchorsSproutMap &mapSproutAnchors,
-                    CAnchorsSaplingMap &mapSaplingAnchors,
-                    CNullifiersMap &mapSproutNullifiers,
-                    CNullifiersMap saplingNullifiersMap) {
+    bool BatchWrite(CCoinsMap& mapCoins,
+                    const uint256& hashBlock,
+                    const uint256& hashSproutAnchor,
+                    const uint256& hashSaplingAnchor,
+                    CAnchorsSproutMap& mapSproutAnchors,
+                    CAnchorsSaplingMap& mapSaplingAnchors,
+                    CNullifiersMap& mapSproutNullifiers,
+                    CNullifiersMap saplingNullifiersMap)
+    {
         return false;
     }
 
-    bool GetStats(CCoinsStats &stats) const {
+    bool GetStats(CCoinsStats& stats) const
+    {
         return false;
     }
 };
@@ -113,7 +123,8 @@ TEST(TransactionBuilder, TransparentToSapling)
     RegtestDeactivateSapling();
 }
 
-TEST(TransactionBuilder, SaplingToSapling) {
+TEST(TransactionBuilder, SaplingToSapling)
+{
     auto consensusParams = RegtestActivateSapling();
 
     auto sk = libzcash::SaplingSpendingKey::random();
@@ -150,7 +161,8 @@ TEST(TransactionBuilder, SaplingToSapling) {
     RegtestDeactivateSapling();
 }
 
-TEST(TransactionBuilder, SaplingToSprout) {
+TEST(TransactionBuilder, SaplingToSprout)
+{
     auto consensusParams = RegtestActivateSapling();
 
     auto sk = libzcash::SaplingSpendingKey::random();
@@ -188,7 +200,8 @@ TEST(TransactionBuilder, SaplingToSprout) {
     RegtestDeactivateSapling();
 }
 
-TEST(TransactionBuilder, SproutToSproutAndSapling) {
+TEST(TransactionBuilder, SproutToSproutAndSapling)
+{
     auto consensusParams = RegtestActivateSapling();
 
     auto sk = libzcash::SaplingSpendingKey::random();
@@ -475,9 +488,9 @@ TEST(TransactionBuilder, CheckSaplingTxVersion)
     auto builder = TransactionBuilder(consensusParams, 1);
     try {
         builder.AddSaplingOutput(uint256(), pk, 12345, {});
-    } catch (std::runtime_error const & err) {
+    } catch (std::runtime_error const& err) {
         EXPECT_EQ(err.what(), std::string("TransactionBuilder cannot add Sapling output to pre-Sapling transaction"));
-    } catch(...) {
+    } catch (...) {
         FAIL() << "Expected std::runtime_error";
     }
 
@@ -486,9 +499,9 @@ TEST(TransactionBuilder, CheckSaplingTxVersion)
     SaplingMerkleTree tree;
     try {
         builder.AddSaplingSpend(expsk, note, uint256(), tree.witness());
-    } catch (std::runtime_error const & err) {
+    } catch (std::runtime_error const& err) {
         EXPECT_EQ(err.what(), std::string("TransactionBuilder cannot add Sapling spend to pre-Sapling transaction"));
-    } catch(...) {
+    } catch (...) {
         FAIL() << "Expected std::runtime_error";
     }
 

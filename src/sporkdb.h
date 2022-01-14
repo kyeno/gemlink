@@ -5,9 +5,9 @@
 #ifndef Solaris_CSPORKDB_H
 #define Solaris_CSPORKDB_H
 
-#include <boost/filesystem/path.hpp>
 #include "dbwrapper.h"
 #include "spork.h"
+#include <boost/filesystem/path.hpp>
 
 class CSporkDB : public CDBWrapper
 {
@@ -25,4 +25,4 @@ public:
 };
 
 
-#endif //Solaris_CSPORKDB_H
+#endif // Solaris_CSPORKDB_H

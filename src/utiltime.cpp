@@ -9,17 +9,18 @@
 
 #include "utiltime.h"
 
-#include <chrono>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
+#include <chrono>
 
 using namespace std;
 
-static int64_t nMockTime = 0;  //! For unit testing
+static int64_t nMockTime = 0; //! For unit testing
 
 int64_t GetTime()
 {
-    if (nMockTime) return nMockTime;
+    if (nMockTime)
+        return nMockTime;
 
     return time(NULL);
 }
@@ -32,13 +33,15 @@ void SetMockTime(int64_t nMockTimeIn)
 int64_t GetTimeMillis()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+               std::chrono::system_clock::now().time_since_epoch())
+        .count();
 }
 
 int64_t GetTimeMicros()
 {
     return std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+               std::chrono::system_clock::now().time_since_epoch())
+        .count();
 }
 
 void MilliSleep(int64_t n)

@@ -10,10 +10,10 @@
 #include "script/standard.h"
 #include "serialize.h"
 #include "streams.h"
-#include <univalue.h>
 #include "util.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
+#include <univalue.h>
 
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
@@ -56,14 +56,7 @@ string FormatScript(const CScript& script)
 }
 
 const map<unsigned char, string> mapSigHashTypes =
-    boost::assign::map_list_of
-    (static_cast<unsigned char>(SIGHASH_ALL), string("ALL"))
-    (static_cast<unsigned char>(SIGHASH_ALL|SIGHASH_ANYONECANPAY), string("ALL|ANYONECANPAY"))
-    (static_cast<unsigned char>(SIGHASH_NONE), string("NONE"))
-    (static_cast<unsigned char>(SIGHASH_NONE|SIGHASH_ANYONECANPAY), string("NONE|ANYONECANPAY"))
-    (static_cast<unsigned char>(SIGHASH_SINGLE), string("SINGLE"))
-    (static_cast<unsigned char>(SIGHASH_SINGLE|SIGHASH_ANYONECANPAY), string("SINGLE|ANYONECANPAY"))
-    ;
+    boost::assign::map_list_of(static_cast<unsigned char>(SIGHASH_ALL), string("ALL"))(static_cast<unsigned char>(SIGHASH_ALL | SIGHASH_ANYONECANPAY), string("ALL|ANYONECANPAY"))(static_cast<unsigned char>(SIGHASH_NONE), string("NONE"))(static_cast<unsigned char>(SIGHASH_NONE | SIGHASH_ANYONECANPAY), string("NONE|ANYONECANPAY"))(static_cast<unsigned char>(SIGHASH_SINGLE), string("SINGLE"))(static_cast<unsigned char>(SIGHASH_SINGLE | SIGHASH_ANYONECANPAY), string("SINGLE|ANYONECANPAY"));
 
 /**
  * Create the assembly string representation of a CScript object.
@@ -124,7 +117,8 @@ string EncodeHexTx(const CTransaction& tx)
 }
 
 void ScriptPubKeyToUniv(const CScript& scriptPubKey,
-                        UniValue& out, bool fIncludeHex)
+                        UniValue& out,
+                        bool fIncludeHex)
 {
     txnouttype type;
     vector<CTxDestination> addresses;
@@ -156,7 +150,7 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry)
     entry.pushKV("locktime", (int64_t)tx.nLockTime);
 
     UniValue vin(UniValue::VARR);
-    BOOST_FOREACH(const CTxIn& txin, tx.vin) {
+    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
         UniValue in(UniValue::VOBJ);
         if (tx.IsCoinBase())
             in.pushKV("coinbase", HexStr(txin.scriptSig.begin(), txin.scriptSig.end()));

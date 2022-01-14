@@ -1,10 +1,10 @@
+#include "asyncrpcoperation_saplingconsolidation.h"
 #include "assert.h"
 #include "boost/variant/static_visitor.hpp"
-#include "asyncrpcoperation_saplingconsolidation.h"
 #include "init.h"
 #include "key_io.h"
-#include "rpc/protocol.h"
 #include "random.h"
+#include "rpc/protocol.h"
 #include "sync.h"
 #include "tinyformat.h"
 #include "transaction_builder.h"
@@ -21,7 +21,8 @@ AsyncRPCOperation_saplingconsolidation::AsyncRPCOperation_saplingconsolidation(i
 
 AsyncRPCOperation_saplingconsolidation::~AsyncRPCOperation_saplingconsolidation() {}
 
-void AsyncRPCOperation_saplingconsolidation::main() {
+void AsyncRPCOperation_saplingconsolidation::main()
+{
     if (isCancelled())
         return;
 
@@ -69,7 +70,8 @@ void AsyncRPCOperation_saplingconsolidation::main() {
     LogPrintf("%s", s);
 }
 
-bool AsyncRPCOperation_saplingconsolidation::main_impl() {
+bool AsyncRPCOperation_saplingconsolidation::main_impl()
+{
     LogPrint("zrpcunsafe", "%s: Beginning AsyncRPCOperation_saplingconsolidation.\n", getId());
     auto consensusParams = Params().GetConsensus();
     auto nextActivationHeight = NextActivationHeight(targetHeight_, consensusParams);
@@ -90,11 +92,11 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
         pwalletMain->GetFilteredNotes(sproutEntries, saplingEntries, "", 11);
         if (fConsolidationMapUsed) {
             const vector<string>& v = mapMultiArgs["-consolidatesaplingaddress"];
-            for(int i = 0; i < v.size(); i++) {
+            for (int i = 0; i < v.size(); i++) {
                 auto zAddress = DecodePaymentAddress(v[i]);
                 if (boost::get<libzcash::SaplingPaymentAddress>(&zAddress) != nullptr) {
                     libzcash::SaplingPaymentAddress saplingAddress = boost::get<libzcash::SaplingPaymentAddress>(zAddress);
-                    addresses.insert(saplingAddress );
+                    addresses.insert(saplingAddress);
                 }
             }
         } else {
@@ -110,31 +112,28 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
     for (auto addr : addresses) {
         libzcash::SaplingExtendedSpendingKey extsk;
         if (pwalletMain->GetSaplingExtendedSpendingKey(addr, extsk)) {
-
             std::vector<SaplingNoteEntry> fromNotes;
             CAmount amountToSend = 0;
             int maxQuantity = rand() % 35 + 10;
             for (const SaplingNoteEntry& saplingEntry : saplingEntries) {
-
                 libzcash::SaplingIncomingViewingKey ivk;
                 pwalletMain->GetSaplingIncomingViewingKey(boost::get<libzcash::SaplingPaymentAddress>(saplingEntry.address), ivk);
 
-                //Select Notes from that same address we will be sending to.
+                // Select Notes from that same address we will be sending to.
                 if (ivk == extsk.expsk.full_viewing_key().in_viewing_key()) {
-                  amountToSend += CAmount(saplingEntry.note.value());
-                  fromNotes.push_back(saplingEntry);
+                    amountToSend += CAmount(saplingEntry.note.value());
+                    fromNotes.push_back(saplingEntry);
                 }
 
-                //Only use a randomly determined number of notes between 10 and 45
+                // Only use a randomly determined number of notes between 10 and 45
                 if (fromNotes.size() >= maxQuantity)
-                  break;
-
+                    break;
             }
 
-            //random minimum 2 - 12 required
+            // random minimum 2 - 12 required
             int minQuantity = rand() % 10 + 2;
             if (fromNotes.size() < minQuantity)
-              continue;
+                continue;
 
             amountConsolidated += amountToSend;
             auto builder = TransactionBuilder(consensusParams, targetHeight_, pwalletMain, psnowgemParams, &coinsView, &cs_main);
@@ -179,17 +178,16 @@ bool AsyncRPCOperation_saplingconsolidation::main_impl() {
             LogPrint("zrpcunsafe", "%s: Committed consolidation transaction with txid=%s\n", getId(), tx.GetHash().ToString());
             amountConsolidated += amountToSend - fConsolidationTxFee;
             consolidationTxIds.push_back(tx.GetHash().ToString());
-
         }
     }
 
     LogPrint("zrpcunsafe", "%s: Created %d transactions with total Sapling output amount=%s\n", getId(), numTxCreated, FormatMoney(amountConsolidated));
     setConsolidationResult(numTxCreated, amountConsolidated, consolidationTxIds);
     return true;
-
 }
 
-void AsyncRPCOperation_saplingconsolidation::setConsolidationResult(int numTxCreated, const CAmount& amountConsolidated, const std::vector<std::string>& consolidationTxIds) {
+void AsyncRPCOperation_saplingconsolidation::setConsolidationResult(int numTxCreated, const CAmount& amountConsolidated, const std::vector<std::string>& consolidationTxIds)
+{
     UniValue res(UniValue::VOBJ);
     res.push_back(Pair("num_tx_created", numTxCreated));
     res.push_back(Pair("amount_consolidated", FormatMoney(amountConsolidated)));
@@ -201,11 +199,13 @@ void AsyncRPCOperation_saplingconsolidation::setConsolidationResult(int numTxCre
     set_result(res);
 }
 
-void AsyncRPCOperation_saplingconsolidation::cancel() {
+void AsyncRPCOperation_saplingconsolidation::cancel()
+{
     set_state(OperationStatus::CANCELLED);
 }
 
-UniValue AsyncRPCOperation_saplingconsolidation::getStatus() const {
+UniValue AsyncRPCOperation_saplingconsolidation::getStatus() const
+{
     UniValue v = AsyncRPCOperation::getStatus();
     UniValue obj = v.get_obj();
     obj.push_back(Pair("method", "saplingconsolidation"));

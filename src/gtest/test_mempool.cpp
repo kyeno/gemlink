@@ -1,13 +1,13 @@
-#include <gtest/gtest.h>
 #include <gtest/gtest-spi.h>
+#include <gtest/gtest.h>
 
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
 #include "core_io.h"
 #include "main.h"
+#include "policy/fees.h"
 #include "primitives/transaction.h"
 #include "txmempool.h"
-#include "policy/fees.h"
 #include "util.h"
 
 // Implementation is in test_checktransaction.cpp
@@ -15,23 +15,28 @@ extern CMutableTransaction GetValidTransaction();
 
 // Fake the input of transaction 5295156213414ed77f6e538e7e8ebe14492156906b9fe995b242477818789364
 // - 532639cc6bebed47c1c69ae36dd498c68a012e74ad12729adbd3dbb56f8f3f4a, 0
-class FakeCoinsViewDB : public CCoinsView {
+class FakeCoinsViewDB : public CCoinsView
+{
 public:
     FakeCoinsViewDB() {}
 
-    bool GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const {
+    bool GetSproutAnchorAt(const uint256& rt, SproutMerkleTree& tree) const
+    {
         return false;
     }
 
-    bool GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &tree) const {
+    bool GetSaplingAnchorAt(const uint256& rt, SaplingMerkleTree& tree) const
+    {
         return false;
     }
 
-    bool GetNullifier(const uint256 &nf, ShieldedType type) const {
+    bool GetNullifier(const uint256& nf, ShieldedType type) const
+    {
         return false;
     }
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const {
+    bool GetCoins(const uint256& txid, CCoins& coins) const
+    {
         CTxOut txOut;
         txOut.nValue = 4288035;
         CCoins newCoins;
@@ -42,37 +47,43 @@ public:
         return true;
     }
 
-    bool HaveCoins(const uint256 &txid) const {
+    bool HaveCoins(const uint256& txid) const
+    {
         return true;
     }
 
-    uint256 GetBestBlock() const {
+    uint256 GetBestBlock() const
+    {
         uint256 a;
         return a;
     }
 
-    uint256 GetBestAnchor(ShieldedType type) const {
+    uint256 GetBestAnchor(ShieldedType type) const
+    {
         uint256 a;
         return a;
     }
 
-    bool BatchWrite(CCoinsMap &mapCoins,
-                    const uint256 &hashBlock,
-                    const uint256 &hashSproutAnchor,
-                    const uint256 &hashSaplingAnchor,
-                    CAnchorsSproutMap &mapSproutAnchors,
-                    CAnchorsSaplingMap &mapSaplingAnchors,
-                    CNullifiersMap &mapSproutNullifiers,
-                    CNullifiersMap &mapSaplingNullifiers) {
+    bool BatchWrite(CCoinsMap& mapCoins,
+                    const uint256& hashBlock,
+                    const uint256& hashSproutAnchor,
+                    const uint256& hashSaplingAnchor,
+                    CAnchorsSproutMap& mapSproutAnchors,
+                    CAnchorsSaplingMap& mapSaplingAnchors,
+                    CNullifiersMap& mapSproutNullifiers,
+                    CNullifiersMap& mapSaplingNullifiers)
+    {
         return false;
     }
 
-    bool GetStats(CCoinsStats &stats) const {
+    bool GetStats(CCoinsStats& stats) const
+    {
         return false;
     }
 };
 
-TEST(Mempool, PriorityStatsDoNotCrash) {
+TEST(Mempool, PriorityStatsDoNotCrash)
+{
     // Test for security issue 2017-04-11.a
     // https://snowgem.org/blog/security-announcement-2017-04-12.html
 
@@ -102,7 +113,8 @@ TEST(Mempool, PriorityStatsDoNotCrash) {
     EXPECT_EQ(dPriority, MAX_PRIORITY);
 }
 
-TEST(Mempool, TxInputLimit) {
+TEST(Mempool, TxInputLimit)
+{
     SelectParams(CBaseChainParams::REGTEST);
 
     CTxMemPool pool(::minRelayTxFee);
@@ -167,7 +179,8 @@ TEST(Mempool, TxInputLimit) {
 }
 
 // Valid overwinter v3 format tx gets rejected because overwinter hasn't activated yet.
-TEST(Mempool, OverwinterNotActiveYet) {
+TEST(Mempool, OverwinterNotActiveYet)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
 
@@ -194,7 +207,8 @@ TEST(Mempool, OverwinterNotActiveYet) {
 // 1. pass CheckTransaction (and CheckTransactionWithoutProofVerification)
 // 2. pass ContextualCheckTransaction
 // 3. fail IsStandardTx
-TEST(Mempool, SproutV3TxFailsAsExpected) {
+TEST(Mempool, SproutV3TxFailsAsExpected)
+{
     SelectParams(CBaseChainParams::TESTNET);
 
     CTxMemPool pool(::minRelayTxFee);
@@ -214,7 +228,8 @@ TEST(Mempool, SproutV3TxFailsAsExpected) {
 // Sprout transaction version 3 when Overwinter is always active:
 // 1. pass CheckTransaction (and CheckTransactionWithoutProofVerification)
 // 2. fails ContextualCheckTransaction
-TEST(Mempool, SproutV3TxWhenOverwinterActive) {
+TEST(Mempool, SproutV3TxWhenOverwinterActive)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
 
@@ -238,7 +253,8 @@ TEST(Mempool, SproutV3TxWhenOverwinterActive) {
 // Sprout transaction with negative version, rejected by the mempool in CheckTransaction
 // under Sprout consensus rules, should still be rejected under Overwinter consensus rules.
 // 1. fails CheckTransaction (specifically CheckTransactionWithoutProofVerification)
-TEST(Mempool, SproutNegativeVersionTxWhenOverwinterActive) {
+TEST(Mempool, SproutNegativeVersionTxWhenOverwinterActive)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
 

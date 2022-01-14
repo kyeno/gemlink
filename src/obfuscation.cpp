@@ -6,6 +6,7 @@
 
 #include "obfuscation.h"
 #include "coincontrol.h"
+#include "consensus/validation.h"
 #include "init.h"
 #include "main.h"
 #include "masternodeman.h"
@@ -13,7 +14,6 @@
 #include "swifttx.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "consensus/validation.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -107,7 +107,7 @@ void CObfuscationPool::UnlockCoins()
             MilliSleep(50);
             continue;
         }
-        for (CTxIn v: lockedCoins)
+        for (CTxIn v : lockedCoins)
             pwalletMain->UnlockCoin(v.prevout);
         break;
     }
@@ -120,8 +120,9 @@ void CObfuscationPool::UnlockCoins()
 //
 void CObfuscationPool::Check()
 {
-    if (fMasterNode) LogPrint("obfuscation", "CObfuscationPool::Check() - entries count %lu\n", entries.size());
-    //printf("CObfuscationPool::Check() %d - %d - %d\n", state, anonTx.CountEntries(), GetTimeMillis()-lastTimeChanged);
+    if (fMasterNode)
+        LogPrint("obfuscation", "CObfuscationPool::Check() - entries count %lu\n", entries.size());
+    // printf("CObfuscationPool::Check() %d - %d - %d\n", state, anonTx.CountEntries(), GetTimeMillis()-lastTimeChanged);
 
     if (fMasterNode) {
         LogPrint("obfuscation", "CObfuscationPool::Check() - entries count %lu\n", entries.size());
@@ -143,10 +144,10 @@ void CObfuscationPool::Check()
 
             // make our new transaction
             for (unsigned int i = 0; i < entries.size(); i++) {
-                for (const CTxOut& v: entries[i].vout)
+                for (const CTxOut& v : entries[i].vout)
                     txNew.vout.push_back(v);
 
-                for (const CTxDSIn& s: entries[i].sev)
+                for (const CTxDSIn& s : entries[i].sev)
                     txNew.vin.push_back(s);
             }
 
@@ -176,13 +177,15 @@ void CObfuscationPool::Check()
         LogPrint("obfuscation", "CObfuscationPool::Check() -- timeout, RESETTING\n");
         UnlockCoins();
         SetNull();
-        if (fMasterNode) RelayStatus(sessionID, GetState(), GetEntriesCount(), MASTERNODE_RESET);
+        if (fMasterNode)
+            RelayStatus(sessionID, GetState(), GetEntriesCount(), MASTERNODE_RESET);
     }
 }
 
 void CObfuscationPool::CheckFinalTransaction()
 {
-    if (!fMasterNode) return; // check and relay final tx only on masternode
+    if (!fMasterNode)
+        return; // check and relay final tx only on masternode
 
     CWalletTx txNew = CWalletTx(pwalletMain, finalTransaction);
 
@@ -267,17 +270,19 @@ void CObfuscationPool::CheckFinalTransaction()
 //
 void CObfuscationPool::ChargeFees()
 {
-    if (!fMasterNode) return;
+    if (!fMasterNode)
+        return;
 
-    //we don't need to charge collateral for every offence.
+    // we don't need to charge collateral for every offence.
     int offences = 0;
     int r = rand() % 100;
-    if (r > 33) return;
+    if (r > 33)
+        return;
 
     if (state == POOL_STATUS_ACCEPTING_ENTRIES) {
-        for (const CTransaction& txCollateral: vecSessionCollateral) {
+        for (const CTransaction& txCollateral : vecSessionCollateral) {
             bool found = false;
-            for (const CObfuScationEntry& v: entries) {
+            for (const CObfuScationEntry& v : entries) {
                 if (v.collateral == txCollateral) {
                     found = true;
                 }
@@ -293,8 +298,8 @@ void CObfuscationPool::ChargeFees()
 
     if (state == POOL_STATUS_SIGNING) {
         // who didn't sign?
-        for (const CObfuScationEntry v: entries) {
-            for (const CTxDSIn s: v.sev) {
+        for (const CObfuScationEntry v : entries) {
+            for (const CTxDSIn s : v.sev) {
                 if (!s.fHasSig) {
                     LogPrintf("CObfuscationPool::ChargeFees -- found uncooperative node (didn't sign). Found offence\n");
                     offences++;
@@ -306,22 +311,25 @@ void CObfuscationPool::ChargeFees()
     r = rand() % 100;
     int target = 0;
 
-    //mostly offending?
-    if (offences >= Params().PoolMaxTransactions() - 1 && r > 33) return;
+    // mostly offending?
+    if (offences >= Params().PoolMaxTransactions() - 1 && r > 33)
+        return;
 
-    //everyone is an offender? That's not right
-    if (offences >= Params().PoolMaxTransactions()) return;
+    // everyone is an offender? That's not right
+    if (offences >= Params().PoolMaxTransactions())
+        return;
 
-    //charge one of the offenders randomly
-    if (offences > 1) target = 50;
+    // charge one of the offenders randomly
+    if (offences > 1)
+        target = 50;
 
-    //pick random client to charge
+    // pick random client to charge
     r = rand() % 100;
 
     if (state == POOL_STATUS_ACCEPTING_ENTRIES) {
-        for (const CTransaction& txCollateral: vecSessionCollateral) {
+        for (const CTransaction& txCollateral : vecSessionCollateral) {
             bool found = false;
-            for (const CObfuScationEntry& v: entries) {
+            for (const CObfuScationEntry& v : entries) {
                 if (v.collateral == txCollateral) {
                     found = true;
                 }
@@ -346,8 +354,8 @@ void CObfuscationPool::ChargeFees()
 
     if (state == POOL_STATUS_SIGNING) {
         // who didn't sign?
-        for (const CObfuScationEntry v: entries) {
-            for (const CTxDSIn s: v.sev) {
+        for (const CObfuScationEntry v : entries) {
+            for (const CTxDSIn s : v.sev) {
                 if (!s.fHasSig && r > target) {
                     LogPrintf("CObfuscationPool::ChargeFees -- found uncooperative node (didn't sign). charging fees.\n");
 
@@ -373,7 +381,7 @@ void CObfuscationPool::ChargeRandomFees()
     if (fMasterNode) {
         int i = 0;
 
-        for (const CTransaction& txCollateral: vecSessionCollateral) {
+        for (const CTransaction& txCollateral : vecSessionCollateral) {
             int r = rand() % 100;
 
             /*
@@ -406,7 +414,8 @@ void CObfuscationPool::ChargeRandomFees()
 //
 void CObfuscationPool::CheckTimeout()
 {
-    if (!fEnableSnowgemSend && !fMasterNode) return;
+    if (!fEnableSnowgemSend && !fMasterNode)
+        return;
 
     // catching hanging sessions
     if (!fMasterNode) {
@@ -439,7 +448,8 @@ void CObfuscationPool::CheckTimeout()
     }
 
     int addLagTime = 0;
-    if (!fMasterNode) addLagTime = 10000; //if we're the client, give the server a few extra seconds before resetting.
+    if (!fMasterNode)
+        addLagTime = 10000; // if we're the client, give the server a few extra seconds before resetting.
 
     if (state == POOL_STATUS_ACCEPTING_ENTRIES || state == POOL_STATUS_QUEUE) {
         c = 0;
@@ -491,7 +501,8 @@ void CObfuscationPool::CheckTimeout()
 //
 void CObfuscationPool::CheckForCompleteQueue()
 {
-    if (!fEnableSnowgemSend && !fMasterNode) return;
+    if (!fEnableSnowgemSend && !fMasterNode)
+        return;
 
     /* Check to see if we're ready for submissions from clients */
     //
@@ -526,7 +537,7 @@ void CObfuscationPool::NewBlock()
 {
     LogPrint("obfuscation", "CObfuscationPool::NewBlock \n");
 
-    //we we're processing lots of blocks, we'll just leave
+    // we we're processing lots of blocks, we'll just leave
     if (GetTime() - lastNewBlock < 10)
         return;
     lastNewBlock = GetTime();
@@ -615,7 +626,8 @@ bool CObfuScationSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vc
 
 bool CObfuscationQueue::Sign()
 {
-    if (!fMasterNode) return false;
+    if (!fMasterNode)
+        return false;
 
     std::string strMessage = vin.ToString() + std::to_string(nDenom) + std::to_string(time) + std::to_string(ready);
 
@@ -644,7 +656,7 @@ bool CObfuscationQueue::Sign()
 bool CObfuscationQueue::Relay()
 {
     LOCK(cs_vNodes);
-    for (CNode* pnode: vNodes) {
+    for (CNode* pnode : vNodes) {
         // always relay to everyone
         pnode->PushMessage("dsq", (*this));
     }
@@ -655,7 +667,7 @@ bool CObfuscationQueue::Relay()
 void CObfuscationPool::RelayFinalTransaction(const int sessionID, const CTransaction& txNew)
 {
     LOCK(cs_vNodes);
-    for (CNode* pnode: vNodes) {
+    for (CNode* pnode : vNodes) {
         pnode->PushMessage("dsf", sessionID, txNew);
     }
 }
@@ -663,21 +675,22 @@ void CObfuscationPool::RelayFinalTransaction(const int sessionID, const CTransac
 void CObfuscationPool::RelayStatus(const int sessionID, const int newState, const int newEntriesCount, const int newAccepted, const int errorID)
 {
     LOCK(cs_vNodes);
-    for (CNode* pnode: vNodes)
+    for (CNode* pnode : vNodes)
         pnode->PushMessage("dssu", sessionID, newState, newEntriesCount, newAccepted, errorID);
 }
 
 void CObfuscationPool::RelayCompletedTransaction(const int sessionID, const bool error, const int errorID)
 {
     LOCK(cs_vNodes);
-    for (CNode* pnode: vNodes)
+    for (CNode* pnode : vNodes)
         pnode->PushMessage("dsc", sessionID, error, errorID);
 }
 
-//TODO: Rename/move to core
+// TODO: Rename/move to core
 void ThreadCheckObfuScationPool()
 {
-    if (fLiteMode) return; //disable all Obfuscation/Masternode related functionality
+    if (fLiteMode)
+        return; // disable all Obfuscation/Masternode related functionality
 
     // Make this thread recognisable as the wallet flushing thread
     RenameThread("snowgem-obfuscation");
@@ -686,7 +699,7 @@ void ThreadCheckObfuScationPool()
 
     while (true) {
         MilliSleep(1000);
-        //LogPrintf("ThreadCheckObfuScationPool::check timeout\n");
+        // LogPrintf("ThreadCheckObfuScationPool::check timeout\n");
 
         // try to sync from all available nodes, one step at a time
         masternodeSync.Process();
@@ -696,7 +709,8 @@ void ThreadCheckObfuScationPool()
 
             // check if we should activate or ping every few minutes,
             // start right after sync is considered to be done
-            if (c % MASTERNODE_PING_SECONDS == 1) activeMasternode.ManageStatus();
+            if (c % MASTERNODE_PING_SECONDS == 1)
+                activeMasternode.ManageStatus();
 
             if (c % 60 == 0) {
                 mnodeman.CheckAndRemove();
@@ -705,7 +719,7 @@ void ThreadCheckObfuScationPool()
                 CleanTransactionLocksList();
             }
 
-            //if(c % MASTERNODES_DUMP_SECONDS == 0) DumpMasternodes();
+            // if(c % MASTERNODES_DUMP_SECONDS == 0) DumpMasternodes();
 
             obfuScationPool.CheckTimeout();
             obfuScationPool.CheckForCompleteQueue();

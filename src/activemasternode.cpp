@@ -19,25 +19,29 @@ void CActiveMasternode::ManageStatus()
 {
     std::string errorMessage;
 
-    if (!fMasterNode) return;
+    if (!fMasterNode)
+        return;
 
-    if (fDebug) LogPrintf("CActiveMasternode::ManageStatus() - Begin\n");
+    if (fDebug)
+        LogPrintf("CActiveMasternode::ManageStatus() - Begin\n");
 
-    //need correct blocks to send ping
+    // need correct blocks to send ping
     if (NetworkIdFromCommandLine() != CBaseChainParams::REGTEST && !masternodeSync.IsBlockchainSynced()) {
         status = ACTIVE_MASTERNODE_SYNC_IN_PROCESS;
         LogPrintf("CActiveMasternode::ManageStatus() - %s\n", GetStatus());
         return;
     }
 
-    if (status == ACTIVE_MASTERNODE_SYNC_IN_PROCESS) status = ACTIVE_MASTERNODE_INITIAL;
+    if (status == ACTIVE_MASTERNODE_SYNC_IN_PROCESS)
+        status = ACTIVE_MASTERNODE_INITIAL;
 
     if (status == ACTIVE_MASTERNODE_INITIAL) {
         CMasternode* pmn;
         pmn = mnodeman.Find(pubKeyMasternode);
         if (pmn != NULL) {
             pmn->Check();
-            if (pmn->IsEnabled() && pmn->protocolVersion == PROTOCOL_VERSION) EnableHotColdMasterNode(pmn->vin, pmn->addr);
+            if (pmn->IsEnabled() && pmn->protocolVersion == PROTOCOL_VERSION)
+                EnableHotColdMasterNode(pmn->vin, pmn->addr);
         }
     }
 
@@ -112,7 +116,7 @@ void CActiveMasternode::ManageStatus()
                 return;
             }
 
-            //send to all peers
+            // send to all peers
             LogPrintf("CActiveMasternode::ManageStatus() - Relay broadcast vin = %s\n", vin.ToString());
             mnb.Relay();
             LogPrintf("CActiveMasternode::ManageStatus() - Is capable master node!\n");
@@ -126,7 +130,7 @@ void CActiveMasternode::ManageStatus()
         }
     }
 
-    //send to all peers
+    // send to all peers
     if (!SendMasternodePing(errorMessage)) {
         LogPrintf("CActiveMasternode::ManageStatus() - Error on Ping: %s\n", errorMessage);
     }
@@ -184,10 +188,11 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
         pmn->lastPing = mnp;
         mnodeman.mapSeenMasternodePing.insert(make_pair(mnp.GetHash(), mnp));
 
-        //mnodeman.mapSeenMasternodeBroadcast.lastPing is probably outdated, so we'll update it
+        // mnodeman.mapSeenMasternodeBroadcast.lastPing is probably outdated, so we'll update it
         CMasternodeBroadcast mnb(*pmn);
         uint256 hash = mnb.GetHash();
-        if (mnodeman.mapSeenMasternodeBroadcast.count(hash)) mnodeman.mapSeenMasternodeBroadcast[hash].lastPing = mnp;
+        if (mnodeman.mapSeenMasternodeBroadcast.count(hash))
+            mnodeman.mapSeenMasternodeBroadcast[hash].lastPing = mnp;
 
         mnp.Relay();
 
@@ -196,7 +201,8 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
          * AFTER MIGRATION TO V12 IS DONE
          */
 
-        if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES)) return true;
+        if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+            return true;
         // for migration purposes ping our node on old masternodes network too
         std::string retErrorMessage;
         std::vector<unsigned char> vchMasterNodeSignature;
@@ -216,7 +222,7 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
 
         LogPrint("masternode", "dseep - relaying from active mn, %s \n", vin.ToString().c_str());
         LOCK(cs_vNodes);
-        for (CNode* pnode: vNodes)
+        for (CNode* pnode : vNodes)
             pnode->PushMessage("dseep", vin, vchMasterNodeSignature, masterNodeSignatureTime, false);
 
         /*
@@ -241,7 +247,7 @@ bool CActiveMasternode::CreateBroadcast(std::string strService, std::string strK
     CPubKey pubKeyMasternode;
     CKey keyMasternode;
 
-    //need correct blocks to send ping
+    // need correct blocks to send ping
     if (!fOffline && !masternodeSync.IsBlockchainSynced()) {
         errorMessage = "Sync in progress. Must wait until sync is complete to start Masternode";
         LogPrintf("CActiveMasternode::CreateBroadcast() - %s\n", errorMessage);
@@ -299,7 +305,8 @@ bool CActiveMasternode::CreateBroadcast(CTxIn vin, CService service, CKey keyCol
      * AFTER MIGRATION TO V12 IS DONE
      */
 
-    if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES)) return true;
+    if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+        return true;
     // for migration purposes inject our node in old masternodes' list too
     std::string retErrorMessage;
     std::vector<unsigned char> vchMasterNodeSignature;
@@ -325,7 +332,7 @@ bool CActiveMasternode::CreateBroadcast(CTxIn vin, CService service, CKey keyCol
     }
 
     LOCK(cs_vNodes);
-    for (CNode* pnode: vNodes)
+    for (CNode* pnode : vNodes)
         pnode->PushMessage("dsee", vin, service, vchMasterNodeSignature, masterNodeSignatureTime, pubKeyCollateralAddress, pubKeyMasternode, -1, -1, masterNodeSignatureTime, PROTOCOL_VERSION, donationAddress, donationPercantage);
 
     /*
@@ -368,7 +375,7 @@ bool CActiveMasternode::GetMasterNodeVin(CTxIn& vin, CPubKey& pubkey, CKey& secr
         }
 
         bool found = false;
-        for (COutput& out: possibleCoins) {
+        for (COutput& out : possibleCoins) {
             if (out.tx->GetHash() == txHash && out.i == outputIndex) {
                 selectedOutput = &out;
                 found = true;
@@ -436,11 +443,11 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
         // fix deadlock
         LOCK(pwalletMain->cs_wallet);
         uint256 mnTxHash;
-        for (CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries()) {
+        for (CMasternodeConfig::CMasternodeEntry mne : masternodeConfig.getEntries()) {
             mnTxHash.SetHex(mne.getTxHash());
 
             int nIndex;
-            if(!mne.castOutputIndex(nIndex))
+            if (!mne.castOutputIndex(nIndex))
                 continue;
 
             COutPoint outpoint = COutPoint(mnTxHash, nIndex);
@@ -456,13 +463,13 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
     if (!confLockedCoins.empty()) {
         // fix deadlock
         LOCK(pwalletMain->cs_wallet);
-        for (COutPoint outpoint: confLockedCoins)
+        for (COutPoint outpoint : confLockedCoins)
             pwalletMain->LockCoin(outpoint);
     }
 
     // Filter
-    for (const COutput& out: vCoins) {
-        if (out.tx->vout[out.i].nValue == Params().GetMasternodeCollateral() * COIN) { //exactly
+    for (const COutput& out : vCoins) {
+        if (out.tx->vout[out.i].nValue == Params().GetMasternodeCollateral() * COIN) { // exactly
             filteredCoins.push_back(out);
         }
     }
@@ -472,11 +479,12 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
 // when starting a Masternode, this can enable to run as a hot wallet with no funds
 bool CActiveMasternode::EnableHotColdMasterNode(CTxIn& newVin, CService& newService)
 {
-    if (!fMasterNode) return false;
+    if (!fMasterNode)
+        return false;
 
     status = ACTIVE_MASTERNODE_STARTED;
 
-    //The values below are needed for signing mnping messages going forward
+    // The values below are needed for signing mnping messages going forward
     vin = newVin;
     service = newService;
 

@@ -34,17 +34,18 @@ uint256 HDSeed::Fingerprint() const
     return h.GetHash();
 }
 
-uint256 ovkForShieldingFromTaddr(HDSeed& seed) {
+uint256 ovkForShieldingFromTaddr(HDSeed& seed)
+{
     auto rawSeed = seed.RawSeed();
 
     // I = BLAKE2b-512("ZcTaddrToSapling", seed)
     crypto_generichash_blake2b_state state;
     assert(crypto_generichash_blake2b_init_salt_personal(
-        &state,
-        NULL, 0, // No key.
-        64,
-        NULL,    // No salt.
-        SNOWGEM_TADDR_OVK_PERSONAL) == 0);
+               &state,
+               NULL, 0, // No key.
+               64,
+               NULL, // No salt.
+               SNOWGEM_TADDR_OVK_PERSONAL) == 0);
     crypto_generichash_blake2b_update(&state, rawSeed.data(), rawSeed.size());
     auto intermediate = std::array<unsigned char, 64>();
     crypto_generichash_blake2b_final(&state, intermediate.data(), 64);
@@ -57,7 +58,8 @@ uint256 ovkForShieldingFromTaddr(HDSeed& seed) {
     return PRF_ovk(intermediate_L);
 }
 
-namespace libzcash {
+namespace libzcash
+{
 
 boost::optional<SaplingExtendedFullViewingKey> SaplingExtendedFullViewingKey::Derive(uint32_t i) const
 {
@@ -67,10 +69,9 @@ boost::optional<SaplingExtendedFullViewingKey> SaplingExtendedFullViewingKey::De
 
     CSerializeData i_bytes(ZIP32_XFVK_SIZE);
     if (librustzcash_zip32_xfvk_derive(
-        reinterpret_cast<unsigned char*>(p_bytes.data()),
-        i,
-        reinterpret_cast<unsigned char*>(i_bytes.data())
-    )) {
+            reinterpret_cast<unsigned char*>(p_bytes.data()),
+            i,
+            reinterpret_cast<unsigned char*>(i_bytes.data()))) {
         CDataStream ss_i(i_bytes, SER_NETWORK, PROTOCOL_VERSION);
         SaplingExtendedFullViewingKey xfvk_i;
         ss_i >> xfvk_i;
@@ -81,7 +82,7 @@ boost::optional<SaplingExtendedFullViewingKey> SaplingExtendedFullViewingKey::De
 }
 
 boost::optional<std::pair<diversifier_index_t, libzcash::SaplingPaymentAddress>>
-    SaplingExtendedFullViewingKey::Address(diversifier_index_t j) const
+SaplingExtendedFullViewingKey::Address(diversifier_index_t j) const
 {
     CDataStream ss_xfvk(SER_NETWORK, PROTOCOL_VERSION);
     ss_xfvk << *this;
@@ -90,9 +91,9 @@ boost::optional<std::pair<diversifier_index_t, libzcash::SaplingPaymentAddress>>
     diversifier_index_t j_ret;
     CSerializeData addr_bytes(libzcash::SerializedSaplingPaymentAddressSize);
     if (librustzcash_zip32_xfvk_address(
-        reinterpret_cast<unsigned char*>(xfvk_bytes.data()),
-        j.begin(), j_ret.begin(),
-        reinterpret_cast<unsigned char*>(addr_bytes.data()))) {
+            reinterpret_cast<unsigned char*>(xfvk_bytes.data()),
+            j.begin(), j_ret.begin(),
+            reinterpret_cast<unsigned char*>(addr_bytes.data()))) {
         CDataStream ss_addr(addr_bytes, SER_NETWORK, PROTOCOL_VERSION);
         libzcash::SaplingPaymentAddress addr;
         ss_addr >> addr;
@@ -163,8 +164,9 @@ libzcash::SaplingPaymentAddress SaplingExtendedSpendingKey::DefaultAddress() con
     return ToXFVK().DefaultAddress();
 }
 
-}
+} // namespace libzcash
 
-bool IsValidSpendingKey(const libzcash::SpendingKey& zkey) {
+bool IsValidSpendingKey(const libzcash::SpendingKey& zkey)
+{
     return zkey.which() != 0;
 }

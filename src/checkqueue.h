@@ -16,16 +16,16 @@
 template <typename T>
 class CCheckQueueControl;
 
-/** 
+/**
  * Queue for verifications that have to be performed.
-  * The verifications are represented by a type T, which must provide an
-  * operator(), returning a bool.
-  *
-  * One thread (the master) is assumed to push batches of verifications
-  * onto the queue, where they are processed by N-1 worker threads. When
-  * the master is done adding work, it temporarily joins the worker pool
-  * as an N'th worker, until all jobs are done.
-  */
+ * The verifications are represented by a type T, which must provide an
+ * operator(), returning a bool.
+ *
+ * One thread (the master) is assumed to push batches of verifications
+ * onto the queue, where they are processed by N-1 worker threads. When
+ * the master is done adding work, it temporarily joins the worker pool
+ * as an N'th worker, until all jobs are done.
+ */
 template <typename T>
 class CCheckQueue
 {
@@ -119,7 +119,7 @@ private:
                 fOk = fAllOk;
             }
             // execute work
-            for (T& check: vChecks)
+            for (T& check : vChecks)
                 if (fOk)
                     fOk = check();
             vChecks.clear();
@@ -146,7 +146,7 @@ public:
     void Add(std::vector<T>& vChecks)
     {
         boost::unique_lock<boost::mutex> lock(mutex);
-        for (T& check: vChecks) {
+        for (T& check : vChecks) {
             queue.push_back(T());
             check.swap(queue.back());
         }
@@ -166,10 +166,9 @@ public:
         boost::unique_lock<boost::mutex> lock(mutex);
         return (nTotal == nIdle && nTodo == 0 && fAllOk == true);
     }
-
 };
 
-/** 
+/**
  * RAII-style controller object for a CCheckQueue that guarantees the passed
  * queue is finished before continuing.
  */

@@ -54,10 +54,12 @@ struct TransparentInputInfo {
         CAmount value) : scriptPubKey(scriptPubKey), value(value) {}
 };
 
-class TransactionBuilderResult {
+class TransactionBuilderResult
+{
 private:
     boost::optional<CTransaction> maybeTx;
     boost::optional<std::string> maybeError;
+
 public:
     TransactionBuilderResult() = delete;
     TransactionBuilderResult(const CTransaction& tx);
@@ -117,7 +119,7 @@ public:
         CAmount value,
         std::array<unsigned char, ZC_MEMO_SIZE> memo = {{0xF6}});
 
-        // Throws if the anchor does not match the anchor used by
+    // Throws if the anchor does not match the anchor used by
     // previously-added Sprout inputs.
     void AddSproutInput(
         libzcash::SproutSpendingKey sk,

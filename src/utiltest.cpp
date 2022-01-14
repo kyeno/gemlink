@@ -12,11 +12,12 @@
 
 // Sprout
 CMutableTransaction GetValidSproutReceiveTransaction(ZCJoinSplit& params,
-                                const libzcash::SproutSpendingKey& sk,
-                                CAmount value,
-                                bool randomInputs,
-                                uint32_t versionGroupId, /* = SAPLING_VERSION_GROUP_ID */
-                                int32_t version /* = SAPLING_TX_VERSION */) {
+                                                     const libzcash::SproutSpendingKey& sk,
+                                                     CAmount value,
+                                                     bool randomInputs,
+                                                     uint32_t versionGroupId, /* = SAPLING_VERSION_GROUP_ID */
+                                                     int32_t version /* = SAPLING_TX_VERSION */)
+{
     // We removed the ability to create pre-Sapling Sprout transactions
     assert(version >= SAPLING_TX_VERSION);
 
@@ -43,18 +44,17 @@ CMutableTransaction GetValidSproutReceiveTransaction(ZCJoinSplit& params,
 
     std::array<libzcash::JSInput, 2> inputs = {
         libzcash::JSInput(), // dummy input
-        libzcash::JSInput() // dummy input
+        libzcash::JSInput()  // dummy input
     };
 
     std::array<libzcash::JSOutput, 2> outputs = {
         libzcash::JSOutput(sk.address(), value),
-        libzcash::JSOutput(sk.address(), value)
-    };
+        libzcash::JSOutput(sk.address(), value)};
 
     // Prepare JoinSplits
     uint256 rt;
-    JSDescription jsdesc {params, mtx.joinSplitPubKey, rt,
-                          inputs, outputs, 2*value, 0, false};
+    JSDescription jsdesc{params, mtx.joinSplitPubKey, rt,
+                         inputs, outputs, 2 * value, 0, false};
     mtx.vjoinsplit.push_back(jsdesc);
 
     // Consider: The following is a bit misleading (given the name of this function)
@@ -75,17 +75,18 @@ CMutableTransaction GetValidSproutReceiveTransaction(ZCJoinSplit& params,
     // Add the signature
     assert(crypto_sign_detached(&mtx.joinSplitSig[0], NULL,
                                 dataToBeSigned.begin(), 32,
-                                joinSplitPrivKey
-                               ) == 0);
+                                joinSplitPrivKey) == 0);
 
     return mtx;
 }
 
 
 CWalletTx GetValidReceive(ZCJoinSplit& params,
-                          const libzcash::SproutSpendingKey& sk, CAmount value,
+                          const libzcash::SproutSpendingKey& sk,
+                          CAmount value,
                           bool randomInputs,
-                          int32_t version /* = 2 */) {
+                          int32_t version /* = 2 */)
+{
     CMutableTransaction mtx;
     mtx.nVersion = version;
     mtx.vin.resize(2);
@@ -107,18 +108,17 @@ CWalletTx GetValidReceive(ZCJoinSplit& params,
 
     std::array<libzcash::JSInput, 2> inputs = {
         libzcash::JSInput(), // dummy input
-        libzcash::JSInput() // dummy input
+        libzcash::JSInput()  // dummy input
     };
 
     std::array<libzcash::JSOutput, 2> outputs = {
         libzcash::JSOutput(sk.address(), value),
-        libzcash::JSOutput(sk.address(), value)
-    };
+        libzcash::JSOutput(sk.address(), value)};
 
     // Prepare JoinSplits
     uint256 rt;
-    JSDescription jsdesc {params, mtx.joinSplitPubKey, rt,
-                          inputs, outputs, 2*value, 0, false};
+    JSDescription jsdesc{params, mtx.joinSplitPubKey, rt,
+                         inputs, outputs, 2 * value, 0, false};
     mtx.vjoinsplit.push_back(jsdesc);
 
     if (version >= 4) {
@@ -136,17 +136,18 @@ CWalletTx GetValidReceive(ZCJoinSplit& params,
     // Add the signature
     assert(crypto_sign_detached(&mtx.joinSplitSig[0], NULL,
                                 dataToBeSigned.begin(), 32,
-                                joinSplitPrivKey
-                               ) == 0);
+                                joinSplitPrivKey) == 0);
 
-    CTransaction tx {mtx};
-    CWalletTx wtx {NULL, tx};
+    CTransaction tx{mtx};
+    CWalletTx wtx{NULL, tx};
     return wtx;
 }
 
 CWalletTx GetValidSpend(ZCJoinSplit& params,
                         const libzcash::SproutSpendingKey& sk,
-                        const libzcash::SproutNote& note, CAmount value) {
+                        const libzcash::SproutNote& note,
+                        CAmount value)
+{
     CMutableTransaction mtx;
     mtx.vout.resize(2);
     mtx.vout[0].nValue = value;
@@ -182,18 +183,17 @@ CWalletTx GetValidSpend(ZCJoinSplit& params,
 
     std::array<libzcash::JSInput, 2> inputs = {
         libzcash::JSInput(tree.witness(), note, sk),
-        dummyin
-    };
+        dummyin};
 
     std::array<libzcash::JSOutput, 2> outputs = {
-        dummyout, // dummy output
+        dummyout,            // dummy output
         libzcash::JSOutput() // dummy output
     };
 
     // Prepare JoinSplits
     uint256 rt = tree.root();
-    JSDescription jsdesc {params, mtx.joinSplitPubKey, rt,
-                          inputs, outputs, 0, value, false};
+    JSDescription jsdesc{params, mtx.joinSplitPubKey, rt,
+                         inputs, outputs, 0, value, false};
     mtx.vjoinsplit.push_back(jsdesc);
 
     // Empty output script.
@@ -205,24 +205,26 @@ CWalletTx GetValidSpend(ZCJoinSplit& params,
     // Add the signature
     assert(crypto_sign_detached(&mtx.joinSplitSig[0], NULL,
                                 dataToBeSigned.begin(), 32,
-                                joinSplitPrivKey
-                               ) == 0);
-    CTransaction tx {mtx};
-    CWalletTx wtx {NULL, tx};
+                                joinSplitPrivKey) == 0);
+    CTransaction tx{mtx};
+    CWalletTx wtx{NULL, tx};
     return wtx;
 }
 
 libzcash::SproutNote GetNote(ZCJoinSplit& params,
-                       const libzcash::SproutSpendingKey& sk,
-                       const CTransaction& tx, size_t js, size_t n) {
-    ZCNoteDecryption decryptor {sk.receiving_key()};
+                             const libzcash::SproutSpendingKey& sk,
+                             const CTransaction& tx,
+                             size_t js,
+                             size_t n)
+{
+    ZCNoteDecryption decryptor{sk.receiving_key()};
     auto hSig = tx.vjoinsplit[js].h_sig(params, tx.joinSplitPubKey);
     auto note_pt = libzcash::SproutNotePlaintext::decrypt(
         decryptor,
         tx.vjoinsplit[js].ciphertexts[n],
         tx.vjoinsplit[js].ephemeralKey,
         hSig,
-        (unsigned char) n);
+        (unsigned char)n);
     return note_pt.note(sk.address());
 }
 
@@ -234,48 +236,50 @@ CWalletTx GetValidSproutReceive(ZCJoinSplit& params,
                                 int32_t version /* = SAPLING_TX_VERSION */)
 {
     CMutableTransaction mtx = GetValidSproutReceiveTransaction(
-        params, sk, value, randomInputs, versionGroupId, version
-    );
-    CTransaction tx {mtx};
-    CWalletTx wtx {NULL, tx};
+        params, sk, value, randomInputs, versionGroupId, version);
+    CTransaction tx{mtx};
+    CWalletTx wtx{NULL, tx};
     return wtx;
 }
 
 CWalletTx GetInvalidCommitmentSproutReceive(ZCJoinSplit& params,
-                                const libzcash::SproutSpendingKey& sk,
-                                CAmount value,
-                                bool randomInputs,
-                                uint32_t versionGroupId, /* = SAPLING_VERSION_GROUP_ID */
-                                int32_t version /* = SAPLING_TX_VERSION */)
+                                            const libzcash::SproutSpendingKey& sk,
+                                            CAmount value,
+                                            bool randomInputs,
+                                            uint32_t versionGroupId, /* = SAPLING_VERSION_GROUP_ID */
+                                            int32_t version /* = SAPLING_TX_VERSION */)
 {
     CMutableTransaction mtx = GetValidSproutReceiveTransaction(
-        params, sk, value, randomInputs, versionGroupId, version
-    );
+        params, sk, value, randomInputs, versionGroupId, version);
     mtx.vjoinsplit[0].commitments[0] = uint256();
     mtx.vjoinsplit[0].commitments[1] = uint256();
-    CTransaction tx {mtx};
-    CWalletTx wtx {NULL, tx};
+    CTransaction tx{mtx};
+    CWalletTx wtx{NULL, tx};
     return wtx;
 }
 
 libzcash::SproutNote GetSproutNote(ZCJoinSplit& params,
                                    const libzcash::SproutSpendingKey& sk,
-                                   const CTransaction& tx, size_t js, size_t n) {
-    ZCNoteDecryption decryptor {sk.receiving_key()};
+                                   const CTransaction& tx,
+                                   size_t js,
+                                   size_t n)
+{
+    ZCNoteDecryption decryptor{sk.receiving_key()};
     auto hSig = tx.vjoinsplit[js].h_sig(params, tx.joinSplitPubKey);
     auto note_pt = libzcash::SproutNotePlaintext::decrypt(
         decryptor,
         tx.vjoinsplit[js].ciphertexts[n],
         tx.vjoinsplit[js].ephemeralKey,
         hSig,
-        (unsigned char) n);
+        (unsigned char)n);
     return note_pt.note(sk.address());
 }
 
 CWalletTx GetValidSproutSpend(ZCJoinSplit& params,
                               const libzcash::SproutSpendingKey& sk,
                               const libzcash::SproutNote& note,
-                              CAmount value) {
+                              CAmount value)
+{
     CMutableTransaction mtx;
     mtx.fOverwintered = true;
     mtx.nVersionGroupId = SAPLING_VERSION_GROUP_ID;
@@ -314,18 +318,17 @@ CWalletTx GetValidSproutSpend(ZCJoinSplit& params,
 
     std::array<libzcash::JSInput, 2> inputs = {
         libzcash::JSInput(tree.witness(), note, sk),
-        dummyin
-    };
+        dummyin};
 
     std::array<libzcash::JSOutput, 2> outputs = {
-        dummyout, // dummy output
+        dummyout,            // dummy output
         libzcash::JSOutput() // dummy output
     };
 
     // Prepare JoinSplits
     uint256 rt = tree.root();
-    JSDescription jsdesc {params, mtx.joinSplitPubKey, rt,
-                          inputs, outputs, 0, value, false};
+    JSDescription jsdesc{params, mtx.joinSplitPubKey, rt,
+                         inputs, outputs, 0, value, false};
     mtx.vjoinsplit.push_back(jsdesc);
 
     // Empty output script.
@@ -337,27 +340,29 @@ CWalletTx GetValidSproutSpend(ZCJoinSplit& params,
     // Add the signature
     assert(crypto_sign_detached(&mtx.joinSplitSig[0], NULL,
                                 dataToBeSigned.begin(), 32,
-                                joinSplitPrivKey
-                               ) == 0);
-    CTransaction tx {mtx};
-    CWalletTx wtx {NULL, tx};
+                                joinSplitPrivKey) == 0);
+    CTransaction tx{mtx};
+    CWalletTx wtx{NULL, tx};
     return wtx;
 }
 
 // Sapling
-const Consensus::Params& RegtestActivateSapling() {
+const Consensus::Params& RegtestActivateSapling()
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
     return Params().GetConsensus();
 }
 
-void RegtestDeactivateSapling() {
+void RegtestDeactivateSapling()
+{
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
 }
 
-const Consensus::Params& RegtestActivateBlossom(bool updatePow, int blossomActivationHeight) {
+const Consensus::Params& RegtestActivateBlossom(bool updatePow, int blossomActivationHeight)
+{
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
@@ -367,7 +372,8 @@ const Consensus::Params& RegtestActivateBlossom(bool updatePow, int blossomActiv
     return Params().GetConsensus();
 }
 
-void RegtestDeactivateBlossom() {
+void RegtestDeactivateBlossom()
+{
     UpdateRegtestPow(0, 0, uint256S("0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"));
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
@@ -375,31 +381,35 @@ void RegtestDeactivateBlossom() {
 }
 
 
-libzcash::SaplingExtendedSpendingKey GetTestMasterSaplingSpendingKey() {
+libzcash::SaplingExtendedSpendingKey GetTestMasterSaplingSpendingKey()
+{
     std::vector<unsigned char, secure_allocator<unsigned char>> rawSeed(32);
     HDSeed seed(rawSeed);
     return libzcash::SaplingExtendedSpendingKey::Master(seed);
 }
 
-CKey AddTestCKeyToKeyStore(CBasicKeyStore& keyStore) {
+CKey AddTestCKeyToKeyStore(CBasicKeyStore& keyStore)
+{
     CKey tsk = DecodeSecret(T_SECRET_REGTEST);
     keyStore.AddKey(tsk);
     return tsk;
 }
 
-TestSaplingNote GetTestSaplingNote(const libzcash::SaplingPaymentAddress& pa, CAmount value) {
+TestSaplingNote GetTestSaplingNote(const libzcash::SaplingPaymentAddress& pa, CAmount value)
+{
     // Generate dummy Sapling note
     libzcash::SaplingNote note(pa, value);
     uint256 cm = note.cm().get();
     SaplingMerkleTree tree;
     tree.append(cm);
-    return { note, tree };
+    return {note, tree};
 }
 
 CWalletTx GetValidSaplingReceive(const Consensus::Params& consensusParams,
                                  CBasicKeyStore& keyStore,
-                                 const libzcash::SaplingExtendedSpendingKey &sk,
-                                 CAmount value) {
+                                 const libzcash::SaplingExtendedSpendingKey& sk,
+                                 CAmount value)
+{
     // From taddr
     CKey tsk = AddTestCKeyToKeyStore(keyStore);
     auto scriptPubKey = GetScriptForDestination(tsk.GetPubKey().GetID());
@@ -413,6 +423,6 @@ CWalletTx GetValidSaplingReceive(const Consensus::Params& consensusParams,
     builder.AddSaplingOutput(fvk.ovk, pa, value, {});
 
     CTransaction tx = builder.Build().GetTxOrThrow();
-    CWalletTx wtx {NULL, tx};
+    CWalletTx wtx{NULL, tx};
     return wtx;
 }

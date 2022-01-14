@@ -6,7 +6,8 @@
 
 extern UniValue signrawtransaction(const UniValue& params, bool fHelp);
 
-UniValue SendTransaction(CTransaction& tx, boost::optional<CReserveKey&> reservekey, bool testmode) {
+UniValue SendTransaction(CTransaction& tx, boost::optional<CReserveKey&> reservekey, bool testmode)
+{
     UniValue o(UniValue::VOBJ);
     // Send the transaction
     if (!testmode) {
@@ -25,7 +26,8 @@ UniValue SendTransaction(CTransaction& tx, boost::optional<CReserveKey&> reserve
     return o;
 }
 
-std::pair<CTransaction, UniValue> SignSendRawTransaction(UniValue obj, boost::optional<CReserveKey&> reservekey, bool testmode) {
+std::pair<CTransaction, UniValue> SignSendRawTransaction(UniValue obj, boost::optional<CReserveKey&> reservekey, bool testmode)
+{
     // Sign the raw transaction
     UniValue rawtxnValue = find_value(obj, "rawtxn");
     if (rawtxnValue.isNull()) {

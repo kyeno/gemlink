@@ -79,8 +79,7 @@ size_t orchard_bundle_actions_len(const OrchardBundlePtr* bundle);
 bool orchard_bundle_nullifiers(
     const OrchardBundlePtr* bundle,
     void* nullifiers_ret,
-    size_t nullifiers_len
-    );
+    size_t nullifiers_len);
 
 /// Returns the anchor for the bundle by copying them into
 /// the provided value.
@@ -160,7 +159,8 @@ public:
     }
 
     /// Creates a validation context that batch-validates Orchard signatures.
-    static AuthValidator Batch() {
+    static AuthValidator Batch()
+    {
         auto batch = AuthValidator();
         batch.inner.reset(orchard_batch_validation_init());
         return batch;
@@ -168,18 +168,21 @@ public:
 
     /// Creates a validation context that performs no validation. This can be
     /// used when avoiding duplicate effort such as during reindexing.
-    static AuthValidator Disabled() {
+    static AuthValidator Disabled()
+    {
         return AuthValidator();
     }
 
     /// Queues an Orchard bundle for validation.
-    void Queue(const OrchardBundlePtr* bundle, const unsigned char* txid) {
+    void Queue(const OrchardBundlePtr* bundle, const unsigned char* txid)
+    {
         orchard_batch_add_bundle(inner.get(), bundle, txid);
     }
 
     /// Validates the queued Orchard authorizations, returning `true` if all
     /// signatures were valid and `false` otherwise.
-    bool Validate() const {
+    bool Validate() const
+    {
         return orchard_batch_validate(inner.get());
     }
 };

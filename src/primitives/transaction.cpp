@@ -22,8 +22,8 @@ JSDescription::JSDescription(
     CAmount vpub_old,
     CAmount vpub_new,
     bool computeProof,
-    uint256 *esk // payment disclosure
-) : vpub_old(vpub_old), vpub_new(vpub_new), anchor(anchor)
+    uint256* esk // payment disclosure
+    ) : vpub_old(vpub_old), vpub_new(vpub_new), anchor(anchor)
 {
     std::array<libzcash::SproutNote, ZC_NUM_JS_OUTPUTS> notes;
 
@@ -57,9 +57,8 @@ JSDescription JSDescription::Randomized(
     CAmount vpub_old,
     CAmount vpub_new,
     bool computeProof,
-    uint256 *esk, // payment disclosure
-    std::function<int(int)> gen
-)
+    uint256* esk, // payment disclosure
+    std::function<int(int)> gen)
 {
     // Randomize the order of the inputs and outputs
     inputMap = {0, 1};
@@ -89,8 +88,7 @@ public:
         ZCJoinSplit& params,
         libzcash::ProofVerifier& verifier,
         const uint256& joinSplitPubKey,
-        const JSDescription& jsdesc
-        ) : params(params), jsdesc(jsdesc), verifier(verifier), joinSplitPubKey(joinSplitPubKey) {}
+        const JSDescription& jsdesc) : params(params), jsdesc(jsdesc), verifier(verifier), joinSplitPubKey(joinSplitPubKey) {}
 
     bool operator()(const libzcash::PHGRProof& proof) const
     {
@@ -112,16 +110,15 @@ public:
             jsdesc.commitments[0].begin(),
             jsdesc.commitments[1].begin(),
             jsdesc.vpub_old,
-            jsdesc.vpub_new
-        );
+            jsdesc.vpub_new);
     }
 };
 
 bool JSDescription::Verify(
     ZCJoinSplit& params,
     libzcash::ProofVerifier& verifier,
-    const uint256& joinSplitPubKey
-) const {
+    const uint256& joinSplitPubKey) const
+{
     auto pv = SproutProofVerifier(params, verifier, joinSplitPubKey, *this);
     return boost::apply_visitor(pv, proof);
 }
@@ -133,12 +130,12 @@ uint256 JSDescription::h_sig(ZCJoinSplit& params, const uint256& joinSplitPubKey
 
 std::string COutPoint::ToString() const
 {
-    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
+    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0, 10), n);
 }
 
 std::string COutPoint::ToStringShort() const
 {
-    return strprintf("%s-%u", hash.ToString().substr(0,64), n);
+    return strprintf("%s-%u", hash.ToString().substr(0, 64), n);
 }
 
 uint256 COutPoint::GetHash()
@@ -206,7 +203,6 @@ CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.n
                                                                    vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig),
                                                                    bindingSig(tx.bindingSig)
 {
-    
 }
 
 uint256 CMutableTransaction::GetHash() const
@@ -219,9 +215,9 @@ void CTransaction::UpdateHash() const
     *const_cast<uint256*>(&hash) = SerializeHash(*this);
 }
 
-CTransaction::CTransaction() : nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), fOverwintered(false), nVersionGroupId(0), nExpiryHeight(0), vin(), vout(), nLockTime(0), valueBalance(0), vShieldedSpend(), vShieldedOutput(), vjoinsplit(), joinSplitPubKey(), joinSplitSig(), bindingSig() { }
+CTransaction::CTransaction() : nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), fOverwintered(false), nVersionGroupId(0), nExpiryHeight(0), vin(), vout(), nLockTime(0), valueBalance(0), vShieldedSpend(), vShieldedOutput(), vjoinsplit(), joinSplitPubKey(), joinSplitSig(), bindingSig() {}
 
-CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
+CTransaction::CTransaction(const CMutableTransaction& tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
                                                             vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime),
                                                             valueBalance(tx.valueBalance), vShieldedSpend(tx.vShieldedSpend), vShieldedOutput(tx.vShieldedOutput),
                                                             vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig),
@@ -233,7 +229,7 @@ CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion
 // Protected constructor which only derived classes can call.
 // For developer testing only.
 CTransaction::CTransaction(
-    const CMutableTransaction &tx,
+    const CMutableTransaction& tx,
     bool evilDeveloperFlag) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
                               vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime),
                               valueBalance(tx.valueBalance), vShieldedSpend(tx.vShieldedSpend), vShieldedOutput(tx.vShieldedOutput),
@@ -243,7 +239,7 @@ CTransaction::CTransaction(
     assert(evilDeveloperFlag);
 }
 
-CTransaction::CTransaction(CMutableTransaction &&tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId),
+CTransaction::CTransaction(CMutableTransaction&& tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId),
                                                        vin(std::move(tx.vin)), vout(std::move(tx.vout)), nLockTime(tx.nLockTime), nExpiryHeight(tx.nExpiryHeight),
                                                        valueBalance(tx.valueBalance),
                                                        vShieldedSpend(std::move(tx.vShieldedSpend)), vShieldedOutput(std::move(tx.vShieldedOutput)),
@@ -253,7 +249,8 @@ CTransaction::CTransaction(CMutableTransaction &&tx) : nVersion(tx.nVersion), fO
     UpdateHash();
 }
 
-CTransaction& CTransaction::operator=(const CTransaction &tx) {
+CTransaction& CTransaction::operator=(const CTransaction& tx)
+{
     *const_cast<bool*>(&fOverwintered) = tx.fOverwintered;
     *const_cast<int*>(&nVersion) = tx.nVersion;
     *const_cast<uint32_t*>(&nVersionGroupId) = tx.nVersionGroupId;
@@ -275,8 +272,7 @@ CTransaction& CTransaction::operator=(const CTransaction &tx) {
 CAmount CTransaction::GetValueOut() const
 {
     CAmount nValueOut = 0;
-    for (std::vector<CTxOut>::const_iterator it(vout.begin()); it != vout.end(); ++it)
-    {
+    for (std::vector<CTxOut>::const_iterator it(vout.begin()); it != vout.end(); ++it) {
         nValueOut += it->nValue;
         if (!MoneyRange(it->nValue) || !MoneyRange(nValueOut))
             throw std::runtime_error("CTransaction::GetValueOut(): value out of range");
@@ -291,8 +287,7 @@ CAmount CTransaction::GetValueOut() const
         }
     }
 
-    for (std::vector<JSDescription>::const_iterator it(vjoinsplit.begin()); it != vjoinsplit.end(); ++it)
-    {
+    for (std::vector<JSDescription>::const_iterator it(vjoinsplit.begin()); it != vjoinsplit.end(); ++it) {
         // NB: vpub_old "takes" money from the transparent value pool just as outputs do
         nValueOut += it->vpub_old;
 
@@ -315,8 +310,7 @@ CAmount CTransaction::GetShieldedValueIn() const
         }
     }
 
-    for (std::vector<JSDescription>::const_iterator it(vjoinsplit.begin()); it != vjoinsplit.end(); ++it)
-    {
+    for (std::vector<JSDescription>::const_iterator it(vjoinsplit.begin()); it != vjoinsplit.end(); ++it) {
         // NB: vpub_new "gives" money to the transparent value pool just as inputs do
         nValue += it->vpub_new;
 
@@ -330,7 +324,8 @@ CAmount CTransaction::GetShieldedValueIn() const
 double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSize) const
 {
     nTxSize = CalculateModifiedSize(nTxSize);
-    if (nTxSize == 0) return 0.0;
+    if (nTxSize == 0)
+        return 0.0;
 
     return dPriorityInputs / nTxSize;
 }
@@ -344,8 +339,7 @@ unsigned int CTransaction::CalculateModifiedSize(unsigned int nTxSize) const
     // risk encouraging people to create junk outputs to redeem later.
     if (nTxSize == 0)
         nTxSize = ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
-    for (std::vector<CTxIn>::const_iterator it(vin.begin()); it != vin.end(); ++it)
-    {
+    for (std::vector<CTxIn>::const_iterator it(vin.begin()); it != vin.end(); ++it) {
         unsigned int offset = 41U + std::min(110U, (unsigned int)it->scriptSig.size());
         if (nTxSize > offset)
             nTxSize -= offset;
@@ -358,34 +352,34 @@ std::string CTransaction::ToString() const
     std::string str;
     if (!fOverwintered) {
         str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
-            GetHash().ToString().substr(0,10),
-            nVersion,
-            vin.size(),
-            vout.size(),
-            nLockTime);
+                         GetHash().ToString().substr(0, 10),
+                         nVersion,
+                         vin.size(),
+                         vout.size(),
+                         nLockTime);
     } else if (nVersion >= SAPLING_MIN_TX_VERSION) {
         str += strprintf("CTransaction(hash=%s, ver=%d, fOverwintered=%d, nVersionGroupId=%08x, vin.size=%u, vout.size=%u, nLockTime=%u, nExpiryHeight=%u, valueBalance=%u, vShieldedSpend.size=%u, vShieldedOutput.size=%u)\n",
-            GetHash().ToString().substr(0,10),
-            nVersion,
-            fOverwintered,
-            nVersionGroupId,
-            vin.size(),
-            vout.size(),
-            nLockTime,
-            nExpiryHeight,
-            valueBalance,
-            vShieldedSpend.size(),
-            vShieldedOutput.size());
+                         GetHash().ToString().substr(0, 10),
+                         nVersion,
+                         fOverwintered,
+                         nVersionGroupId,
+                         vin.size(),
+                         vout.size(),
+                         nLockTime,
+                         nExpiryHeight,
+                         valueBalance,
+                         vShieldedSpend.size(),
+                         vShieldedOutput.size());
     } else if (nVersion >= 3) {
         str += strprintf("CTransaction(hash=%s, ver=%d, fOverwintered=%d, nVersionGroupId=%08x, vin.size=%u, vout.size=%u, nLockTime=%u, nExpiryHeight=%u)\n",
-            GetHash().ToString().substr(0,10),
-            nVersion,
-            fOverwintered,
-            nVersionGroupId,
-            vin.size(),
-            vout.size(),
-            nLockTime,
-            nExpiryHeight);
+                         GetHash().ToString().substr(0, 10),
+                         nVersion,
+                         fOverwintered,
+                         nVersionGroupId,
+                         vin.size(),
+                         vout.size(),
+                         nLockTime,
+                         nExpiryHeight);
     }
     for (unsigned int i = 0; i < vin.size(); i++)
         str += "    " + vin[i].ToString() + "\n";

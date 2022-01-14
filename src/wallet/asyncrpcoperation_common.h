@@ -11,10 +11,10 @@
 
 /**
  * Sends a given transaction.
- * 
- * If testmode is false, commit the transaction to the wallet, 
+ *
+ * If testmode is false, commit the transaction to the wallet,
  * return {"txid": tx.GetHash().ToString()}
- * 
+ *
  * If testmode is true, do not commit the transaction,
  * return {"test": 1, "txid": tx.GetHash().ToString(), "hex": EncodeHexTx(tx)}
  */
@@ -23,7 +23,7 @@ UniValue SendTransaction(CTransaction& tx, boost::optional<CReserveKey&> reserve
 /**
  * Sign and send a raw transaction.
  * Raw transaction as hex string should be in object field "rawtxn"
- * 
+ *
  * Returns a pair of (the parsed transaction, and the result of sending)
  */
 std::pair<CTransaction, UniValue> SignSendRawTransaction(UniValue obj, boost::optional<CReserveKey&> reservekey, bool testmode);

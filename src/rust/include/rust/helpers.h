@@ -5,8 +5,8 @@
 #ifndef ZCASH_RUST_INCLUDE_RUST_HELPERS_H
 #define ZCASH_RUST_INCLUDE_RUST_HELPERS_H
 
-#include "rust/map.h"
 #include "rust/VA_OPT.hpp"
+#include "rust/map.h"
 
 //
 // Helper macros
@@ -22,8 +22,12 @@
 #define T_FIELD_NAME(x, y) x
 #define T_FIELD_VALUE(x, y) y
 
-#define T_FIELD_NAMES(...) IFN(__VA_ARGS__)(MAP_PAIR_LIST(T_FIELD_NAME, __VA_ARGS__))
-#define T_FIELD_VALUES(...) IFN(__VA_ARGS__)(MAP_PAIR_LIST(T_FIELD_VALUE, __VA_ARGS__))
+#define T_FIELD_NAMES(...) \
+    IFN(__VA_ARGS__)       \
+    (MAP_PAIR_LIST(T_FIELD_NAME, __VA_ARGS__))
+#define T_FIELD_VALUES(...) \
+    IFN(__VA_ARGS__)        \
+    (MAP_PAIR_LIST(T_FIELD_VALUE, __VA_ARGS__))
 
 #define T_DOUBLEESCAPE(a) #a
 #define T_ESCAPEQUOTE(a) T_DOUBLEESCAPE(a)

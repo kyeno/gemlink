@@ -13,9 +13,9 @@
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>
 
+#include <algorithm>
 #include <assert.h>
 #include <string.h>
-#include <algorithm>
 
 namespace
 {
@@ -300,7 +300,8 @@ libzcash::PaymentAddress DecodePaymentAddress(const std::string& str)
     return libzcash::InvalidEncoding();
 }
 
-bool IsValidPaymentAddressString(const std::string& str) {
+bool IsValidPaymentAddressString(const std::string& str)
+{
     return IsValidPaymentAddress(DecodePaymentAddress(str));
 }
 

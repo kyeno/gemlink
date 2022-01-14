@@ -15,7 +15,7 @@
 
 struct CDNSSeedData {
     std::string name, host;
-    CDNSSeedData(const std::string &strName, const std::string &strHost) : name(strName), host(strHost) {}
+    CDNSSeedData(const std::string& strName, const std::string& strHost) : name(strName), host(strHost) {}
 };
 
 struct SeedSpec6 {
@@ -29,11 +29,11 @@ struct EHparameters {
     unsigned short int nSolSize;
 };
 
-//EH sol size = (pow(2, k) * ((n/(k+1))+1)) / 8;
-static const EHparameters eh200_9 = {200,9,1344};
-static const EHparameters eh144_5 = {144,5,100};
-static const EHparameters eh96_5 = {96,5,68};
-static const EHparameters eh48_5 = {48,5,36};
+// EH sol size = (pow(2, k) * ((n/(k+1))+1)) / 8;
+static const EHparameters eh200_9 = {200, 9, 1344};
+static const EHparameters eh144_5 = {144, 5, 100};
+static const EHparameters eh96_5 = {96, 5, 68};
+static const EHparameters eh48_5 = {48, 5, 36};
 static const unsigned int MAX_EH_PARAM_LIST_LEN = 2;
 
 typedef std::map<int, uint256> MapCheckpoints;
@@ -137,6 +137,7 @@ public:
     int GetNewTimeRule() const { return newTimeRule; }
     int GetMasternodeProtectionBlock() const { return masternodeProtectionBlock; }
     int GetMasternodeCollateral() const { return masternodeCollateral; }
+
 protected:
     CChainParams() {}
 
@@ -150,8 +151,8 @@ protected:
     uint64_t nPruneAfterHeight = 0;
     EHparameters eh_epoch_1 = eh200_9;
     EHparameters eh_epoch_2 = eh144_5;
-    unsigned int eh_epoch_1_endtime = 150000; //it's time, not height
-    unsigned int eh_epoch_2_starttime = 140000; //it's time, not height
+    unsigned int eh_epoch_1_endtime = 150000;   // it's time, not height
+    unsigned int eh_epoch_2_starttime = 140000; // it's time, not height
 
     std::vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
@@ -186,10 +187,10 @@ protected:
  * Return the currently selected parameters. This won't change after app
  * startup, except for unit tests.
  */
-const CChainParams &Params();
+const CChainParams& Params();
 
 /** Return parameters for the given network. */
-CChainParams &Params(CBaseChainParams::Network network);
+CChainParams& Params(CBaseChainParams::Network network);
 
 /** Sets the params returned by Params() to those for the given network. */
 void SelectParams(CBaseChainParams::Network network);
@@ -200,7 +201,7 @@ void SelectParams(CBaseChainParams::Network network);
  */
 bool SelectParamsFromCommandLine();
 
-int validEHparameterList(EHparameters *ehparams, unsigned int blocktime, const CChainParams& params);
+int validEHparameterList(EHparameters* ehparams, unsigned int blocktime, const CChainParams& params);
 
 /**
  * Allows modifying the network upgrade regtest parameters.

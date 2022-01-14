@@ -29,13 +29,14 @@ class CDBWrapper;
 
 /** These should be considered an implementation detail of the specific database.
  */
-namespace dbwrapper_private {
+namespace dbwrapper_private
+{
 
 /** Handle database error by throwing dbwrapper_error exception.
  */
 void HandleError(const leveldb::Status& status);
 
-};
+}; // namespace dbwrapper_private
 
 /** Batch of changes queued to be written to a CDBWrapper */
 class CDBBatch
@@ -43,14 +44,14 @@ class CDBBatch
     friend class CDBWrapper;
 
 private:
-    const CDBWrapper &parent;
+    const CDBWrapper& parent;
     leveldb::WriteBatch batch;
 
 public:
     /**
      * @param[in] _parent   CDBWrapper that this batch is to be submitted to
      */
-    CDBBatch(const CDBWrapper &_parent) : parent(_parent) { };
+    CDBBatch(const CDBWrapper& _parent) : parent(_parent){};
 
     template <typename K, typename V>
     void Write(const K& key, const V& value)
@@ -83,24 +84,24 @@ public:
 class CDBIterator
 {
 private:
-    const CDBWrapper &parent;
-    leveldb::Iterator *piter;
+    const CDBWrapper& parent;
+    leveldb::Iterator* piter;
 
 public:
-
     /**
      * @param[in] _parent          Parent CDBWrapper instance.
      * @param[in] _piter           The original leveldb iterator.
      */
-    CDBIterator(const CDBWrapper &_parent, leveldb::Iterator *_piter) :
-        parent(_parent), piter(_piter) { };
+    CDBIterator(const CDBWrapper& _parent, leveldb::Iterator* _piter) : parent(_parent), piter(_piter){};
     ~CDBIterator();
 
     bool Valid();
 
     void SeekToFirst();
 
-    template<typename K> void Seek(const K& key) {
+    template <typename K>
+    void Seek(const K& key)
+    {
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         ssKey.reserve(GetSerializeSize(ssKey, key));
         ssKey << key;
@@ -110,36 +111,41 @@ public:
 
     void Next();
 
-    template<typename K> bool GetKey(K& key) {
+    template <typename K>
+    bool GetKey(K& key)
+    {
         leveldb::Slice slKey = piter->key();
         try {
             CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
             ssKey >> key;
-        } catch(std::exception &e) {
+        } catch (std::exception& e) {
             return false;
         }
         return true;
     }
 
-    unsigned int GetKeySize() {
+    unsigned int GetKeySize()
+    {
         return piter->key().size();
     }
 
-    template<typename V> bool GetValue(V& value) {
+    template <typename V>
+    bool GetValue(V& value)
+    {
         leveldb::Slice slValue = piter->value();
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
             ssValue >> value;
-        } catch(std::exception &e) {
+        } catch (std::exception& e) {
             return false;
         }
         return true;
     }
 
-    unsigned int GetValueSize() {
+    unsigned int GetValueSize()
+    {
         return piter->value().size();
     }
-
 };
 
 class CDBWrapper
@@ -250,7 +256,7 @@ public:
         return WriteBatch(batch, true);
     }
 
-    CDBIterator *NewIterator()
+    CDBIterator* NewIterator()
     {
         return new CDBIterator(*this, pdb->NewIterator(iteroptions));
     }
@@ -262,4 +268,3 @@ public:
 };
 
 #endif // BITCOIN_DBWRAPPER_H
-

@@ -42,9 +42,9 @@ class CMasternodePing
 public:
     CTxIn vin;
     uint256 blockHash;
-    int64_t sigTime; //mnb message times
+    int64_t sigTime; // mnb message times
     std::vector<unsigned char> vchSig;
-    //removed stop
+    // removed stop
 
     CMasternodePing();
     CMasternodePing(CTxIn& newVin);
@@ -133,14 +133,14 @@ public:
     CPubKey pubKeyMasternode1;
     std::vector<unsigned char> sig;
     int activeState;
-    int64_t sigTime; //mnb message time
+    int64_t sigTime; // mnb message time
     int cacheInputAge;
     int cacheInputAgeBlock;
     bool unitTest;
     bool allowFreeTx;
     int protocolVersion;
     int nActiveState;
-    int64_t nLastDsq; //the dsq count from the last dsq broadcast of this node
+    int64_t nLastDsq; // the dsq count from the last dsq broadcast of this node
     int nScanningErrorCount;
     int nLastScanningErrorBlockHeight;
     CMasternodePing lastPing;
@@ -251,7 +251,8 @@ public:
 
     int GetMasternodeInputAge()
     {
-        if (chainActive.Tip() == NULL) return 0;
+        if (chainActive.Tip() == NULL)
+            return 0;
 
         if (cacheInputAge == 0) {
             cacheInputAge = GetInputAge(vin);
@@ -267,11 +268,16 @@ public:
     {
         std::string strStatus = "ACTIVE";
 
-        if (activeState == CMasternode::MASTERNODE_ENABLED) strStatus = "ENABLED";
-        if (activeState == CMasternode::MASTERNODE_EXPIRED) strStatus = "EXPIRED";
-        if (activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus = "VIN_SPENT";
-        if (activeState == CMasternode::MASTERNODE_REMOVE) strStatus = "REMOVE";
-        if (activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus = "POS_ERROR";
+        if (activeState == CMasternode::MASTERNODE_ENABLED)
+            strStatus = "ENABLED";
+        if (activeState == CMasternode::MASTERNODE_EXPIRED)
+            strStatus = "EXPIRED";
+        if (activeState == CMasternode::MASTERNODE_VIN_SPENT)
+            strStatus = "VIN_SPENT";
+        if (activeState == CMasternode::MASTERNODE_REMOVE)
+            strStatus = "REMOVE";
+        if (activeState == CMasternode::MASTERNODE_POS_ERROR)
+            strStatus = "POS_ERROR";
 
         return strStatus;
     }

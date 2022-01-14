@@ -7,8 +7,8 @@
 #define SNOWGEM_AMQP_AMQPNOTIFICATIONINTERFACE_H
 
 #include "validationinterface.h"
-#include <string>
 #include <map>
+#include <string>
 
 class CBlockIndex;
 class AMQPAbstractNotifier;
@@ -18,15 +18,15 @@ class AMQPNotificationInterface : public CValidationInterface
 public:
     virtual ~AMQPNotificationInterface();
 
-    static AMQPNotificationInterface* CreateWithArguments(const std::map<std::string, std::string> &args);
+    static AMQPNotificationInterface* CreateWithArguments(const std::map<std::string, std::string>& args);
 
 protected:
     bool Initialize();
     void Shutdown();
 
     // CValidationInterface
-    void SyncTransaction(const CTransaction &tx, const CBlock *pblock);
-    void UpdatedBlockTip(const CBlockIndex *pindex);
+    void SyncTransaction(const CTransaction& tx, const CBlock* pblock);
+    void UpdatedBlockTip(const CBlockIndex* pindex);
 
 private:
     AMQPNotificationInterface();

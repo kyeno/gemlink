@@ -32,20 +32,24 @@ public:
 
     explicit ZcashRandomEngine() {}
 
-    static constexpr result_type min() {
+    static constexpr result_type min()
+    {
         return std::numeric_limits<result_type>::min();
     }
-    static constexpr result_type max() {
+    static constexpr result_type max()
+    {
         return std::numeric_limits<result_type>::max();
     }
 
-    result_type operator()() {
+    result_type operator()()
+    {
         result_type nRand = 0;
         GetRandBytes((unsigned char*)&nRand, sizeof(nRand));
         return nRand;
     }
 
-    double entropy() const noexcept {
+    double entropy() const noexcept
+    {
         return 0;
     }
 };
@@ -53,7 +57,7 @@ public:
 /**
  * Identity function for MappedShuffle, so that elements retain their original order.
  */
- int GenIdentity(int n);
+int GenIdentity(int n);
 
 /**
  * Rearranges the elements in the range [first,first+len) randomly, assuming
@@ -71,8 +75,8 @@ void MappedShuffle(RandomAccessIterator first,
                    size_t len,
                    std::function<int(int)> gen)
 {
-    for (size_t i = len-1; i > 0; --i) {
-        auto r = gen(i+1);
+    for (size_t i = len - 1; i > 0; --i) {
+        auto r = gen(i + 1);
         assert(r >= 0);
         assert(r <= i);
         std::swap(first[i], first[r]);
@@ -85,7 +89,8 @@ void MappedShuffle(RandomAccessIterator first,
  * is completely deterministic and insecure after that.
  * This class is not thread-safe.
  */
-class FastRandomContext {
+class FastRandomContext
+{
 private:
     bool requires_seed;
     ChaCha20 rng;
@@ -122,20 +127,23 @@ public:
     /** Generate a random 64-bit integer. */
     uint64_t rand64()
     {
-        if (bytebuf_size < 8) FillByteBuffer();
+        if (bytebuf_size < 8)
+            FillByteBuffer();
         uint64_t ret = ReadLE64(bytebuf + 64 - bytebuf_size);
         bytebuf_size -= 8;
         return ret;
     }
 
     /** Generate a random (bits)-bit integer. */
-    uint64_t randbits(int bits) {
+    uint64_t randbits(int bits)
+    {
         if (bits == 0) {
             return 0;
         } else if (bits > 32) {
             return rand64() >> (64 - bits);
         } else {
-            if (bitbuf_size < bits) FillBitBuffer();
+            if (bitbuf_size < bits)
+                FillBitBuffer();
             uint64_t ret = bitbuf & (~(uint64_t)0 >> (64 - bits));
             bitbuf >>= bits;
             bitbuf_size -= bits;
@@ -150,7 +158,8 @@ public:
         int bits = CountBits(range);
         while (true) {
             uint64_t ret = randbits(bits);
-            if (ret <= range) return ret;
+            if (ret <= range)
+                return ret;
         }
     }
 

@@ -5,9 +5,9 @@
 #include "coins.h"
 
 #include "memusage.h"
+#include "policy/fees.h"
 #include "random.h"
 #include "version.h"
-#include "policy/fees.h"
 
 #include <assert.h>
 
@@ -16,12 +16,13 @@
  * each bit in the bitmask represents the availability of one output, but the
  * availabilities of the first two outputs are encoded separately
  */
-void CCoins::CalcMaskSize(unsigned int &nBytes, unsigned int &nNonzeroBytes) const {
+void CCoins::CalcMaskSize(unsigned int& nBytes, unsigned int& nNonzeroBytes) const
+{
     unsigned int nLastUsedByte = 0;
-    for (unsigned int b = 0; 2+b*8 < vout.size(); b++) {
+    for (unsigned int b = 0; 2 + b * 8 < vout.size(); b++) {
         bool fZero = true;
-        for (unsigned int i = 0; i < 8 && 2+b*8+i < vout.size(); i++) {
-            if (!vout[2+b*8+i].IsNull()) {
+        for (unsigned int i = 0; i < 8 && 2 + b * 8 + i < vout.size(); i++) {
+            if (!vout[2 + b * 8 + i].IsNull()) {
                 fZero = false;
                 continue;
             }
@@ -34,7 +35,7 @@ void CCoins::CalcMaskSize(unsigned int &nBytes, unsigned int &nNonzeroBytes) con
     nBytes += nLastUsedByte;
 }
 
-bool CCoins::Spend(uint32_t nPos) 
+bool CCoins::Spend(uint32_t nPos)
 {
     if (nPos >= vout.size() || vout[nPos].IsNull())
         return false;
@@ -42,54 +43,55 @@ bool CCoins::Spend(uint32_t nPos)
     Cleanup();
     return true;
 }
-bool CCoinsView::GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const { return false; }
-bool CCoinsView::GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &tree) const { return false; }
-bool CCoinsView::GetNullifier(const uint256 &nullifier, ShieldedType type) const { return false; }
-bool CCoinsView::GetCoins(const uint256 &txid, CCoins &coins) const { return false; }
-bool CCoinsView::HaveCoins(const uint256 &txid) const { return false; }
+bool CCoinsView::GetSproutAnchorAt(const uint256& rt, SproutMerkleTree& tree) const { return false; }
+bool CCoinsView::GetSaplingAnchorAt(const uint256& rt, SaplingMerkleTree& tree) const { return false; }
+bool CCoinsView::GetNullifier(const uint256& nullifier, ShieldedType type) const { return false; }
+bool CCoinsView::GetCoins(const uint256& txid, CCoins& coins) const { return false; }
+bool CCoinsView::HaveCoins(const uint256& txid) const { return false; }
 uint256 CCoinsView::GetBestBlock() const { return uint256(); }
 uint256 CCoinsView::GetBestAnchor(ShieldedType type) const { return uint256(); };
-bool CCoinsView::BatchWrite(CCoinsMap &mapCoins,
-                            const uint256 &hashBlock,
-                            const uint256 &hashSproutAnchor,
-                            const uint256 &hashSaplingAnchor,
-                            CAnchorsSproutMap &mapSproutAnchors,
-                            CAnchorsSaplingMap &mapSaplingAnchors,
-                            CNullifiersMap &mapSproutNullifiers,
-                            CNullifiersMap &mapSaplingNullifiers) { return false; }
-bool CCoinsView::GetStats(CCoinsStats &stats) const { return false; }
+bool CCoinsView::BatchWrite(CCoinsMap& mapCoins,
+                            const uint256& hashBlock,
+                            const uint256& hashSproutAnchor,
+                            const uint256& hashSaplingAnchor,
+                            CAnchorsSproutMap& mapSproutAnchors,
+                            CAnchorsSaplingMap& mapSaplingAnchors,
+                            CNullifiersMap& mapSproutNullifiers,
+                            CNullifiersMap& mapSaplingNullifiers) { return false; }
+bool CCoinsView::GetStats(CCoinsStats& stats) const { return false; }
 
 
-CCoinsViewBacked::CCoinsViewBacked(CCoinsView *viewIn) : base(viewIn) { }
+CCoinsViewBacked::CCoinsViewBacked(CCoinsView* viewIn) : base(viewIn) {}
 
-bool CCoinsViewBacked::GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const { return base->GetSproutAnchorAt(rt, tree); }
-bool CCoinsViewBacked::GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &tree) const { return base->GetSaplingAnchorAt(rt, tree); }
-bool CCoinsViewBacked::GetNullifier(const uint256 &nullifier, ShieldedType type) const { return base->GetNullifier(nullifier, type); }
-bool CCoinsViewBacked::GetCoins(const uint256 &txid, CCoins &coins) const { return base->GetCoins(txid, coins); }
-bool CCoinsViewBacked::HaveCoins(const uint256 &txid) const { return base->HaveCoins(txid); }
+bool CCoinsViewBacked::GetSproutAnchorAt(const uint256& rt, SproutMerkleTree& tree) const { return base->GetSproutAnchorAt(rt, tree); }
+bool CCoinsViewBacked::GetSaplingAnchorAt(const uint256& rt, SaplingMerkleTree& tree) const { return base->GetSaplingAnchorAt(rt, tree); }
+bool CCoinsViewBacked::GetNullifier(const uint256& nullifier, ShieldedType type) const { return base->GetNullifier(nullifier, type); }
+bool CCoinsViewBacked::GetCoins(const uint256& txid, CCoins& coins) const { return base->GetCoins(txid, coins); }
+bool CCoinsViewBacked::HaveCoins(const uint256& txid) const { return base->HaveCoins(txid); }
 uint256 CCoinsViewBacked::GetBestBlock() const { return base->GetBestBlock(); }
 uint256 CCoinsViewBacked::GetBestAnchor(ShieldedType type) const { return base->GetBestAnchor(type); }
-void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) { base = &viewIn; }
-bool CCoinsViewBacked::BatchWrite(CCoinsMap &mapCoins,
-                                  const uint256 &hashBlock,
-                                  const uint256 &hashSproutAnchor,
-                                  const uint256 &hashSaplingAnchor,
-                                  CAnchorsSproutMap &mapSproutAnchors,
-                                  CAnchorsSaplingMap &mapSaplingAnchors,
-                                  CNullifiersMap &mapSproutNullifiers,
-                                  CNullifiersMap &mapSaplingNullifiers) { return base->BatchWrite(mapCoins, hashBlock, hashSproutAnchor, hashSaplingAnchor, mapSproutAnchors, mapSaplingAnchors, mapSproutNullifiers, mapSaplingNullifiers); }
-bool CCoinsViewBacked::GetStats(CCoinsStats &stats) const { return base->GetStats(stats); }
+void CCoinsViewBacked::SetBackend(CCoinsView& viewIn) { base = &viewIn; }
+bool CCoinsViewBacked::BatchWrite(CCoinsMap& mapCoins,
+                                  const uint256& hashBlock,
+                                  const uint256& hashSproutAnchor,
+                                  const uint256& hashSaplingAnchor,
+                                  CAnchorsSproutMap& mapSproutAnchors,
+                                  CAnchorsSaplingMap& mapSaplingAnchors,
+                                  CNullifiersMap& mapSproutNullifiers,
+                                  CNullifiersMap& mapSaplingNullifiers) { return base->BatchWrite(mapCoins, hashBlock, hashSproutAnchor, hashSaplingAnchor, mapSproutAnchors, mapSaplingAnchors, mapSproutNullifiers, mapSaplingNullifiers); }
+bool CCoinsViewBacked::GetStats(CCoinsStats& stats) const { return base->GetStats(stats); }
 
 CCoinsKeyHasher::CCoinsKeyHasher() : salt(GetRandHash()) {}
 
-CCoinsViewCache::CCoinsViewCache(CCoinsView *baseIn) : CCoinsViewBacked(baseIn), hasModifier(false), cachedCoinsUsage(0) { }
+CCoinsViewCache::CCoinsViewCache(CCoinsView* baseIn) : CCoinsViewBacked(baseIn), hasModifier(false), cachedCoinsUsage(0) {}
 
 CCoinsViewCache::~CCoinsViewCache()
 {
     assert(!hasModifier);
 }
 
-size_t CCoinsViewCache::DynamicMemoryUsage() const {
+size_t CCoinsViewCache::DynamicMemoryUsage() const
+{
     return memusage::DynamicUsage(cacheCoins) +
            memusage::DynamicUsage(cacheSproutAnchors) +
            memusage::DynamicUsage(cacheSaplingAnchors) +
@@ -98,7 +100,8 @@ size_t CCoinsViewCache::DynamicMemoryUsage() const {
            cachedCoinsUsage;
 }
 
-CCoinsMap::const_iterator CCoinsViewCache::FetchCoins(const uint256 &txid) const {
+CCoinsMap::const_iterator CCoinsViewCache::FetchCoins(const uint256& txid) const
+{
     CCoinsMap::iterator it = cacheCoins.find(txid);
     if (it != cacheCoins.end())
         return it;
@@ -117,7 +120,8 @@ CCoinsMap::const_iterator CCoinsViewCache::FetchCoins(const uint256 &txid) const
 }
 
 
-bool CCoinsViewCache::GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const {
+bool CCoinsViewCache::GetSproutAnchorAt(const uint256& rt, SproutMerkleTree& tree) const
+{
     CAnchorsSproutMap::const_iterator it = cacheSproutAnchors.find(rt);
     if (it != cacheSproutAnchors.end()) {
         if (it->second.entered) {
@@ -140,7 +144,8 @@ bool CCoinsViewCache::GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tre
     return true;
 }
 
-bool CCoinsViewCache::GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &tree) const {
+bool CCoinsViewCache::GetSaplingAnchorAt(const uint256& rt, SaplingMerkleTree& tree) const
+{
     CAnchorsSaplingMap::const_iterator it = cacheSaplingAnchors.find(rt);
     if (it != cacheSaplingAnchors.end()) {
         if (it->second.entered) {
@@ -163,17 +168,18 @@ bool CCoinsViewCache::GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &t
     return true;
 }
 
-bool CCoinsViewCache::GetNullifier(const uint256 &nullifier, ShieldedType type) const {
+bool CCoinsViewCache::GetNullifier(const uint256& nullifier, ShieldedType type) const
+{
     CNullifiersMap* cacheToUse;
     switch (type) {
-        case SPROUT:
-            cacheToUse = &cacheSproutNullifiers;
-            break;
-        case SAPLING:
-            cacheToUse = &cacheSaplingNullifiers;
-            break;
-        default:
-            throw std::runtime_error("Unknown shielded type");
+    case SPROUT:
+        cacheToUse = &cacheSproutNullifiers;
+        break;
+    case SAPLING:
+        cacheToUse = &cacheSaplingNullifiers;
+        break;
+    default:
+        throw std::runtime_error("Unknown shielded type");
     }
     CNullifiersMap::iterator it = cacheToUse->find(nullifier);
     if (it != cacheToUse->end())
@@ -188,13 +194,12 @@ bool CCoinsViewCache::GetNullifier(const uint256 &nullifier, ShieldedType type) 
     return tmp;
 }
 
-template<typename Tree, typename Cache, typename CacheIterator, typename CacheEntry>
+template <typename Tree, typename Cache, typename CacheIterator, typename CacheEntry>
 void CCoinsViewCache::AbstractPushAnchor(
-    const Tree &tree,
+    const Tree& tree,
     ShieldedType type,
-    Cache &cacheAnchors,
-    uint256 &hash
-)
+    Cache& cacheAnchors,
+    uint256& hash)
 {
     uint256 newrt = tree.root();
 
@@ -222,51 +227,48 @@ void CCoinsViewCache::AbstractPushAnchor(
     }
 }
 
-template<> void CCoinsViewCache::PushAnchor(const SproutMerkleTree &tree)
+template <>
+void CCoinsViewCache::PushAnchor(const SproutMerkleTree& tree)
 {
     AbstractPushAnchor<SproutMerkleTree, CAnchorsSproutMap, CAnchorsSproutMap::iterator, CAnchorsSproutCacheEntry>(
         tree,
         SPROUT,
         cacheSproutAnchors,
-        hashSproutAnchor
-    );
+        hashSproutAnchor);
 }
 
-template<> void CCoinsViewCache::PushAnchor(const SaplingMerkleTree &tree)
+template <>
+void CCoinsViewCache::PushAnchor(const SaplingMerkleTree& tree)
 {
     AbstractPushAnchor<SaplingMerkleTree, CAnchorsSaplingMap, CAnchorsSaplingMap::iterator, CAnchorsSaplingCacheEntry>(
         tree,
         SAPLING,
         cacheSaplingAnchors,
-        hashSaplingAnchor
-    );
+        hashSaplingAnchor);
 }
 
-template<>
+template <>
 void CCoinsViewCache::BringBestAnchorIntoCache(
-    const uint256 &currentRoot,
-    SproutMerkleTree &tree
-)
+    const uint256& currentRoot,
+    SproutMerkleTree& tree)
 {
     assert(GetSproutAnchorAt(currentRoot, tree));
 }
 
-template<>
+template <>
 void CCoinsViewCache::BringBestAnchorIntoCache(
-    const uint256 &currentRoot,
-    SaplingMerkleTree &tree
-)
+    const uint256& currentRoot,
+    SaplingMerkleTree& tree)
 {
     assert(GetSaplingAnchorAt(currentRoot, tree));
 }
 
-template<typename Tree, typename Cache, typename CacheEntry>
+template <typename Tree, typename Cache, typename CacheEntry>
 void CCoinsViewCache::AbstractPopAnchor(
-    const uint256 &newrt,
+    const uint256& newrt,
     ShieldedType type,
-    Cache &cacheAnchors,
-    uint256 &hash
-)
+    Cache& cacheAnchors,
+    uint256& hash)
 {
     auto currentRoot = GetBestAnchor(type);
 
@@ -292,45 +294,46 @@ void CCoinsViewCache::AbstractPopAnchor(
     }
 }
 
-void CCoinsViewCache::PopAnchor(const uint256 &newrt, ShieldedType type) {
+void CCoinsViewCache::PopAnchor(const uint256& newrt, ShieldedType type)
+{
     switch (type) {
-        case SPROUT:
-            AbstractPopAnchor<SproutMerkleTree, CAnchorsSproutMap, CAnchorsSproutCacheEntry>(
-                newrt,
-                SPROUT,
-                cacheSproutAnchors,
-                hashSproutAnchor
-            );
-            break;
-        case SAPLING:
-            AbstractPopAnchor<SaplingMerkleTree, CAnchorsSaplingMap, CAnchorsSaplingCacheEntry>(
-                newrt,
-                SAPLING,
-                cacheSaplingAnchors,
-                hashSaplingAnchor
-            );
-            break;
-        default:
-            throw std::runtime_error("Unknown shielded type");
+    case SPROUT:
+        AbstractPopAnchor<SproutMerkleTree, CAnchorsSproutMap, CAnchorsSproutCacheEntry>(
+            newrt,
+            SPROUT,
+            cacheSproutAnchors,
+            hashSproutAnchor);
+        break;
+    case SAPLING:
+        AbstractPopAnchor<SaplingMerkleTree, CAnchorsSaplingMap, CAnchorsSaplingCacheEntry>(
+            newrt,
+            SAPLING,
+            cacheSaplingAnchors,
+            hashSaplingAnchor);
+        break;
+    default:
+        throw std::runtime_error("Unknown shielded type");
     }
 }
 
-void CCoinsViewCache::SetNullifiers(const CTransaction& tx, bool spent) {
-    for (const JSDescription &joinsplit : tx.vjoinsplit) {
-        for (const uint256 &nullifier : joinsplit.nullifiers) {
+void CCoinsViewCache::SetNullifiers(const CTransaction& tx, bool spent)
+{
+    for (const JSDescription& joinsplit : tx.vjoinsplit) {
+        for (const uint256& nullifier : joinsplit.nullifiers) {
             std::pair<CNullifiersMap::iterator, bool> ret = cacheSproutNullifiers.insert(std::make_pair(nullifier, CNullifiersCacheEntry()));
             ret.first->second.entered = spent;
             ret.first->second.flags |= CNullifiersCacheEntry::DIRTY;
         }
     }
-    for (const SpendDescription &spendDescription : tx.vShieldedSpend) {
+    for (const SpendDescription& spendDescription : tx.vShieldedSpend) {
         std::pair<CNullifiersMap::iterator, bool> ret = cacheSaplingNullifiers.insert(std::make_pair(spendDescription.nullifier, CNullifiersCacheEntry()));
         ret.first->second.entered = spent;
         ret.first->second.flags |= CNullifiersCacheEntry::DIRTY;
     }
 }
 
-bool CCoinsViewCache::GetCoins(const uint256 &txid, CCoins &coins) const {
+bool CCoinsViewCache::GetCoins(const uint256& txid, CCoins& coins) const
+{
     CCoinsMap::const_iterator it = FetchCoins(txid);
     if (it != cacheCoins.end()) {
         coins = it->second.coins;
@@ -339,7 +342,8 @@ bool CCoinsViewCache::GetCoins(const uint256 &txid, CCoins &coins) const {
     return false;
 }
 
-CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256 &txid) {
+CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256& txid)
+{
     assert(!hasModifier);
     std::pair<CCoinsMap::iterator, bool> ret = cacheCoins.insert(std::make_pair(txid, CCoinsCacheEntry()));
     size_t cachedCoinUsage = 0;
@@ -360,7 +364,8 @@ CCoinsModifier CCoinsViewCache::ModifyCoins(const uint256 &txid) {
     return CCoinsModifier(*this, ret.first, cachedCoinUsage);
 }
 
-const CCoins* CCoinsViewCache::AccessCoins(const uint256 &txid) const {
+const CCoins* CCoinsViewCache::AccessCoins(const uint256& txid) const
+{
     CCoinsMap::const_iterator it = FetchCoins(txid);
     if (it == cacheCoins.end()) {
         return NULL;
@@ -369,7 +374,8 @@ const CCoins* CCoinsViewCache::AccessCoins(const uint256 &txid) const {
     }
 }
 
-bool CCoinsViewCache::HaveCoins(const uint256 &txid) const {
+bool CCoinsViewCache::HaveCoins(const uint256& txid) const
+{
     CCoinsMap::const_iterator it = FetchCoins(txid);
     // We're using vtx.empty() instead of IsPruned here for performance reasons,
     // as we only care about the case where a transaction was replaced entirely
@@ -378,35 +384,38 @@ bool CCoinsViewCache::HaveCoins(const uint256 &txid) const {
     return (it != cacheCoins.end() && !it->second.coins.vout.empty());
 }
 
-uint256 CCoinsViewCache::GetBestBlock() const {
+uint256 CCoinsViewCache::GetBestBlock() const
+{
     if (hashBlock.IsNull())
         hashBlock = base->GetBestBlock();
     return hashBlock;
 }
 
 
-uint256 CCoinsViewCache::GetBestAnchor(ShieldedType type) const {
+uint256 CCoinsViewCache::GetBestAnchor(ShieldedType type) const
+{
     switch (type) {
-        case SPROUT:
-            if (hashSproutAnchor.IsNull())
-                hashSproutAnchor = base->GetBestAnchor(type);
-            return hashSproutAnchor;
-            break;
-        case SAPLING:
-            if (hashSaplingAnchor.IsNull())
-                hashSaplingAnchor = base->GetBestAnchor(type);
-            return hashSaplingAnchor;
-            break;
-        default:
-            throw std::runtime_error("Unknown shielded type");
+    case SPROUT:
+        if (hashSproutAnchor.IsNull())
+            hashSproutAnchor = base->GetBestAnchor(type);
+        return hashSproutAnchor;
+        break;
+    case SAPLING:
+        if (hashSaplingAnchor.IsNull())
+            hashSaplingAnchor = base->GetBestAnchor(type);
+        return hashSaplingAnchor;
+        break;
+    default:
+        throw std::runtime_error("Unknown shielded type");
     }
 }
 
-void CCoinsViewCache::SetBestBlock(const uint256 &hashBlockIn) {
+void CCoinsViewCache::SetBestBlock(const uint256& hashBlockIn)
+{
     hashBlock = hashBlockIn;
 }
 
-void BatchWriteNullifiers(CNullifiersMap &mapNullifiers, CNullifiersMap &cacheNullifiers)
+void BatchWriteNullifiers(CNullifiersMap& mapNullifiers, CNullifiersMap& cacheNullifiers)
 {
     for (CNullifiersMap::iterator child_it = mapNullifiers.begin(); child_it != mapNullifiers.end();) {
         if (child_it->second.flags & CNullifiersCacheEntry::DIRTY) { // Ignore non-dirty entries (optimization).
@@ -428,15 +437,13 @@ void BatchWriteNullifiers(CNullifiersMap &mapNullifiers, CNullifiersMap &cacheNu
     }
 }
 
-template<typename Map, typename MapIterator, typename MapEntry>
+template <typename Map, typename MapIterator, typename MapEntry>
 void BatchWriteAnchors(
-    Map &mapAnchors,
-    Map &cacheAnchors,
-    size_t &cachedCoinsUsage
-)
+    Map& mapAnchors,
+    Map& cacheAnchors,
+    size_t& cachedCoinsUsage)
 {
-    for (MapIterator child_it = mapAnchors.begin(); child_it != mapAnchors.end();)
-    {
+    for (MapIterator child_it = mapAnchors.begin(); child_it != mapAnchors.end();) {
         if (child_it->second.flags & MapEntry::DIRTY) {
             MapIterator parent_it = cacheAnchors.find(child_it->first);
 
@@ -461,14 +468,15 @@ void BatchWriteAnchors(
     }
 }
 
-bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins,
-                                 const uint256 &hashBlockIn,
-                                 const uint256 &hashSproutAnchorIn,
-                                 const uint256 &hashSaplingAnchorIn,
-                                 CAnchorsSproutMap &mapSproutAnchors,
-                                 CAnchorsSaplingMap &mapSaplingAnchors,
-                                 CNullifiersMap &mapSproutNullifiers,
-                                 CNullifiersMap &mapSaplingNullifiers) {
+bool CCoinsViewCache::BatchWrite(CCoinsMap& mapCoins,
+                                 const uint256& hashBlockIn,
+                                 const uint256& hashSproutAnchorIn,
+                                 const uint256& hashSaplingAnchorIn,
+                                 CAnchorsSproutMap& mapSproutAnchors,
+                                 CAnchorsSaplingMap& mapSaplingAnchors,
+                                 CNullifiersMap& mapSproutNullifiers,
+                                 CNullifiersMap& mapSaplingNullifiers)
+{
     assert(!hasModifier);
     for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();) {
         if (it->second.flags & CCoinsCacheEntry::DIRTY) { // Ignore non-dirty entries (optimization).
@@ -517,7 +525,8 @@ bool CCoinsViewCache::BatchWrite(CCoinsMap &mapCoins,
     return true;
 }
 
-bool CCoinsViewCache::Flush() {
+bool CCoinsViewCache::Flush()
+{
     bool fOk = base->BatchWrite(cacheCoins, hashBlock, hashSproutAnchor, hashSaplingAnchor, cacheSproutAnchors, cacheSaplingAnchors, cacheSproutNullifiers, cacheSaplingNullifiers);
     cacheCoins.clear();
     cacheSproutAnchors.clear();
@@ -528,11 +537,12 @@ bool CCoinsViewCache::Flush() {
     return fOk;
 }
 
-unsigned int CCoinsViewCache::GetCacheSize() const {
+unsigned int CCoinsViewCache::GetCacheSize() const
+{
     return cacheCoins.size();
 }
 
-const CTxOut &CCoinsViewCache::GetOutputFor(const CTxIn& input) const
+const CTxOut& CCoinsViewCache::GetOutputFor(const CTxIn& input) const
 {
     const CCoins* coins = AccessCoins(input.prevout.hash);
     assert(coins && coins->IsAvailable(input.prevout.n));
@@ -557,10 +567,8 @@ bool CCoinsViewCache::HaveJoinSplitRequirements(const CTransaction& tx) const
 {
     boost::unordered_map<uint256, SproutMerkleTree, CCoinsKeyHasher> intermediates;
 
-    BOOST_FOREACH(const JSDescription &joinsplit, tx.vjoinsplit)
-    {
-        BOOST_FOREACH(const uint256& nullifier, joinsplit.nullifiers)
-        {
+    BOOST_FOREACH (const JSDescription& joinsplit, tx.vjoinsplit) {
+        BOOST_FOREACH (const uint256& nullifier, joinsplit.nullifiers) {
             if (GetNullifier(nullifier, SPROUT)) {
                 // If the nullifier is set, this transaction
                 // double-spends!
@@ -576,15 +584,14 @@ bool CCoinsViewCache::HaveJoinSplitRequirements(const CTransaction& tx) const
             return false;
         }
 
-        BOOST_FOREACH(const uint256& commitment, joinsplit.commitments)
-        {
+        BOOST_FOREACH (const uint256& commitment, joinsplit.commitments) {
             tree.append(commitment);
         }
 
         intermediates.insert(std::make_pair(tree.root(), tree));
     }
 
-    for (const SpendDescription &spendDescription : tx.vShieldedSpend) {
+    for (const SpendDescription& spendDescription : tx.vShieldedSpend) {
         if (GetNullifier(spendDescription.nullifier, SAPLING)) // Prevent double spends
             return false;
 
@@ -601,7 +608,7 @@ bool CCoinsViewCache::HaveInputs(const CTransaction& tx) const
 {
     if (!tx.IsCoinBase()) {
         for (unsigned int i = 0; i < tx.vin.size(); i++) {
-            const COutPoint &prevout = tx.vin[i].prevout;
+            const COutPoint& prevout = tx.vin[i].prevout;
             const CCoins* coins = AccessCoins(prevout.hash);
             if (!coins || !coins->IsAvailable(prevout.n)) {
                 return false;
@@ -611,7 +618,7 @@ bool CCoinsViewCache::HaveInputs(const CTransaction& tx) const
     return true;
 }
 
-double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight) const
+double CCoinsViewCache::GetPriority(const CTransaction& tx, int nHeight) const
 {
     if (tx.IsCoinBase())
         return 0.0;
@@ -627,20 +634,21 @@ double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight) const
 
     // FIXME: this logic is partially duplicated between here and CreateNewBlock in miner.cpp.
     double dResult = 0.0;
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
-    {
+    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
         const CCoins* coins = AccessCoins(txin.prevout.hash);
         assert(coins);
-        if (!coins->IsAvailable(txin.prevout.n)) continue;
+        if (!coins->IsAvailable(txin.prevout.n))
+            continue;
         if (coins->nHeight < nHeight) {
-            dResult += coins->vout[txin.prevout.n].nValue * (nHeight-coins->nHeight);
+            dResult += coins->vout[txin.prevout.n].nValue * (nHeight - coins->nHeight);
         }
     }
 
     return tx.ComputePriority(dResult);
 }
 
-CCoinsModifier::CCoinsModifier(CCoinsViewCache& cache_, CCoinsMap::iterator it_, size_t usage) : cache(cache_), it(it_), cachedCoinUsage(usage) {
+CCoinsModifier::CCoinsModifier(CCoinsViewCache& cache_, CCoinsMap::iterator it_, size_t usage) : cache(cache_), it(it_), cachedCoinUsage(usage)
+{
     assert(!cache.hasModifier);
     cache.hasModifier = true;
 }

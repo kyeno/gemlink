@@ -45,7 +45,7 @@ void DumpBudgets();
 // Define amount of blocks in budget payment cycle
 int GetBudgetPaymentCycleBlocks();
 
-//Check the collateral transaction for the budget proposal/finalized budget
+// Check the collateral transaction for the budget proposal/finalized budget
 bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, std::string& strError, int64_t& nTime, int& nConf);
 
 //
@@ -55,8 +55,8 @@ bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, s
 class CBudgetVote
 {
 public:
-    bool fValid;  //if the vote is currently valid / counted
-    bool fSynced; //if we've sent this to our peers
+    bool fValid;  // if the vote is currently valid / counted
+    bool fSynced; // if we've sent this to our peers
     CTxIn vin;
     uint256 nProposalHash;
     int nVote;
@@ -73,8 +73,10 @@ public:
     std::string GetVoteString()
     {
         std::string ret = "ABSTAIN";
-        if (nVote == VOTE_YES) ret = "YES";
-        if (nVote == VOTE_NO) ret = "NO";
+        if (nVote == VOTE_YES)
+            ret = "YES";
+        if (nVote == VOTE_NO)
+            ret = "NO";
         return ret;
     }
 
@@ -108,8 +110,8 @@ public:
 class CFinalizedBudgetVote
 {
 public:
-    bool fValid;  //if the vote is currently valid / counted
-    bool fSynced; //if we've sent this to our peers
+    bool fValid;  // if the vote is currently valid / counted
+    bool fSynced; // if we've sent this to our peers
     CTxIn vin;
     uint256 nBudgetHash;
     int64_t nTime;
@@ -174,8 +176,8 @@ public:
 class CBudgetManager
 {
 private:
-    //hold txes until they mature enough to use
-    // XX42    map<uint256, CTransaction> mapCollateral;
+    // hold txes until they mature enough to use
+    //  XX42    map<uint256, CTransaction> mapCollateral;
     map<uint256, uint256> mapCollateralTxids;
 
 public:
@@ -291,7 +293,7 @@ public:
 
     ADD_SERIALIZE_METHODS;
 
-    //for saving to the serialized db
+    // for saving to the serialized db
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action)
     {
@@ -310,7 +312,7 @@ class CFinalizedBudget
 private:
     // critical section to protect the inner data structures
     mutable CCriticalSection cs;
-    bool fAutoChecked; //If it matches what we see, we'll auto vote for it (masternode only)
+    bool fAutoChecked; // If it matches what we see, we'll auto vote for it (masternode only)
 
 public:
     bool fValid;
@@ -342,8 +344,10 @@ public:
         LOCK(cs);
 
         int i = nBlockHeight - GetBlockStart();
-        if (i < 0) return false;
-        if (i > (int)vecBudgetPayments.size() - 1) return false;
+        if (i < 0)
+            return false;
+        if (i > (int)vecBudgetPayments.size() - 1)
+            return false;
         payment = vecBudgetPayments[i];
         return true;
     }
@@ -352,21 +356,23 @@ public:
         LOCK(cs);
 
         int i = nBlockHeight - GetBlockStart();
-        if (i < 0) return false;
-        if (i > (int)vecBudgetPayments.size() - 1) return false;
+        if (i < 0)
+            return false;
+        if (i > (int)vecBudgetPayments.size() - 1)
+            return false;
         payee = vecBudgetPayments[i].payee;
         nAmount = vecBudgetPayments[i].nAmount;
         return true;
     }
 
-    //check to see if we should vote on this
+    // check to see if we should vote on this
     void AutoCheck();
-    //total snowgem paid out by this budget
+    // total snowgem paid out by this budget
     CAmount GetTotalPayout();
-    //vote on this finalized budget as a masternode
+    // vote on this finalized budget as a masternode
     void SubmitVote();
 
-    //checks the hashes to make sure we know about them
+    // checks the hashes to make sure we know about them
     string GetStatus();
 
     uint256 GetHash()
@@ -382,7 +388,7 @@ public:
 
     ADD_SERIALIZE_METHODS;
 
-    //for saving to the serialized db
+    // for saving to the serialized db
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action)
     {
@@ -433,11 +439,11 @@ public:
 
     ADD_SERIALIZE_METHODS;
 
-    //for propagating messages
+    // for propagating messages
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action)
     {
-        //for syncing with other clients
+        // for syncing with other clients
         READWRITE(LIMITED_STRING(strBudgetName, 20));
         READWRITE(nBlockStart);
         READWRITE(vecBudgetPayments);
@@ -474,7 +480,7 @@ public:
     uint256 nFeeTXHash;
 
     map<uint256, CBudgetVote> mapVotes;
-    //cache object
+    // cache object
 
     CBudgetProposal();
     CBudgetProposal(const CBudgetProposal& other);
@@ -490,7 +496,8 @@ public:
     bool IsEstablished()
     {
         // Proposals must be at least a day old to make it into a budget
-        if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60 * 60 * 24));
+        if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN)
+            return (nTime < GetTime() - (60 * 60 * 24));
 
         // For testing purposes - 5 minutes
         return (nTime < GetTime() - (60 * 5));
@@ -535,7 +542,7 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action)
     {
-        //for syncing with other clients
+        // for syncing with other clients
         READWRITE(LIMITED_STRING(strProposalName, 20));
         READWRITE(LIMITED_STRING(strURL, 64));
         READWRITE(nTime);
@@ -546,7 +553,7 @@ public:
         READWRITE(nTime);
         READWRITE(nFeeTXHash);
 
-        //for saving to the serialized db
+        // for saving to the serialized db
         READWRITE(mapVotes);
     }
 };
@@ -591,7 +598,7 @@ public:
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action)
     {
-        //for syncing with other clients
+        // for syncing with other clients
 
         READWRITE(LIMITED_STRING(strProposalName, 20));
         READWRITE(LIMITED_STRING(strURL, 64));

@@ -80,7 +80,7 @@ FastRandomContext::FastRandomContext(const uint256& seed) : requires_seed(false)
 
 int GenIdentity(int n)
 {
-    return n-1;
+    return n - 1;
 }
 
 FastRandomContext::FastRandomContext(bool fDeterministic) : requires_seed(!fDeterministic), bytebuf_size(0), bitbuf_size(0)

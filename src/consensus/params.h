@@ -12,7 +12,8 @@
 
 int32_t MAX_BLOCK_SIZE(int32_t height);
 
-namespace Consensus {
+namespace Consensus
+{
 
 /**
  * Index into Params.vUpgrades and NetworkUpgradeInfo
@@ -90,16 +91,19 @@ struct Params {
      */
     int SubsidySlowStartShift() const { return nSubsidySlowStartInterval / 2; }
     int nSubsidyHalvingInterval;
-    int GetLastFoundersRewardBlockHeight() const {
+    int GetLastFoundersRewardBlockHeight() const
+    {
         return nSubsidyHalvingInterval + SubsidySlowStartShift() - 1;
         // return 99999999;
     }
 
-    int GetLastTreasuryRewardBlockHeight() const {
+    int GetLastTreasuryRewardBlockHeight() const
+    {
         return 99999999;
     }
 
-    int GetFoundersRewardRepeatInterval() const {
+    int GetFoundersRewardRepeatInterval() const
+    {
         return nSubsidyHalvingInterval + SubsidySlowStartShift() - 1;
     }
     /** Used to check majorities for block version upgrade */
@@ -119,12 +123,12 @@ struct Params {
     int nMasternodePaymentsStartBlock;
     int nMasternodePaymentsIncreasePeriod; // in blocks
     int64_t AveragingWindowTimespan() const { return nPowAveragingWindow * nPowTargetSpacing; }
-    int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp  )) / 100; }
+    int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp)) / 100; }
     int64_t MaxActualTimespan() const { return (AveragingWindowTimespan() * (100 + nPowMaxAdjustDown)) / 100; }
     uint256 nMinimumChainWork;
 
     /** Parameters for LWMA3 **/
-    int64_t nZawyLWMA3AveragingWindow;  // N
+    int64_t nZawyLWMA3AveragingWindow; // N
 };
 } // namespace Consensus
 

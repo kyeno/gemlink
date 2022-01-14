@@ -234,15 +234,15 @@ void metrics_record_histogram(MetricsKey* callsite, double value);
 /// starts out with an initial value of zero.
 ///
 /// name MUST be a static constant, and all strings MUST be valid UTF-8.
-#define MetricsStaticGauge(name, value, ...)           \
-    do {                                               \
-        static constexpr const char* M_LABELS[] =      \
-            {T_FIELD_NAMES(__VA_ARGS__)};              \
-        static constexpr const char* M_VALUES[] =      \
-            {T_FIELD_VALUES(__VA_ARGS__)};             \
-        static MetricsCallsite* CALLSITE =             \
-             M_CALLSITE(name, M_LABELS, M_VALUES);     \
-         metrics_static_update_gauge(CALLSITE, value); \
+#define MetricsStaticGauge(name, value, ...)          \
+    do {                                              \
+        static constexpr const char* M_LABELS[] =     \
+            {T_FIELD_NAMES(__VA_ARGS__)};             \
+        static constexpr const char* M_VALUES[] =     \
+            {T_FIELD_VALUES(__VA_ARGS__)};            \
+        static MetricsCallsite* CALLSITE =            \
+            M_CALLSITE(name, M_LABELS, M_VALUES);     \
+        metrics_static_update_gauge(CALLSITE, value); \
     } while (0)
 
 /// Increments a gauge.

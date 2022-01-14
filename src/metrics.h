@@ -12,22 +12,26 @@
 struct AtomicCounter {
     std::atomic<uint64_t> value;
 
-    AtomicCounter() : value {0} { }
+    AtomicCounter() : value{0} {}
 
-    void increment(){
+    void increment()
+    {
         ++value;
     }
 
-    void decrement(){
+    void decrement()
+    {
         --value;
     }
 
-    int get() const {
+    int get() const
+    {
         return value.load();
     }
 };
 
-class AtomicTimer {
+class AtomicTimer
+{
 private:
     std::mutex mtx;
     uint64_t threads;
@@ -70,9 +74,7 @@ double GetLocalSolPS();
  * If 'height' is nonnegative, compute the estimate at the time when a given block was found.
  */
 int64_t GetNetworkHashPS(int lookup, int height);
-int EstimateNetHeightInner(int height, int64_t tipmediantime,
-                           int heightLastCheckpoint, int64_t timeLastCheckpoint,
-                           int64_t genesisTime, int64_t targetSpacing);
+int EstimateNetHeightInner(int height, int64_t tipmediantime, int heightLastCheckpoint, int64_t timeLastCheckpoint, int64_t genesisTime, int64_t targetSpacing);
 
 void TriggerRefresh();
 

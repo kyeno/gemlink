@@ -4,12 +4,12 @@
 
 #include "arith_uint256.h"
 #include "consensus/validation.h"
+#include "crypto/equihash.h"
 #include "main.h"
 #include "miner.h"
 #include "pubkey.h"
 #include "uint256.h"
 #include "util.h"
-#include "crypto/equihash.h"
 //#include "pow/tromp/equi_miner.h"
 
 #include "test/test_bitcoin.h"
@@ -18,10 +18,9 @@
 
 BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
 
-static
-struct {
-    const char *nonce_hex;
-    const char *solution_hex;
+static struct {
+    const char* nonce_hex;
+    const char* solution_hex;
 } blockinfo[] = {
     {"00000000000000000000000000000000000000000000000000000000000024b2", "0026ca22cec36c1937fcc1c7379c054dced412c3a11becd6e3cdd3090b1961a4f9db3c30b6ce55f77f32187ea5f868a23955853a54583ae4cfea025f159044407c6bff1a9bc6494a6ed52d697cc395c50cd879f30637d73f100409a6c428f42a0ddea12a71edd8cf3f0c1da21072091ef36e6ca2596c1e86be5b107536e420fee672cfa22417dfaad91d906ac41a7b8a76c0c2213482f207ef1c6ff95a8220e27bf2eef62019256203036f50bc90809ebcc1db0676e52d1b4f033ff903183b27d45f0f67ed53f683fd56b43a699dc9f091e117e6621e9af0b02be0992a733ffeddbac5fb7c49852ad10c2fa3b0b92fc0cda438c8be0e127621f6e4f90df4a9b703d1e74297f7a1c8b433a016006e1f769b155d6e6b01ebaed3adfb83027543da91799d8fa49219d7eba700c94d88b836f3a3a5517ca57f3d1120ce26d189a1074b6f5abf75d3100c3157b925e94a46ba042488e905d47bc18880e0a828ef9e81b832d0b61427686b2940ab3be198d307fc64498f8baf6f9f29fe193dbf9b9048a3424d8f22432ebabee2ef795ff8153e4717dea77004c3ac24a41d272ea9fa5dd1d9b8c605f7b3180a83bae378fb52a1b26deabcf0daa98f120c10d42762a6b72d695331878fba6165dad0734e3f08059f7a8dcf7c7cd3d440f009b4b4f58b6af1258e14c67593f89a2def471fb5b2e9b15e3df016f5132407126a431f4304488d3550a88822234242657a07311c198e10044c9c3d4692167a6df59e6a5ed7f51e970801b91e9c8ae26e82225168421fef16ddc579d1d32dd74d3b661beaf5a9ffb4d7c928db3e5937151abf0f29137e4bdb99f9ae96f34db7487236c0519e024223e1fcff065d50ff938d9581947aa36d7797d761311fe1a9ffe3cbdb7b3f43d6ba76c465f2544cf8f12f25c732c12d49a6a274be62efc64dc8f9ef24fb6a3b007b7d568c544469628b42c3e371db76e542be84311ebcf6c07ad7ec34ce2fe2debf3173971b92df9b150252818a1e0a4339661f46414fff41a201e211173627de34c75acdf3e35fc4b843d2efe7a7a3c8de46b600d1ea22f95e318d537f220d99a70c192cc1bc8c850d8a6f977a498c94673ce2a04532c1c30f36199e650519d318b2cfc205e09b64ec34b98e0d3c90da7f604a096e33e89e5e15f139c501ad60cb6df2e731449f008924270e05119342a3a2e24a37159db7d13092411b1d06728d4a07671089d3fd0c5e642df3da5c2a3c027426696f9aa0c38e43632745ed08de3c47569ec214922d44b8e6c077f602b3a84e4004a2475c1c24a201aa2d9dd3c8f6753d7c37eedeef7a22b3d81f6d531a7ebe59d36191d78c59551c9ebe501594447c947f0c308f1641cd72976f5b69dd2dd76aff033b5e91141f7d45593710cea54f65e41bd5bd4fe9c5240e8ac201b3cf649e01b10c83ef88771cf783fecf30383a7b593f76a758dd518925a9f883897ef44f4d523d46e70dbbc5570c1ac3618c3de53172592a9dc537d4e7d20f4df281c1919a5ae04ec2a2191b8ff8ecc8a78ff302555dedb24551e726ef62121de15ba173c0bd34ab1e350d749fc8f3135e05d205691ad2ccc8257a957b0803c20a3054b130cc2ab5e9ebdb57ce1e3e75815e0bc0e21fa5d2ceff943034a3c5b887bd61b33f647d01e9bd2c2e8dedfea5a8d489ffeb203b518d7fe2a829a29e4cf44d18615a0d865435457481cb69587d3019c334b55789a97bd1dd52bcf270b23d165aedfda01aab0afe6323332328c1b223cb4ab11278487b1fd303a53ad1090b4bcd4a17b152352e2761a0642e4a780f6875ed99cfede0d08e978d6cdf083ec748f68d41115800d56026bb0986e274f52a58049aaba31618fe2ffded45a0632711b138243499455971f3bbf5eacd"},
     {"00000000000000000000000000000000000000000000000000000000000000cc", "00ef1327f8e5fd65553e60ef249d8c786f59d7bae20c9053dfc20643233a3ab273223f6b46308c12cbfe0baa7b3f716c28cff80516b49b79fceb38ec1b7dee31fcfacf8a8feb3daf0d036390e0a0073bccbc2af210838f54f38fd9907f96250c4ed258e5b950f393ff1138146d8eed4e4d7b95e12c2a982e29e9d998afd51895228fba8bbce4682605fd5c45da65f03e12fd2d4294a5afe696e430e88594791baac0e5365caeedc70291d9c6458ed294ecaf32b4915c217958ab6d27b3121818d41e056014c457c1333c97c1f55f3f98c35b09f6873bf70521fd6ed613bef8515a4b58c7fe8f4335f65b220c1ce6695250e50f7cc8eed22bd81e68e507f5677ab75adc81ccd0f55100b6e7a9e10b51dcf744a7ffbea6746e23bcc81466bf5da1070adf79f5ef10598175c6aa47abb1ada659136114faec87996c8927431acc98e890d1daf8c8f9e6e0cb8e50d67ec45f03305c716fc52a2429d061947af64c51d579b3c6430b2fe493ec5acc0fc104f276d1e7a20532e58e24a91076d722914e1751c2de5393584f1f61aa02b22d8524f3515e474d1ad8c98c134582d50c8a8fbe9da4150a2422195656b361155214b5bd79fa2975c87789fb13cf2ce2c0ca5bc0de8d53ae783b5bd9fa1af10be50f6887d48ede2e77b2fd34c5f65e6e0677c819dc8d113c9de81aca9b4323f2366c6de96efa11c294e1fa06efb894f84973b7623cf1ef59b957ca17d8fae0a90c1a0c6c010401f51e4482ff3257ffd628983b3f122a875f50ba1d0ec1aee0b2f931ee9274c4ee70cf333feb6cb08f21a4fb11edf84157c828b7727f3c729c0a0fa1f45f1d0110ff1e24528278956ec4a8da544c482b73ad873467dbb9fca69e3859512abb70772e72170f00d6ca6cfd419e2311e0c476ce5a1715fea60a198d5d1e3cdf9df3eda682fbb728b3b4e6993b4ba90118c4561182e9e0aa28b2e66a6ff0525a2b7fbeff3313669d36e44a014c0d2745477592c654a1f656fc0b75e06254f3cfe9b4f0814ad4315540956d1fc179370e25a73092c3c78872662e58f5f3b26143bc7e9f05dbd98cfa4b12590a0e34c00c5d048f9c95fe20ab089206acea458d06eb5ef1326aa09dbcef945f78920ea21e81f4e52e79e2517a726579c4c3d3af3fffad2f8f3a02e14c49506c1bb761d5ce5f8f6b147cccfd0317839dd354df430a5f7ad1f4fbe8db7e6e9c969f1137d98095527757559372e5fc479eaccc5d6baa5a0a06ef9608d5dccffb2d92719ae4f6730923fa4daa1b5884a4785d9f97a1d5e73e9fc90eb2910998424911274f10ecd1a860d35f7177118d9eca1625f42cfe2091e34e4b5b3e5572e6958bf0d1a9818b0dd0a8d413666fff245c37e3393a21a37da18d0110022b817e20bc4a3819cdd0a4b0fc4827c0e16a2f88209fc2e301e5275341a5cbd766b9b8a44479f8527f6c194f78070a63115a598cf9c14e7479c83f18f62177769c2a05fcf28b260f263cc06583903addcc52e322dfcf61287cb7897d9091ece987a2ddbe588a6a979977d9fb0fe23cb8e8f0c1658df903764a75b8a23d14bc4c743d785fe3b9695443f42444606723808b496afbe97e37770b3918a05be3ea1084b44bf4c2614ee2bd8ee144c8ad3d4bfd152dfcc5a80d8872d136ec46fe57ef07cbd0e1155ec8e560bce2330cd1443e00e5346ee7106a7c28d7d951c5359612985425a2f9be58f0462814a2dc4c1b14419cb3be0291cdd81ff61b3896c5c7230374a127143269e6d2f45e673f5199fff93940530902ab1806981382f7979361bbe0695e4662f39aa811fa176bc0d77259d963f367c9e7eb40f5333132c60e4cdad5903a1545e273667aa8ebd42216405e68d131844f1578ce591eda470aaf0cda3d1f2b141b1df4"},
@@ -139,8 +138,8 @@ struct {
 BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 {
     CScript scriptPubKey = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
-    CBlockTemplate *pblocktemplate;
-    CMutableTransaction tx,tx2;
+    CBlockTemplate* pblocktemplate;
+    CMutableTransaction tx, tx2;
     CScript script;
     uint256 hash;
     TestMemPoolEntryHelper entry;
@@ -154,23 +153,22 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 
     // We can't make transactions until we have inputs
     // Therefore, load 100 blocks :)
-    std::vector<CTransaction*>txFirst;
-    for (unsigned int i = 0; i < sizeof(blockinfo)/sizeof(*blockinfo); ++i)
-    {
+    std::vector<CTransaction*> txFirst;
+    for (unsigned int i = 0; i < sizeof(blockinfo) / sizeof(*blockinfo); ++i) {
         // Simple block creation, nothing special yet:
         BOOST_CHECK(pblocktemplate = CreateNewBlock(scriptPubKey));
 
-        CBlock *pblock = &pblocktemplate->block; // pointer for convenience
+        CBlock* pblock = &pblocktemplate->block; // pointer for convenience
         pblock->nVersion = 4;
         // Fake the blocks taking at least nPowTargetSpacing to be mined.
         // GetMedianTimePast() returns the median of 11 blocks, so the timestamp
         // of the next block must be six spacings ahead of that to be at least
         // one spacing ahead of the tip. Within 11 blocks of genesis, the median
         // will be closer to the tip, and blocks will appear slower.
-        pblock->nTime = chainActive.Tip()->GetMedianTimePast()+6*Params().GetConsensus().nPowTargetSpacing;
+        pblock->nTime = chainActive.Tip()->GetMedianTimePast() + 6 * Params().GetConsensus().nPowTargetSpacing;
         CMutableTransaction txCoinbase(pblock->vtx[0]);
         txCoinbase.nVersion = 1;
-        txCoinbase.vin[0].scriptSig = CScript() << (chainActive.Height()+1) << OP_0;
+        txCoinbase.vin[0].scriptSig = CScript() << (chainActive.Height() + 1) << OP_0;
         txCoinbase.vout[0].scriptPubKey = CScript();
         pblock->vtx[0] = CTransaction(txCoinbase);
         if (txFirst.size() < 2)
@@ -179,86 +177,86 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         pblock->nNonce = uint256S(blockinfo[i].nonce_hex);
         pblock->nSolution = ParseHex(blockinfo[i].solution_hex);
 
-/*
-        {
-        arith_uint256 try_nonce(0);
-        unsigned int n = Params().EquihashN();
-        unsigned int k = Params().EquihashK();
+        /*
+                {
+                arith_uint256 try_nonce(0);
+                unsigned int n = Params().EquihashN();
+                unsigned int k = Params().EquihashK();
 
-        // Hash state
-        crypto_generichash_blake2b_state eh_state;
-        EhInitialiseState(n, k, eh_state);
+                // Hash state
+                crypto_generichash_blake2b_state eh_state;
+                EhInitialiseState(n, k, eh_state);
 
-        // I = the block header minus nonce and solution.
-        CEquihashInput I{*pblock};
-        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-        ss << I;
+                // I = the block header minus nonce and solution.
+                CEquihashInput I{*pblock};
+                CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                ss << I;
 
-        // H(I||...
-        crypto_generichash_blake2b_update(&eh_state, (unsigned char*)&ss[0], ss.size());
+                // H(I||...
+                crypto_generichash_blake2b_update(&eh_state, (unsigned char*)&ss[0], ss.size());
 
-        while (true) {
-            pblock->nNonce = ArithToUint256(try_nonce);
+                while (true) {
+                    pblock->nNonce = ArithToUint256(try_nonce);
 
-            // H(I||V||...
-            crypto_generichash_blake2b_state curr_state;
-            curr_state = eh_state;
-            crypto_generichash_blake2b_update(&curr_state,
-                                              pblock->nNonce.begin(),
-                                              pblock->nNonce.size());
+                    // H(I||V||...
+                    crypto_generichash_blake2b_state curr_state;
+                    curr_state = eh_state;
+                    crypto_generichash_blake2b_update(&curr_state,
+                                                      pblock->nNonce.begin(),
+                                                      pblock->nNonce.size());
 
-            // Create solver and initialize it.
-            equi eq(1);
-            eq.setstate(&curr_state);
+                    // Create solver and initialize it.
+                    equi eq(1);
+                    eq.setstate(&curr_state);
 
-            // Intialization done, start algo driver.
-            eq.digit0(0);
-            eq.xfull = eq.bfull = eq.hfull = 0;
-            eq.showbsizes(0);
-            for (u32 r = 1; r < WK; r++) {
-                (r&1) ? eq.digitodd(r, 0) : eq.digiteven(r, 0);
-                eq.xfull = eq.bfull = eq.hfull = 0;
-                eq.showbsizes(r);
-            }
-            eq.digitK(0);
+                    // Intialization done, start algo driver.
+                    eq.digit0(0);
+                    eq.xfull = eq.bfull = eq.hfull = 0;
+                    eq.showbsizes(0);
+                    for (u32 r = 1; r < WK; r++) {
+                        (r&1) ? eq.digitodd(r, 0) : eq.digiteven(r, 0);
+                        eq.xfull = eq.bfull = eq.hfull = 0;
+                        eq.showbsizes(r);
+                    }
+                    eq.digitK(0);
 
-            // Convert solution indices to byte array (decompress) and pass it to validBlock method.
-            std::set<std::vector<unsigned char>> solns;
-            for (size_t s = 0; s < eq.nsols; s++) {
-                LogPrint("pow", "Checking solution %d\n", s+1);
-                std::vector<eh_index> index_vector(PROOFSIZE);
-                for (size_t i = 0; i < PROOFSIZE; i++) {
-                    index_vector[i] = eq.sols[s][i];
+                    // Convert solution indices to byte array (decompress) and pass it to validBlock method.
+                    std::set<std::vector<unsigned char>> solns;
+                    for (size_t s = 0; s < eq.nsols; s++) {
+                        LogPrint("pow", "Checking solution %d\n", s+1);
+                        std::vector<eh_index> index_vector(PROOFSIZE);
+                        for (size_t i = 0; i < PROOFSIZE; i++) {
+                            index_vector[i] = eq.sols[s][i];
+                        }
+                        std::vector<unsigned char> sol_char = GetMinimalFromIndices(index_vector, DIGITBITS);
+                        solns.insert(sol_char);
+                    }
+
+                    bool ret;
+                    for (auto soln : solns) {
+                        EhIsValidSolution(n, k, curr_state, soln, ret);
+                        if (!ret) continue;
+                        pblock->nSolution = soln;
+
+                        CValidationState state;
+
+                        if (ProcessNewBlock(state, NULL, pblock, true, NULL) && state.IsValid()) {
+                            goto foundit;
+                        }
+
+                        //std::cout << state.GetRejectReason() << std::endl;
+                    }
+
+                    try_nonce += 1;
                 }
-                std::vector<unsigned char> sol_char = GetMinimalFromIndices(index_vector, DIGITBITS);
-                solns.insert(sol_char);
-            }
+                foundit:
 
-            bool ret;
-            for (auto soln : solns) {
-                EhIsValidSolution(n, k, curr_state, soln, ret);
-                if (!ret) continue;
-                pblock->nSolution = soln;
+                    std::cout << "    {\"" << pblock->nNonce.GetHex() << "\", \"";
+                    std::cout << HexStr(pblock->nSolution.begin(), pblock->nSolution.end());
+                    std::cout << "\"}," << std::endl;
 
-                CValidationState state;
-                
-                if (ProcessNewBlock(state, NULL, pblock, true, NULL) && state.IsValid()) {
-                    goto foundit;
                 }
-
-                //std::cout << state.GetRejectReason() << std::endl;
-            }
-
-            try_nonce += 1;
-        }
-        foundit:
-
-            std::cout << "    {\"" << pblock->nNonce.GetHex() << "\", \"";
-            std::cout << HexStr(pblock->nSolution.begin(), pblock->nSolution.end());
-            std::cout << "\"}," << std::endl;
-
-        }
-*/
+        */
 
         // These tests assume null hashFinalSaplingRoot (before Sapling)
         pblock->hashFinalSaplingRoot = uint256();
@@ -284,8 +282,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].prevout.n = 0;
     tx.vout.resize(1);
     tx.vout[0].nValue = 50000LL;
-    for (unsigned int i = 0; i < 1001; ++i)
-    {
+    for (unsigned int i = 0; i < 1001; ++i) {
         tx.vout[0].nValue -= 10;
         hash = tx.GetHash();
         bool spendsCoinbase = (i == 0) ? true : false; // only first tx spends coinbase
@@ -305,8 +302,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].scriptSig << OP_1;
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
     tx.vout[0].nValue = 50000LL;
-    for (unsigned int i = 0; i < 128; ++i)
-    {
+    for (unsigned int i = 0; i < 128; ++i) {
         tx.vout[0].nValue -= 350;
         hash = tx.GetHash();
         bool spendsCoinbase = (i == 0) ? true : false; // only first tx spends coinbase
@@ -396,7 +392,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     chainActive.Tip()->nHeight = nHeight;
 
     // non-final txs in mempool
-    SetMockTime(chainActive.Tip()->GetMedianTimePast()+1);
+    SetMockTime(chainActive.Tip()->GetMedianTimePast() + 1);
 
     // height locked
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
@@ -404,7 +400,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].nSequence = 0;
     tx.vout[0].nValue = 49000LL;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
-    tx.nLockTime = chainActive.Tip()->nHeight+1;
+    tx.nLockTime = chainActive.Tip()->nHeight + 1;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
     BOOST_CHECK(!CheckFinalTx(tx, LOCKTIME_MEDIAN_TIME_PAST));
@@ -418,7 +414,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx2.vout.resize(1);
     tx2.vout[0].nValue = 79000LL;
     tx2.vout[0].scriptPubKey = CScript() << OP_1;
-    tx2.nLockTime = chainActive.Tip()->GetMedianTimePast()+1;
+    tx2.nLockTime = chainActive.Tip()->GetMedianTimePast() + 1;
     hash = tx2.GetHash();
     mempool.addUnchecked(hash, entry.Time(GetTime()).SpendsCoinbase(true).FromTx(tx2));
     BOOST_CHECK(!CheckFinalTx(tx2, LOCKTIME_MEDIAN_TIME_PAST));
@@ -431,12 +427,12 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 
     // However if we advance height and time by one, both will.
     chainActive.Tip()->nHeight++;
-    SetMockTime(chainActive.Tip()->GetMedianTimePast()+2);
+    SetMockTime(chainActive.Tip()->GetMedianTimePast() + 2);
 
     // FIXME: we should *actually* create a new block so the following test
     //        works; CheckFinalTx() isn't fooled by monkey-patching nHeight.
-    //BOOST_CHECK(CheckFinalTx(tx));
-    //BOOST_CHECK(CheckFinalTx(tx2));
+    // BOOST_CHECK(CheckFinalTx(tx));
+    // BOOST_CHECK(CheckFinalTx(tx2));
 
     BOOST_CHECK(pblocktemplate = CreateNewBlock(scriptPubKey));
     BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 2);
@@ -446,7 +442,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     SetMockTime(0);
     mempool.clear();
 
-    BOOST_FOREACH(CTransaction *tx, txFirst)
+    BOOST_FOREACH (CTransaction* tx, txFirst)
         delete tx;
 
     fCheckpointsEnabled = true;

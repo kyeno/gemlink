@@ -9,50 +9,55 @@
 #include "amqpconfig.h"
 
 #include <deque>
-#include <memory>
 #include <future>
 #include <iostream>
+#include <memory>
 
-class AMQPSender : public proton::messaging_handler {
-  private:
-    std::deque<proton::message> messages_; 
+class AMQPSender : public proton::messaging_handler
+{
+private:
+    std::deque<proton::message> messages_;
     proton::url url_;
     proton::connection conn_;
     proton::sender sender_;
     std::mutex lock_;
     std::atomic<bool> terminated_ = {false};
 
-  public:
-
+public:
     AMQPSender(const std::string& url) : url_(url) {}
 
     // Callback to initialize the container when run() is invoked
-    void on_container_start(proton::container& c) override {
-        proton::duration t(10000);   // milliseconds
+    void on_container_start(proton::container& c) override
+    {
+        proton::duration t(10000); // milliseconds
         proton::connection_options opts = proton::connection_options().idle_timeout(t);
         conn_ = c.connect(url_, opts);
         sender_ = conn_.open_sender(url_.path());
     }
 
-    // Remote end signals when the local end can send (i.e. has credit) 
-    void on_sendable(proton::sender &s) override {
+    // Remote end signals when the local end can send (i.e. has credit)
+    void on_sendable(proton::sender& s) override
+    {
         dispatch();
     }
 
     // Publish message by adding to queue and trying to dispatch it
-    void publish(const proton::message &m) {
+    void publish(const proton::message& m)
+    {
         add_message(m);
         dispatch();
     }
 
     // Add message to queue
-    void add_message(const proton::message &m) {
+    void add_message(const proton::message& m)
+    {
         std::lock_guard<std::mutex> guard(lock_);
         messages_.push_back(m);
     }
 
     // Send messages in queue
-    void dispatch() {
+    void dispatch()
+    {
         std::lock_guard<std::mutex> guard(lock_);
 
         if (isTerminated()) {
@@ -75,42 +80,48 @@ class AMQPSender : public proton::messaging_handler {
     }
 
     // Close connection to remote end.  Container event-loop, by default, will auto-stop.
-    void terminate() {
+    void terminate()
+    {
         std::lock_guard<std::mutex> guard(lock_);
         conn_.close();
         terminated_.store(true);
     }
 
-    bool isTerminated() const {
+    bool isTerminated() const
+    {
         return terminated_.load();
     }
 
-    void on_transport_error(proton::transport &t) override {
+    void on_transport_error(proton::transport& t) override
+    {
         t.connection().close();
         throw t.error();
     }
 
-    void on_connection_error(proton::connection &c) override {
+    void on_connection_error(proton::connection& c) override
+    {
         c.close();
         throw c.error();
     }
 
-    void on_session_error(proton::session &s) override {
+    void on_session_error(proton::session& s) override
+    {
         s.connection().close();
         throw s.error();
     }
 
-    void on_receiver_error(proton::receiver &r) override {
+    void on_receiver_error(proton::receiver& r) override
+    {
         r.connection().close();
         throw r.error();
     }
 
-    void on_sender_error(proton::sender &s) override {
+    void on_sender_error(proton::sender& s) override
+    {
         s.connection().close();
         throw s.error();
     }
-
 };
 
 
-#endif //SNOWGEM_AMQP_AMQPSENDER_H
+#endif // SNOWGEM_AMQP_AMQPSENDER_H

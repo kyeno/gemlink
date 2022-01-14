@@ -78,7 +78,7 @@ public:
 class CTxDSOut : public CTxOut
 {
 public:
-    int nSentTimes; //times we've sent this anonymously
+    int nSentTimes; // times we've sent this anonymously
 
     CTxDSOut(const CTxOut& out)
     {
@@ -114,10 +114,10 @@ public:
             return false;
         }
 
-        for (const CTxIn& in: vinIn)
+        for (const CTxIn& in : vinIn)
             sev.push_back(in);
 
-        for (const CTxOut& out: voutIn)
+        for (const CTxOut& out : voutIn)
             vout.push_back(out);
 
         amount = amountIn;
@@ -144,7 +144,7 @@ public:
     CTxIn vin;
     int64_t time;
     int nDenom;
-    bool ready; //ready for submit
+    bool ready; // ready for submit
     std::vector<unsigned char> vchSig;
 
     CObfuscationQueue()
@@ -219,7 +219,6 @@ public:
 class CObfuscationPool
 {
 private:
-
     std::vector<CObfuScationEntry> entries; // Masternode/clients entries
     CMutableTransaction finalTransaction;   // the finalized transaction ready for signing
 
@@ -235,16 +234,16 @@ private:
     std::string lastMessage;
 
     int sessionID;
-    int sessionUsers; //N Users have said they'll join
+    int sessionUsers; // N Users have said they'll join
     std::vector<CTransaction> vecSessionCollateral;
 
     int cachedLastSuccess;
 
-    int minBlockSpacing; //required blocks between mixes
+    int minBlockSpacing; // required blocks between mixes
 
     int64_t lastNewBlock;
 
-    //debugging data
+    // debugging data
     std::string strAutoDenomResult;
 
 public:
@@ -277,7 +276,7 @@ public:
     CScript collateralPubKey;
 
     CMasternode* pSubmittedToMasternode;
-    int sessionDenom;    //Users must submit an denom matching this
+    int sessionDenom; // Users must submit an denom matching this
 
     CObfuscationPool()
     {
@@ -306,7 +305,7 @@ public:
      *        dssub    | Obfuscation Subscribe To
      * \param vRecv
      */
-    
+
     void InitCollateralAddress()
     {
         SetCollateralAddress(Params().ObfuscationPoolDummyAddress());

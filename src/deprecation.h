@@ -26,6 +26,6 @@ static const int DEPRECATION_WARN_LIMIT = 96 * 24 * 60; // 4 weeks
  *
  * fThread means run -alertnotify in a free-running thread.
  */
-void EnforceNodeDeprecation(int nHeight, bool forceLogging=false, bool fThread=true);
+void EnforceNodeDeprecation(int nHeight, bool forceLogging = false, bool fThread = true);
 
 #endif // SNOWGEM_DEPRECATION_H

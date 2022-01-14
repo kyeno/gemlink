@@ -1,15 +1,15 @@
 #include "zcash/JoinSplit.hpp"
 
-#include <iostream>
 #include "crypto/common.h"
+#include <iostream>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     if (sodium_init() == -1) {
         return 1;
     }
 
-    if(argc != 4) {
+    if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " provingKeyFileName verificationKeyFileName r1csFileName" << std::endl;
         return 1;
     }

@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
 #include "uint256.h"
+#include <gtest/gtest.h>
 
 #include "zcash/util.h"
 
@@ -8,29 +8,30 @@
 #include <boost/optional.hpp>
 
 #include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp>
+#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 
 #include "zcash/IncrementalMerkleTree.hpp"
 
 using namespace libsnark;
 using namespace libzcash;
 
-#include "zcash/circuit/utils.tcc"
 #include "zcash/circuit/merkle.tcc"
+#include "zcash/circuit/utils.tcc"
 
-template<typename FieldT>
-void test_value_equals(uint64_t i) {
+template <typename FieldT>
+void test_value_equals(uint64_t i)
+{
     protoboard<FieldT> pb;
     pb_variable_array<FieldT> num;
     num.allocate(pb, 64, "");
     num.fill_with_bits(pb, uint64_to_bool_vector(i));
     pb.add_r1cs_constraint(r1cs_constraint<FieldT>(
-        packed_addition(num),
-        FieldT::one(),
-        FieldT::one() * i
-    ), "");
+                               packed_addition(num),
+                               FieldT::one(),
+                               FieldT::one() * i),
+                           "");
     ASSERT_TRUE(pb.is_satisfied());
 }
 
@@ -49,15 +50,14 @@ TEST(circuit, values)
 TEST(circuit, endianness)
 {
     std::vector<unsigned char> before = {
-         0,  1,  2,  3,  4,  5,  6,  7,
-         8,  9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7,
+        8, 9, 10, 11, 12, 13, 14, 15,
         16, 17, 18, 19, 20, 21, 22, 23,
         24, 25, 26, 27, 28, 29, 30, 31,
         32, 33, 34, 35, 36, 37, 38, 39,
         40, 41, 42, 43, 44, 45, 46, 47,
         48, 49, 50, 51, 52, 53, 54, 55,
-        56, 57, 58, 59, 60, 61, 62, 63
-    };
+        56, 57, 58, 59, 60, 61, 62, 63};
     auto result = swap_endianness_u64(before);
 
     std::vector<unsigned char> after = {
@@ -67,9 +67,8 @@ TEST(circuit, endianness)
         32, 33, 34, 35, 36, 37, 38, 39,
         24, 25, 26, 27, 28, 29, 30, 31,
         16, 17, 18, 19, 20, 21, 22, 23,
-         8,  9, 10, 11, 12, 13, 14, 15,
-         0,  1,  2,  3,  4,  5,  6,  7
-    };
+        8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7};
 
     EXPECT_EQ(after, result);
 
@@ -78,12 +77,11 @@ TEST(circuit, endianness)
     ASSERT_THROW(swap_endianness_u64(bad), std::length_error);
 }
 
-template<typename FieldT>
+template <typename FieldT>
 bool test_merkle_gadget(
     bool enforce_a,
     bool enforce_b,
-    bool write_root_first
-)
+    bool write_root_first)
 {
     protoboard<FieldT> pb;
     digest_variable<FieldT> root(pb, 256, "root");

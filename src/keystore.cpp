@@ -10,7 +10,7 @@
 
 #include <boost/foreach.hpp>
 
-bool CKeyStore::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const
+bool CKeyStore::GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut) const
 {
     CKey key;
     if (!GetKey(address, key))
@@ -19,7 +19,8 @@ bool CKeyStore::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const
     return true;
 }
 
-bool CKeyStore::AddKey(const CKey &key) {
+bool CKeyStore::AddKey(const CKey& key)
+{
     return AddKeyPubKey(key, key.GetPubKey());
 }
 
@@ -52,7 +53,7 @@ bool CBasicKeyStore::GetHDSeed(HDSeed& seedOut) const
     }
 }
 
-bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)
+bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey& pubkey)
 {
     LOCK(cs_KeyStore);
     mapKeys[pubkey.GetID()] = key;
@@ -75,33 +76,32 @@ bool CBasicKeyStore::HaveCScript(const CScriptID& hash) const
     return mapScripts.count(hash) > 0;
 }
 
-bool CBasicKeyStore::GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const
+bool CBasicKeyStore::GetCScript(const CScriptID& hash, CScript& redeemScriptOut) const
 {
     LOCK(cs_KeyStore);
     ScriptMap::const_iterator mi = mapScripts.find(hash);
-    if (mi != mapScripts.end())
-    {
+    if (mi != mapScripts.end()) {
         redeemScriptOut = (*mi).second;
         return true;
     }
     return false;
 }
 
-bool CBasicKeyStore::AddWatchOnly(const CScript &dest)
+bool CBasicKeyStore::AddWatchOnly(const CScript& dest)
 {
     LOCK(cs_KeyStore);
     setWatchOnly.insert(dest);
     return true;
 }
 
-bool CBasicKeyStore::RemoveWatchOnly(const CScript &dest)
+bool CBasicKeyStore::RemoveWatchOnly(const CScript& dest)
 {
     LOCK(cs_KeyStore);
     setWatchOnly.erase(dest);
     return true;
 }
 
-bool CBasicKeyStore::HaveWatchOnly(const CScript &dest) const
+bool CBasicKeyStore::HaveWatchOnly(const CScript& dest) const
 {
     LOCK(cs_KeyStore);
     return setWatchOnly.count(dest) > 0;
@@ -113,7 +113,7 @@ bool CBasicKeyStore::HaveWatchOnly() const
     return (!setWatchOnly.empty());
 }
 
-bool CBasicKeyStore::AddSproutSpendingKey(const libzcash::SproutSpendingKey &sk)
+bool CBasicKeyStore::AddSproutSpendingKey(const libzcash::SproutSpendingKey& sk)
 {
     LOCK(cs_SpendingKeyStore);
     auto address = sk.address();
@@ -122,10 +122,10 @@ bool CBasicKeyStore::AddSproutSpendingKey(const libzcash::SproutSpendingKey &sk)
     return true;
 }
 
-//! Sapling 
+//! Sapling
 bool CBasicKeyStore::AddSaplingSpendingKey(
-    const libzcash::SaplingExtendedSpendingKey &sk,
-    const libzcash::SaplingPaymentAddress &defaultAddr)
+    const libzcash::SaplingExtendedSpendingKey& sk,
+    const libzcash::SaplingPaymentAddress& defaultAddr)
 {
     LOCK(cs_SpendingKeyStore);
     auto fvk = sk.expsk.full_viewing_key();
@@ -140,7 +140,7 @@ bool CBasicKeyStore::AddSaplingSpendingKey(
     return true;
 }
 
-bool CBasicKeyStore::AddSproutViewingKey(const libzcash::SproutViewingKey &vk)
+bool CBasicKeyStore::AddSproutViewingKey(const libzcash::SproutViewingKey& vk)
 {
     LOCK(cs_SpendingKeyStore);
     auto address = vk.address();
@@ -150,8 +150,8 @@ bool CBasicKeyStore::AddSproutViewingKey(const libzcash::SproutViewingKey &vk)
 }
 
 bool CBasicKeyStore::AddSaplingFullViewingKey(
-    const libzcash::SaplingFullViewingKey &fvk,
-    const libzcash::SaplingPaymentAddress &defaultAddr)
+    const libzcash::SaplingFullViewingKey& fvk,
+    const libzcash::SaplingPaymentAddress& defaultAddr)
 {
     LOCK(cs_SpendingKeyStore);
     auto ivk = fvk.in_viewing_key();
@@ -160,12 +160,12 @@ bool CBasicKeyStore::AddSaplingFullViewingKey(
     return CBasicKeyStore::AddSaplingIncomingViewingKey(ivk, defaultAddr);
 }
 
-// This function updates the wallet's internal address->ivk map. 
+// This function updates the wallet's internal address->ivk map.
 // If we add an address that is already in the map, the map will
 // remain unchanged as each address only has one ivk.
 bool CBasicKeyStore::AddSaplingIncomingViewingKey(
-    const libzcash::SaplingIncomingViewingKey &ivk,
-    const libzcash::SaplingPaymentAddress &addr)
+    const libzcash::SaplingIncomingViewingKey& ivk,
+    const libzcash::SaplingPaymentAddress& addr)
 {
     LOCK(cs_SpendingKeyStore);
 
@@ -175,34 +175,34 @@ bool CBasicKeyStore::AddSaplingIncomingViewingKey(
     return true;
 }
 
-bool CBasicKeyStore::RemoveSproutViewingKey(const libzcash::SproutViewingKey &vk)
+bool CBasicKeyStore::RemoveSproutViewingKey(const libzcash::SproutViewingKey& vk)
 {
     LOCK(cs_SpendingKeyStore);
     mapSproutViewingKeys.erase(vk.address());
     return true;
 }
 
-bool CBasicKeyStore::HaveSproutViewingKey(const libzcash::SproutPaymentAddress &address) const
+bool CBasicKeyStore::HaveSproutViewingKey(const libzcash::SproutPaymentAddress& address) const
 {
     LOCK(cs_SpendingKeyStore);
     return mapSproutViewingKeys.count(address) > 0;
 }
 
-bool CBasicKeyStore::HaveSaplingFullViewingKey(const libzcash::SaplingIncomingViewingKey &ivk) const
+bool CBasicKeyStore::HaveSaplingFullViewingKey(const libzcash::SaplingIncomingViewingKey& ivk) const
 {
     LOCK(cs_SpendingKeyStore);
     return mapSaplingFullViewingKeys.count(ivk) > 0;
 }
 
-bool CBasicKeyStore::HaveSaplingIncomingViewingKey(const libzcash::SaplingPaymentAddress &addr) const
+bool CBasicKeyStore::HaveSaplingIncomingViewingKey(const libzcash::SaplingPaymentAddress& addr) const
 {
     LOCK(cs_SpendingKeyStore);
     return mapSaplingIncomingViewingKeys.count(addr) > 0;
 }
 
 bool CBasicKeyStore::GetSproutViewingKey(
-    const libzcash::SproutPaymentAddress &address,
-    libzcash::SproutViewingKey &vkOut) const
+    const libzcash::SproutPaymentAddress& address,
+    libzcash::SproutViewingKey& vkOut) const
 {
     LOCK(cs_SpendingKeyStore);
     SproutViewingKeyMap::const_iterator mi = mapSproutViewingKeys.find(address);
@@ -213,8 +213,8 @@ bool CBasicKeyStore::GetSproutViewingKey(
     return false;
 }
 
-bool CBasicKeyStore::GetSaplingFullViewingKey(const libzcash::SaplingIncomingViewingKey &ivk,
-                                   libzcash::SaplingFullViewingKey &fvkOut) const
+bool CBasicKeyStore::GetSaplingFullViewingKey(const libzcash::SaplingIncomingViewingKey& ivk,
+                                              libzcash::SaplingFullViewingKey& fvkOut) const
 {
     LOCK(cs_SpendingKeyStore);
     SaplingFullViewingKeyMap::const_iterator mi = mapSaplingFullViewingKeys.find(ivk);
@@ -225,8 +225,8 @@ bool CBasicKeyStore::GetSaplingFullViewingKey(const libzcash::SaplingIncomingVie
     return false;
 }
 
-bool CBasicKeyStore::GetSaplingIncomingViewingKey(const libzcash::SaplingPaymentAddress &addr,
-                                   libzcash::SaplingIncomingViewingKey &ivkOut) const
+bool CBasicKeyStore::GetSaplingIncomingViewingKey(const libzcash::SaplingPaymentAddress& addr,
+                                                  libzcash::SaplingIncomingViewingKey& ivkOut) const
 {
     LOCK(cs_SpendingKeyStore);
     SaplingIncomingViewingKeyMap::const_iterator mi = mapSaplingIncomingViewingKeys.find(addr);
@@ -237,12 +237,13 @@ bool CBasicKeyStore::GetSaplingIncomingViewingKey(const libzcash::SaplingPayment
     return false;
 }
 
-bool CBasicKeyStore::GetSaplingExtendedSpendingKey(const libzcash::SaplingPaymentAddress &addr, 
-                                    libzcash::SaplingExtendedSpendingKey &extskOut) const {
+bool CBasicKeyStore::GetSaplingExtendedSpendingKey(const libzcash::SaplingPaymentAddress& addr,
+                                                   libzcash::SaplingExtendedSpendingKey& extskOut) const
+{
     libzcash::SaplingIncomingViewingKey ivk;
     libzcash::SaplingFullViewingKey fvk;
 
     return GetSaplingIncomingViewingKey(addr, ivk) &&
-            GetSaplingFullViewingKey(ivk, fvk) &&
-            GetSaplingSpendingKey(fvk, extskOut);
+           GetSaplingFullViewingKey(ivk, fvk) &&
+           GetSaplingSpendingKey(fvk, extskOut);
 }

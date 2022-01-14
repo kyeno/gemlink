@@ -16,16 +16,17 @@ class CChainParams;
 class uint256;
 class arith_uint256;
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params&);
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params&);
 unsigned int DigishieldCalculateNextWorkRequired(arith_uint256 bnAvg,
-                                       int64_t nLastBlockTime, int64_t nFirstBlockTime,
-                                       const Consensus::Params&);
+                                                 int64_t nLastBlockTime,
+                                                 int64_t nFirstBlockTime,
+                                                 const Consensus::Params&);
 
 /** LWMA-3 **/
 unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const Consensus::Params& params);
 
 /** Check whether the Equihash solution in a block header is valid */
-bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams&);
+bool CheckEquihashSolution(const CBlockHeader* pblock, const CChainParams&);
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);

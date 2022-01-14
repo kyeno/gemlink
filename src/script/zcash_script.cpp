@@ -11,18 +11,19 @@
 #include "script/interpreter.h"
 #include "version.h"
 
-namespace {
+namespace
+{
 
 /** A class that deserializes a single CTransaction one time. */
 class TxInputStream
 {
 public:
-    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char *txTo, size_t txToLen) :
-    m_type(nTypeIn),
-    m_version(nVersionIn),
-    m_data(txTo),
-    m_remaining(txToLen)
-    {}
+    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char* txTo, size_t txToLen) : m_type(nTypeIn),
+                                                                                            m_version(nVersionIn),
+                                                                                            m_data(txTo),
+                                                                                            m_remaining(txToLen)
+    {
+    }
 
     void read(char* pch, size_t nSize)
     {
@@ -40,7 +41,7 @@ public:
         m_data += nSize;
     }
 
-    template<typename T>
+    template <typename T>
     TxInputStream& operator>>(T& obj)
     {
         ::Unserialize(*this, obj);
@@ -49,6 +50,7 @@ public:
 
     int GetVersion() const { return m_version; }
     int GetType() const { return m_type; }
+
 private:
     const int m_type;
     const int m_version;
@@ -63,17 +65,14 @@ inline int set_error(zcash_script_error* ret, zcash_script_error serror)
     return 0;
 }
 
-struct ECCryptoClosure
-{
+struct ECCryptoClosure {
     ECCVerifyHandle handle;
 };
 
 ECCryptoClosure instance_of_eccryptoclosure;
-}
+} // namespace
 
-int zcash_script_verify_script(const unsigned char *scriptPubKey, unsigned int scriptPubKeyLen,
-                                    const unsigned char *txTo        , unsigned int txToLen,
-                                    unsigned int nIn, unsigned int flags, zcash_script_error* err)
+int zcash_script_verify_script(const unsigned char* scriptPubKey, unsigned int scriptPubKeyLen, const unsigned char* txTo, unsigned int txToLen, unsigned int nIn, unsigned int flags, zcash_script_error* err)
 {
     try {
         TxInputStream stream(SER_NETWORK, PROTOCOL_VERSION, txTo, txToLen);
@@ -84,8 +83,8 @@ int zcash_script_verify_script(const unsigned char *scriptPubKey, unsigned int s
         if (GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION) != txToLen)
             return set_error(err, zcash_script_ERR_TX_SIZE_MISMATCH);
 
-         // Regardless of the verification result, the tx did not error.
-         set_error(err, zcash_script_ERR_OK);
+        // Regardless of the verification result, the tx did not error.
+        set_error(err, zcash_script_ERR_OK);
         PrecomputedTransactionData txdata(tx);
         CAmount am(0);
         uint32_t consensusBranchId = SPROUT_BRANCH_ID;

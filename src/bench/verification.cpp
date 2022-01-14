@@ -34,7 +34,7 @@ static void ECDSA(benchmark::State& state)
 
     // Benchmark a transaction containing a single input and output.
     auto nInputs = 1;
-    for(uint32_t ij = 0; ij < nInputs; ij++) {
+    for (uint32_t ij = 0; ij < nInputs; ij++) {
         uint32_t i = mtx.vin.size();
         uint256 prevId;
         prevId.SetHex("0000000000000000000000000000000000000000000000000000000000000100");
@@ -50,7 +50,7 @@ static void ECDSA(benchmark::State& state)
     }
 
     // sign all inputs
-    for(uint32_t i = 0; i < mtx.vin.size(); i++) {
+    for (uint32_t i = 0; i < mtx.vin.size(); i++) {
         bool hashSigned = SignSignature(keystore, scriptPubKey, mtx, i, 1000, SIGHASH_ALL, consensusBranchId);
         assert(hashSigned);
     }

@@ -14,12 +14,13 @@
 #include <vector>
 
 /** Template base class for fixed-sized opaque blobs. */
-template<unsigned int BITS>
+template <unsigned int BITS>
 class base_blob
 {
 protected:
-    enum { WIDTH=BITS/8 };
+    enum { WIDTH = BITS / 8 };
     alignas(uint32_t) uint8_t data[WIDTH];
+
 public:
     base_blob()
     {
@@ -75,13 +76,13 @@ public:
         return sizeof(data);
     }
 
-    template<typename Stream>
+    template <typename Stream>
     void Serialize(Stream& s) const
     {
         s.write((char*)data, sizeof(data));
     }
 
-    template<typename Stream>
+    template <typename Stream>
     void Unserialize(Stream& s)
     {
         s.read((char*)data, sizeof(data));
@@ -90,7 +91,8 @@ public:
 
 /** 88-bit opaque blob.
  */
-class blob88 : public base_blob<88> {
+class blob88 : public base_blob<88>
+{
 public:
     blob88() {}
     blob88(const base_blob<88>& b) : base_blob<88>(b) {}
@@ -101,7 +103,8 @@ public:
  * @note This type is called uint160 for historical reasons only. It is an opaque
  * blob of 160 bits and has no integer operations.
  */
-class uint160 : public base_blob<160> {
+class uint160 : public base_blob<160>
+{
 public:
     uint160() {}
     uint160(const base_blob<160>& b) : base_blob<160>(b) {}
@@ -113,7 +116,8 @@ public:
  * opaque blob of 256 bits and has no integer operations. Use arith_uint256 if
  * those are required.
  */
-class uint256 : public base_blob<256> {
+class uint256 : public base_blob<256>
+{
 public:
     uint256() {}
     uint256(const base_blob<256>& b) : base_blob<256>(b) {}
@@ -142,7 +146,7 @@ public:
  * This is a separate function because the constructor uint256(const char*) can result
  * in dangerously catching uint256(0).
  */
-inline uint256 uint256S(const char *str)
+inline uint256 uint256S(const char* str)
 {
     uint256 rv;
     rv.SetHex(str);

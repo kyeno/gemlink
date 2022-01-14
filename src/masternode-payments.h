@@ -109,7 +109,7 @@ public:
     {
         LOCK(cs_vecPayments);
 
-        for (CMasternodePayee& payee: vecPayments) {
+        for (CMasternodePayee& payee : vecPayments) {
             if (payee.scriptPubKey == payeeIn) {
                 payee.nVotes += nIncrement;
                 return;
@@ -125,7 +125,7 @@ public:
         LOCK(cs_vecPayments);
 
         int nVotes = -1;
-        for (CMasternodePayee& p: vecPayments) {
+        for (CMasternodePayee& p : vecPayments) {
             if (p.nVotes > nVotes) {
                 payee = p.scriptPubKey;
                 nVotes = p.nVotes;
@@ -139,8 +139,9 @@ public:
     {
         LOCK(cs_vecPayments);
 
-        for (CMasternodePayee& p: vecPayments) {
-            if (p.nVotes >= nVotesReq && p.scriptPubKey == payee) return true;
+        for (CMasternodePayee& p : vecPayments) {
+            if (p.nVotes >= nVotesReq && p.scriptPubKey == payee)
+                return true;
         }
 
         return false;
@@ -240,7 +241,7 @@ private:
 public:
     std::map<uint256, CMasternodePaymentWinner> mapMasternodePayeeVotes;
     std::map<int, CMasternodeBlockPayees> mapMasternodeBlocks;
-    std::map<uint256, int> mapMasternodesLastVote; //prevout.hash + prevout.n, nBlockHeight
+    std::map<uint256, int> mapMasternodesLastVote; // prevout.hash + prevout.n, nBlockHeight
 
     CMasternodePayments()
     {
@@ -270,13 +271,13 @@ public:
     {
         LOCK(cs_mapMasternodePayeeVotes);
         uint256 temp = ArithToUint256(UintToArith256(outMasternode.hash) + outMasternode.n);
-        if(mapMasternodesLastVote.count(temp)) {
-            if(mapMasternodesLastVote[temp] == nBlockHeight) {
+        if (mapMasternodesLastVote.count(temp)) {
+            if (mapMasternodesLastVote[temp] == nBlockHeight) {
                 return false;
             }
         }
 
-        //record this masternode voted
+        // record this masternode voted
         mapMasternodesLastVote[temp] = nBlockHeight;
         return true;
     }

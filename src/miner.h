@@ -17,10 +17,12 @@ class CScript;
 class CReserveKey;
 class CWallet;
 #endif
-namespace Consensus { struct Params; };
-
-struct CBlockTemplate
+namespace Consensus
 {
+struct Params;
+};
+
+struct CBlockTemplate {
     CBlock block;
     std::vector<CAmount> vTxFees;
     std::vector<int64_t> vTxSigOps;
@@ -40,11 +42,11 @@ CBlockTemplate* CreateNewBlockWithKey();
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
 /** Run the miner threads */
- #ifdef ENABLE_WALLET
+#ifdef ENABLE_WALLET
 void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads);
- #else
+#else
 void GenerateBitcoins(bool fGenerate, int nThreads);
- #endif
+#endif
 #endif
 
 void UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);

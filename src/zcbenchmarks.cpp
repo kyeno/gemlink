@@ -1,37 +1,37 @@
+#include <boost/filesystem.hpp>
 #include <cstdio>
 #include <future>
 #include <map>
 #include <thread>
 #include <unistd.h>
-#include <boost/filesystem.hpp>
 
-#include "coins.h"
-#include "util.h"
-#include "init.h"
-#include "primitives/transaction.h"
 #include "base58.h"
-#include "crypto/equihash.h"
 #include "chain.h"
 #include "chainparams.h"
+#include "coins.h"
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
+#include "crypto/equihash.h"
+#include "init.h"
 #include "main.h"
 #include "miner.h"
 #include "pow.h"
+#include "primitives/transaction.h"
 #include "rpc/server.h"
 #include "script/sign.h"
 #include "sodium.h"
 #include "streams.h"
 #include "txdb.h"
+#include "util.h"
 #include "utiltest.h"
 #include "wallet/wallet.h"
 
 #include "zcbenchmarks.h"
 
-#include "zcash/Zcash.h"
+#include "librustzcash.h"
 #include "zcash/IncrementalMerkleTree.hpp"
 #include "zcash/Note.hpp"
-#include "librustzcash.h"
+#include "zcash/Zcash.h"
 
 using namespace libzcash;
 // This method is based on Shutdown from init.cpp
@@ -58,28 +58,29 @@ void pre_wallet_load()
     LogPrintf("%s: done\n", __func__);
 }
 
-void post_wallet_load(){
+void post_wallet_load()
+{
     RegisterValidationInterface(pwalletMain);
 #ifdef ENABLE_MINING
     // Generate coins in the background
     if (pwalletMain || !GetArg("-mineraddress", "").empty())
         GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
-#endif    
+#endif
 }
 
 
-void timer_start(timeval &tv_start)
+void timer_start(timeval& tv_start)
 {
     gettimeofday(&tv_start, 0);
 }
 
-double timer_stop(timeval &tv_start)
+double timer_stop(timeval& tv_start)
 {
     double elapsed;
     struct timeval tv_end;
     gettimeofday(&tv_end, 0);
-    elapsed = double(tv_end.tv_sec-tv_start.tv_sec) +
-        (tv_end.tv_usec-tv_start.tv_usec)/double(1000000);
+    elapsed = double(tv_end.tv_sec - tv_start.tv_sec) +
+              (tv_end.tv_usec - tv_start.tv_usec) / double(1000000);
     return elapsed;
 }
 
@@ -119,13 +120,13 @@ double benchmark_create_joinsplit()
     struct timeval tv_start;
     timer_start(tv_start);
     JSDescription jsdesc(
-                         *psnowgemParams,
-                         joinSplitPubKey,
-                         anchor,
-                         {JSInput(), JSInput()},
-                         {JSOutput(), JSOutput()},
-                         0,
-                         0);
+        *psnowgemParams,
+        joinSplitPubKey,
+        anchor,
+        {JSInput(), JSInput()},
+        {JSOutput(), JSOutput()},
+        0,
+        0);
     double ret = timer_stop(tv_start);
 
     auto verifier = libzcash::ProofVerifier::Strict();
@@ -154,7 +155,7 @@ std::vector<double> benchmark_create_joinsplit_threaded(int nThreads)
     return ret;
 }
 
-double benchmark_verify_joinsplit(const JSDescription &joinsplit)
+double benchmark_verify_joinsplit(const JSDescription& joinsplit)
 {
     struct timeval tv_start;
     timer_start(tv_start);
@@ -181,8 +182,8 @@ double benchmark_solve_equihash()
     uint256 nonce;
     randombytes_buf(nonce.begin(), 32);
     crypto_generichash_blake2b_update(&eh_state,
-                                    nonce.begin(),
-                                    nonce.size());
+                                      nonce.begin(),
+                                      nonce.size());
 
     struct timeval tv_start;
     timer_start(tv_start);
@@ -314,8 +315,8 @@ double benchmark_increment_note_witnesses(size_t nTxs)
         auto nullifier = note.nullifier(sk);
 
         mapSproutNoteData_t noteData;
-        JSOutPoint jsoutpt {wtx.GetHash(), 0, 1};
-        SproutNoteData nd {sk.address(), nullifier};
+        JSOutPoint jsoutpt{wtx.GetHash(), 0, 1};
+        SproutNoteData nd{sk.address(), nullifier};
         noteData[jsoutpt] = nd;
 
         wtx.SetSproutNoteData(noteData);
@@ -337,8 +338,8 @@ double benchmark_increment_note_witnesses(size_t nTxs)
         auto nullifier = note.nullifier(sk);
 
         mapSproutNoteData_t noteData;
-        JSOutPoint jsoutpt {wtx.GetHash(), 0, 1};
-        SproutNoteData nd {sk.address(), nullifier};
+        JSOutPoint jsoutpt{wtx.GetHash(), 0, 1};
+        SproutNoteData nd{sk.address(), nullifier};
         noteData[jsoutpt] = nd;
 
         wtx.SetSproutNoteData(noteData);
@@ -355,14 +356,16 @@ double benchmark_increment_note_witnesses(size_t nTxs)
 }
 
 // Fake the input of a given block
-class FakeCoinsViewDB : public CCoinsViewDB {
+class FakeCoinsViewDB : public CCoinsViewDB
+{
     uint256 hash;
     SproutMerkleTree t;
 
 public:
     FakeCoinsViewDB(std::string dbName, uint256& hash) : CCoinsViewDB(dbName, 100, false, false), hash(hash) {}
 
-    bool GetAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const {
+    bool GetAnchorAt(const uint256& rt, SproutMerkleTree& tree) const
+    {
         if (rt == t.root()) {
             tree = t;
             return true;
@@ -370,28 +373,33 @@ public:
         return false;
     }
 
-    bool GetNullifier(const uint256 &nf, ShieldedType type) const {
+    bool GetNullifier(const uint256& nf, ShieldedType type) const
+    {
         return false;
     }
 
-    uint256 GetBestBlock() const {
+    uint256 GetBestBlock() const
+    {
         return hash;
     }
 
-    uint256 GetBestAnchor() const {
+    uint256 GetBestAnchor() const
+    {
         return t.root();
     }
 
-    bool BatchWrite(CCoinsMap &mapCoins,
-                    const uint256 &hashBlock,
-                    const uint256 &hashAnchor,
-                    CAnchorsSproutMap &mapSproutAnchors,
-                    CNullifiersMap &mapSproutNullifiers,
-                    CNullifiersMap& mapSaplingNullifiers) {
+    bool BatchWrite(CCoinsMap& mapCoins,
+                    const uint256& hashBlock,
+                    const uint256& hashAnchor,
+                    CAnchorsSproutMap& mapSproutAnchors,
+                    CNullifiersMap& mapSproutNullifiers,
+                    CNullifiersMap& mapSaplingNullifiers)
+    {
         return false;
     }
 
-    bool GetStats(CCoinsStats &stats) const {
+    bool GetStats(CCoinsStats& stats) const
+    {
         return false;
     }
 };
@@ -402,7 +410,8 @@ double benchmark_connectblock_slow()
     SelectParams(CBaseChainParams::MAIN);
     CBlock block;
     FILE* fp = fopen((GetDataDir() / "benchmark/block-107134.dat").string().c_str(), "rb");
-    if (!fp) throw new std::runtime_error("Failed to open block data file");
+    if (!fp)
+        throw new std::runtime_error("Failed to open block data file");
     CAutoFile blkFile(fp, SER_DISK, CLIENT_VERSION);
     blkFile >> block;
     blkFile.fclose();
@@ -455,7 +464,7 @@ double benchmark_loadwallet()
 {
     pre_wallet_load();
     struct timeval tv_start;
-    bool fFirstRunRet=true;
+    bool fFirstRunRet = true;
     timer_start(tv_start);
     pwalletMain = new CWallet("wallet.dat");
     DBErrors nLoadWalletRet = pwalletMain->LoadWallet(fFirstRunRet);
@@ -587,15 +596,14 @@ double benchmark_verify_sapling_spend()
     timer_start(tv_start);
 
     bool result = librustzcash_sapling_check_spend(
-                ctx,
-                spend.cv.begin(),
-                spend.anchor.begin(),
-                spend.nullifier.begin(),
-                spend.rk.begin(),
-                spend.zkproof.begin(),
-                spend.spendAuthSig.begin(),
-                dataToBeSigned.begin()
-            );
+        ctx,
+        spend.cv.begin(),
+        spend.anchor.begin(),
+        spend.nullifier.begin(),
+        spend.rk.begin(),
+        spend.zkproof.begin(),
+        spend.spendAuthSig.begin(),
+        dataToBeSigned.begin());
 
     double t = timer_stop(tv_start);
     librustzcash_sapling_verification_ctx_free(ctx);
@@ -620,12 +628,11 @@ double benchmark_verify_sapling_output()
     timer_start(tv_start);
 
     bool result = librustzcash_sapling_check_output(
-                ctx,
-                output.cv.begin(),
-                output.cm.begin(),
-                output.ephemeralKey.begin(),
-                output.zkproof.begin()
-            );
+        ctx,
+        output.cv.begin(),
+        output.cm.begin(),
+        output.ephemeralKey.begin(),
+        output.zkproof.begin());
 
     double t = timer_stop(tv_start);
     librustzcash_sapling_verification_ctx_free(ctx);

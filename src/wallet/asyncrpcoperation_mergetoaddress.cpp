@@ -63,9 +63,8 @@ AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
     std::vector<MergeToAddressInputSaplingNote> saplingNoteInputs,
     MergeToAddressRecipient recipient,
     CAmount fee,
-    UniValue contextInfo) :
-    tx_(contextualTx), utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs),
-    saplingNoteInputs_(saplingNoteInputs), recipient_(recipient), fee_(fee), contextinfo_(contextInfo)
+    UniValue contextInfo) : tx_(contextualTx), utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs),
+                            saplingNoteInputs_(saplingNoteInputs), recipient_(recipient), fee_(fee), contextinfo_(contextInfo)
 {
     if (fee < 0 || fee > MAX_MONEY) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is out of range");
@@ -316,7 +315,7 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         std::vector<SaplingOutPoint> saplingOPs;
         std::vector<SaplingNote> saplingNotes;
         std::vector<SaplingExpandedSpendingKey> expsks;
-        for (const MergeToAddressInputSaplingNote& saplingNoteInput: saplingNoteInputs_) {
+        for (const MergeToAddressInputSaplingNote& saplingNoteInput : saplingNoteInputs_) {
             saplingOPs.push_back(std::get<0>(saplingNoteInput));
             saplingNotes.push_back(std::get<1>(saplingNoteInput));
             auto expsk = std::get<3>(saplingNoteInput);
@@ -692,7 +691,8 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
             vpubNewProcessed = true;
             jsChange -= vpubNewTarget;
             // If we are merging to a t-addr, there should be no change
-            if (isToTaddr_) assert(jsChange == 0);
+            if (isToTaddr_)
+                assert(jsChange == 0);
         }
 
         // create dummy output
@@ -1031,7 +1031,8 @@ UniValue AsyncRPCOperation_mergetoaddress::getStatus() const
 /**
  * Lock input utxos
  */
- void AsyncRPCOperation_mergetoaddress::lock_utxos() {
+void AsyncRPCOperation_mergetoaddress::lock_utxos()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto utxo : utxoInputs_) {
         pwalletMain->LockCoin(std::get<0>(utxo));
@@ -1041,7 +1042,8 @@ UniValue AsyncRPCOperation_mergetoaddress::getStatus() const
 /**
  * Unlock input utxos
  */
-void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
+void AsyncRPCOperation_mergetoaddress::unlock_utxos()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto utxo : utxoInputs_) {
         pwalletMain->UnlockCoin(std::get<0>(utxo));
@@ -1052,7 +1054,8 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
 /**
  * Lock input notes
  */
- void AsyncRPCOperation_mergetoaddress::lock_notes() {
+void AsyncRPCOperation_mergetoaddress::lock_notes()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto note : sproutNoteInputs_) {
         pwalletMain->LockNote(std::get<0>(note));
@@ -1065,7 +1068,8 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
 /**
  * Unlock input notes
  */
-void AsyncRPCOperation_mergetoaddress::unlock_notes() {
+void AsyncRPCOperation_mergetoaddress::unlock_notes()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto note : sproutNoteInputs_) {
         pwalletMain->UnlockNote(std::get<0>(note));

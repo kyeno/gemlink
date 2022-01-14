@@ -83,7 +83,7 @@ static const double DEFAULT_DECAY = .998;
 class TxConfirmStats
 {
 private:
-    //Define the buckets we will group transactions into (both fee buckets and priority buckets)
+    // Define the buckets we will group transactions into (both fee buckets and priority buckets)
     std::vector<double> buckets;              // The upper-bound of the range for the bucket (inclusive)
     std::map<double, unsigned int> bucketMap; // Map of bucket upper-bound to index into all vectors by bucket
 
@@ -96,9 +96,9 @@ private:
 
     // Count the total # of txs confirmed within Y blocks in each bucket
     // Track the historical moving average of theses totals over blocks
-    std::vector<std::vector<double> > confAvg; // confAvg[Y][X]
+    std::vector<std::vector<double>> confAvg; // confAvg[Y][X]
     // and calcuate the totals for the current block to update the moving averages
-    std::vector<std::vector<int> > curBlockConf; // curBlockConf[Y][X]
+    std::vector<std::vector<int>> curBlockConf; // curBlockConf[Y][X]
 
     // Sum the total priority/fee of all tx's in each bucket
     // Track the historical moving average of this total over blocks
@@ -115,7 +115,7 @@ private:
     // Mempool counts of outstanding transactions
     // For each bucket X, track the number of transactions in the mempool
     // that are unconfirmed for each possible confirmation value Y
-    std::vector<std::vector<int> > unconfTxs;  //unconfTxs[Y][X]
+    std::vector<std::vector<int>> unconfTxs; // unconfTxs[Y][X]
     // transactions still unconfirmed after MAX_CONFIRMS for each bucket
     std::vector<int> oldUnconfTxs;
 
@@ -150,8 +150,7 @@ public:
     unsigned int NewTx(unsigned int nBlockHeight, double val);
 
     /** Remove a transaction from mempool tracking stats*/
-    void removeTx(unsigned int entryHeight, unsigned int nBestSeenHeight,
-                  unsigned int bucketIndex);
+    void removeTx(unsigned int entryHeight, unsigned int nBestSeenHeight, unsigned int bucketIndex);
 
     /** Update our estimates by decaying our historical moving average and updating
         with the data gathered from the current block */
@@ -168,8 +167,7 @@ public:
      *        return the highest fee/pri such that all lower values fail minSuccess
      * @param nBlockHeight the current block height
      */
-    double EstimateMedianVal(int confTarget, double sufficientTxVal,
-                             double minSuccess, bool requireGreater, unsigned int nBlockHeight);
+    double EstimateMedianVal(int confTarget, double sufficientTxVal, double minSuccess, bool requireGreater, unsigned int nBlockHeight);
 
     /** Return the max number of confirms we're tracking */
     unsigned int GetMaxConfirms() { return confAvg.size(); }
@@ -183,7 +181,6 @@ public:
      */
     void Read(CAutoFile& filein);
 };
-
 
 
 /** Track confirm delays up to 25 blocks, can't estimate beyond that */
@@ -229,7 +226,8 @@ public:
 
     /** Process all the transactions that have been included in a block */
     void processBlock(unsigned int nBlockHeight,
-                      std::vector<CTxMemPoolEntry>& entries, bool fCurrentEstimate);
+                      std::vector<CTxMemPoolEntry>& entries,
+                      bool fCurrentEstimate);
 
     /** Process a transaction confirmed in a block*/
     void processBlockTx(unsigned int nBlockHeight, const CTxMemPoolEntry& entry);
@@ -241,10 +239,10 @@ public:
     void removeTx(uint256 hash);
 
     /** Is this transaction likely included in a block because of its fee?*/
-    bool isFeeDataPoint(const CFeeRate &fee, double pri);
+    bool isFeeDataPoint(const CFeeRate& fee, double pri);
 
     /** Is this transaction likely included in a block because of its priority?*/
-    bool isPriDataPoint(const CFeeRate &fee, double pri);
+    bool isPriDataPoint(const CFeeRate& fee, double pri);
 
     /** Return a fee estimate */
     CFeeRate estimateFee(int confTarget);
@@ -259,12 +257,11 @@ public:
     void Read(CAutoFile& filein);
 
 private:
-    CFeeRate minTrackedFee; //! Passed to constructor to avoid dependency on main
+    CFeeRate minTrackedFee;    //! Passed to constructor to avoid dependency on main
     double minTrackedPriority; //! Set to AllowFreeThreshold
     unsigned int nBestSeenHeight;
-    struct TxStatsInfo
-    {
-        TxConfirmStats *stats;
+    struct TxStatsInfo {
+        TxConfirmStats* stats;
         unsigned int blockHeight;
         unsigned int bucketIndex;
         TxStatsInfo() : stats(NULL), blockHeight(0), bucketIndex(0) {}

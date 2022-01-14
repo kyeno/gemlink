@@ -4,8 +4,8 @@
 #include "zcash/Note.hpp"
 
 #include "amount.h"
-#include "random.h"
 #include "librustzcash.h"
+#include "random.h"
 
 #include <array>
 

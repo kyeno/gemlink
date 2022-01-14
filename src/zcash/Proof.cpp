@@ -5,14 +5,17 @@
 #include <boost/static_assert.hpp>
 #include <mutex>
 
-namespace libzcash {
+namespace libzcash
+{
 
-ProofVerifier ProofVerifier::Strict() {
+ProofVerifier ProofVerifier::Strict()
+{
     return ProofVerifier(true);
 }
 
-ProofVerifier ProofVerifier::Disabled() {
+ProofVerifier ProofVerifier::Disabled()
+{
     return ProofVerifier(false);
 }
 
-}
+} // namespace libzcash

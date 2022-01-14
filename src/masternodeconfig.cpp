@@ -40,13 +40,15 @@ bool CMasternodeConfig::read(std::string& strErr)
     }
 
     for (std::string line; std::getline(streamConfig, line); linenumber++) {
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
 
         std::istringstream iss(line);
         std::string comment, alias, ip, privKey, txHash, outputIndex;
 
         if (iss >> comment) {
-            if (comment.at(0) == '#') continue;
+            if (comment.at(0) == '#')
+                continue;
             iss.str(line);
             iss.clear();
         }
@@ -90,7 +92,7 @@ bool CMasternodeConfig::read(std::string& strErr)
     return true;
 }
 
-bool CMasternodeConfig::CMasternodeEntry::castOutputIndex(int &n)
+bool CMasternodeConfig::CMasternodeEntry::castOutputIndex(int& n)
 {
     try {
         n = std::stoi(outputIndex);

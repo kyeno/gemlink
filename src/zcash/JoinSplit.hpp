@@ -1,29 +1,30 @@
 #ifndef ZC_JOINSPLIT_H_
 #define ZC_JOINSPLIT_H_
 
-#include "Zcash.h"
-#include "Proof.hpp"
 #include "Address.hpp"
-#include "Note.hpp"
 #include "IncrementalMerkleTree.hpp"
+#include "Note.hpp"
 #include "NoteEncryption.hpp"
+#include "Proof.hpp"
+#include "Zcash.h"
 
-#include "uint256.h"
 #include "uint252.h"
+#include "uint256.h"
 
 #include <array>
 
-namespace libzcash {
+namespace libzcash
+{
 
-static constexpr size_t GROTH_PROOF_SIZE = (
-    48 + // p_A
-    96 + // p_B
-    48); // p_C
+static constexpr size_t GROTH_PROOF_SIZE = (48 + // p_A
+                                            96 + // p_B
+                                            48); // p_C
 
 typedef std::array<unsigned char, GROTH_PROOF_SIZE> GrothProof;
 typedef boost::variant<PHGRProof, GrothProof> SproutProof;
 
-class JSInput {
+class JSInput
+{
 public:
     SproutWitness witness;
     SproutNote note;
@@ -32,27 +33,30 @@ public:
     JSInput();
     JSInput(SproutWitness witness,
             SproutNote note,
-            SproutSpendingKey key) : witness(witness), note(note), key(key) { }
+            SproutSpendingKey key) : witness(witness), note(note), key(key) {}
 
-    uint256 nullifier() const {
+    uint256 nullifier() const
+    {
         return note.nullifier(key);
     }
 };
 
-class JSOutput {
+class JSOutput
+{
 public:
     SproutPaymentAddress addr;
     uint64_t value;
-    std::array<unsigned char, ZC_MEMO_SIZE> memo = {{0xF6}};  // 0xF6 is invalid UTF8 as per spec, rest of array is 0x00
+    std::array<unsigned char, ZC_MEMO_SIZE> memo = {{0xF6}}; // 0xF6 is invalid UTF8 as per spec, rest of array is 0x00
 
     JSOutput();
-    JSOutput(SproutPaymentAddress addr, uint64_t value) : addr(addr), value(value) { }
+    JSOutput(SproutPaymentAddress addr, uint64_t value) : addr(addr), value(value) {}
 
     SproutNote note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig) const;
 };
 
-template<size_t NumInputs, size_t NumOutputs>
-class JoinSplit {
+template <size_t NumInputs, size_t NumOutputs>
+class JoinSplit
+{
 public:
     virtual ~JoinSplit() {}
 
@@ -60,8 +64,7 @@ public:
 
     static uint256 h_sig(const uint256& randomSeed,
                          const std::array<uint256, NumInputs>& nullifiers,
-                         const uint256& joinSplitPubKey
-                        );
+                         const uint256& joinSplitPubKey);
 
     // Compute nullifiers, macs, note commitments & encryptions, and SNARK proof
     virtual SproutProof prove(
@@ -82,16 +85,16 @@ public:
         // For paymentdisclosure, we need to retrieve the esk.
         // Reference as non-const parameter with default value leads to compile error.
         // So use pointer for simplicity.
-        uint256 *out_esk = nullptr
-    ) = 0;
+        uint256* out_esk = nullptr) = 0;
 
 protected:
     JoinSplit() {}
 };
 
-}
+} // namespace libzcash
 
 typedef libzcash::JoinSplit<ZC_NUM_JS_INPUTS,
-                            ZC_NUM_JS_OUTPUTS> ZCJoinSplit;
+                            ZC_NUM_JS_OUTPUTS>
+    ZCJoinSplit;
 
 #endif // ZC_JOINSPLIT_H_

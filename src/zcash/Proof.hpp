@@ -4,36 +4,39 @@
 #include "serialize.h"
 #include "uint256.h"
 
-namespace libzcash {
+namespace libzcash
+{
 
 const unsigned char G1_PREFIX_MASK = 0x02;
 const unsigned char G2_PREFIX_MASK = 0x0a;
 
 // Element in the base field
-class Fq {
+class Fq
+{
 private:
     base_blob<256> data;
-public:
-    Fq() : data() { }
 
-    template<typename libsnark_Fq>
+public:
+    Fq() : data() {}
+
+    template <typename libsnark_Fq>
     Fq(libsnark_Fq element);
 
-    template<typename libsnark_Fq>
+    template <typename libsnark_Fq>
     libsnark_Fq to_libsnark_fq() const;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(data);
     }
 
     friend bool operator==(const Fq& a, const Fq& b)
     {
         return (
-            a.data == b.data
-        );
+            a.data == b.data);
     }
 
     friend bool operator!=(const Fq& a, const Fq& b)
@@ -43,30 +46,32 @@ public:
 };
 
 // Element in the extension field
-class Fq2 {
+class Fq2
+{
 private:
     base_blob<512> data;
-public:
-    Fq2() : data() { }
 
-    template<typename libsnark_Fq2>
+public:
+    Fq2() : data() {}
+
+    template <typename libsnark_Fq2>
     Fq2(libsnark_Fq2 element);
 
-    template<typename libsnark_Fq2>
+    template <typename libsnark_Fq2>
     libsnark_Fq2 to_libsnark_fq2() const;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(data);
     }
 
     friend bool operator==(const Fq2& a, const Fq2& b)
     {
         return (
-            a.data == b.data
-        );
+            a.data == b.data);
     }
 
     friend bool operator!=(const Fq2& a, const Fq2& b)
@@ -76,24 +81,26 @@ public:
 };
 
 // Compressed point in G1
-class CompressedG1 {
+class CompressedG1
+{
 private:
     bool y_lsb;
     Fq x;
 
 public:
-    CompressedG1() : y_lsb(false), x() { }
+    CompressedG1() : y_lsb(false), x() {}
 
-    template<typename libsnark_G1>
+    template <typename libsnark_G1>
     CompressedG1(libsnark_G1 point);
 
-    template<typename libsnark_G1>
+    template <typename libsnark_G1>
     libsnark_G1 to_libsnark_g1() const;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         unsigned char leadingByte = G1_PREFIX_MASK;
 
         if (y_lsb) {
@@ -115,8 +122,7 @@ public:
     {
         return (
             a.y_lsb == b.y_lsb &&
-            a.x == b.x
-        );
+            a.x == b.x);
     }
 
     friend bool operator!=(const CompressedG1& a, const CompressedG1& b)
@@ -126,24 +132,26 @@ public:
 };
 
 // Compressed point in G2
-class CompressedG2 {
+class CompressedG2
+{
 private:
     bool y_gt;
     Fq2 x;
 
 public:
-    CompressedG2() : y_gt(false), x() { }
+    CompressedG2() : y_gt(false), x() {}
 
-    template<typename libsnark_G2>
+    template <typename libsnark_G2>
     CompressedG2(libsnark_G2 point);
 
-    template<typename libsnark_G2>
+    template <typename libsnark_G2>
     libsnark_G2 to_libsnark_g2() const;
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         unsigned char leadingByte = G2_PREFIX_MASK;
 
         if (y_gt) {
@@ -165,8 +173,7 @@ public:
     {
         return (
             a.y_gt == b.y_gt &&
-            a.x == b.x
-        );
+            a.x == b.x);
     }
 
     friend bool operator!=(const CompressedG2& a, const CompressedG2& b)
@@ -176,7 +183,8 @@ public:
 };
 
 // Compressed zkSNARK proof
-class PHGRProof {
+class PHGRProof
+{
 private:
     CompressedG1 g_A;
     CompressedG1 g_A_prime;
@@ -188,15 +196,15 @@ private:
     CompressedG1 g_H;
 
 public:
-    PHGRProof() : g_A(), g_A_prime(), g_B(), g_B_prime(), g_C(), g_C_prime(), g_K(), g_H() { }
+    PHGRProof() : g_A(), g_A_prime(), g_B(), g_B_prime(), g_C(), g_C_prime(), g_K(), g_H() {}
 
     // Produces a compressed proof using a libsnark zkSNARK proof
-    template<typename libsnark_proof>
+    template <typename libsnark_proof>
     PHGRProof(const libsnark_proof& proof);
 
     // Produces a libsnark zkSNARK proof out of this proof,
     // or throws an exception if it is invalid.
-    template<typename libsnark_proof>
+    template <typename libsnark_proof>
     libsnark_proof to_libsnark_proof() const;
 
     static PHGRProof random_invalid();
@@ -204,7 +212,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(g_A);
         READWRITE(g_A_prime);
         READWRITE(g_B);
@@ -225,8 +234,7 @@ public:
             a.g_C == b.g_C &&
             a.g_C_prime == b.g_C_prime &&
             a.g_K == b.g_K &&
-            a.g_H == b.g_H
-        );
+            a.g_H == b.g_H);
     }
 
     friend bool operator!=(const PHGRProof& a, const PHGRProof& b)
@@ -237,11 +245,12 @@ public:
 
 void initialize_curve_params();
 
-class ProofVerifier {
+class ProofVerifier
+{
 private:
     bool perform_verification;
 
-    ProofVerifier(bool perform_verification) : perform_verification(perform_verification) { }
+    ProofVerifier(bool perform_verification) : perform_verification(perform_verification) {}
 
 public:
     // ProofVerifier should never be copied
@@ -262,16 +271,14 @@ public:
     template <typename VerificationKey,
               typename ProcessedVerificationKey,
               typename PrimaryInput,
-              typename Proof
-              >
+              typename Proof>
     bool check(
         const VerificationKey& vk,
         const ProcessedVerificationKey& pvk,
         const PrimaryInput& pi,
-        const Proof& p
-    );
+        const Proof& p);
 };
 
-}
+} // namespace libzcash
 
 #endif // ZC_PROOF_H_

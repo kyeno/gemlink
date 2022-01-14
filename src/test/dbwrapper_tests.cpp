@@ -4,20 +4,21 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "dbwrapper.h"
-#include "uint256.h"
 #include "random.h"
 #include "test/test_bitcoin.h"
+#include "uint256.h"
 
-#include <boost/assign/std/vector.hpp> // for 'operator+=()'
 #include <boost/assert.hpp>
+#include <boost/assign/std/vector.hpp> // for 'operator+=()'
 #include <boost/test/unit_test.hpp>
-                    
+
 using namespace std;
 using namespace boost::assign; // bring 'operator+=()' into scope
 using namespace boost::filesystem;
-         
+
 // Test if a string consists entirely of null characters
-bool is_null_key(const vector<unsigned char>& key) {
+bool is_null_key(const vector<unsigned char>& key)
+{
     bool isnull = true;
 
     for (unsigned int i = 0; i < key.size(); i++)
@@ -25,9 +26,9 @@ bool is_null_key(const vector<unsigned char>& key) {
 
     return isnull;
 }
- 
+
 BOOST_FIXTURE_TEST_SUITE(dbwrapper_tests, BasicTestingSetup)
-                       
+
 BOOST_AUTO_TEST_CASE(dbwrapper)
 {
     {
@@ -122,16 +123,16 @@ BOOST_AUTO_TEST_CASE(iterator_ordering)
 {
     path ph = temp_directory_path() / unique_path();
     CDBWrapper dbw(ph, (1 << 20), true, false);
-    for (int x=0x00; x<256; ++x) {
+    for (int x = 0x00; x < 256; ++x) {
         uint8_t key = x;
-        uint32_t value = x*x;
+        uint32_t value = x * x;
         BOOST_CHECK(dbw.Write(key, value));
     }
 
     boost::scoped_ptr<CDBIterator> it(const_cast<CDBWrapper*>(&dbw)->NewIterator());
     for (int seek_start : {0x00, 0x80}) {
         it->Seek((uint8_t)seek_start);
-        for (int x=seek_start; x<256; ++x) {
+        for (int x = seek_start; x < 256; ++x) {
             uint8_t key;
             uint32_t value;
             BOOST_CHECK(it->Valid());
@@ -140,7 +141,7 @@ BOOST_AUTO_TEST_CASE(iterator_ordering)
             BOOST_CHECK(it->GetKey(key));
             BOOST_CHECK(it->GetValue(value));
             BOOST_CHECK_EQUAL(key, x);
-            BOOST_CHECK_EQUAL(value, x*x);
+            BOOST_CHECK_EQUAL(value, x * x);
             it->Next();
         }
         BOOST_CHECK(!it->Valid());
@@ -154,7 +155,8 @@ struct StringContentsSerializer {
     StringContentsSerializer() {}
     StringContentsSerializer(const string& inp) : str(inp) {}
 
-    StringContentsSerializer& operator+=(const string& s) {
+    StringContentsSerializer& operator+=(const string& s)
+    {
         str += s;
         return *this;
     }
@@ -163,7 +165,8 @@ struct StringContentsSerializer {
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         if (ser_action.ForRead()) {
             str.clear();
             char c = 0;
@@ -188,14 +191,14 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering)
 
     path ph = temp_directory_path() / unique_path();
     CDBWrapper dbw(ph, (1 << 20), true, false);
-    for (int x=0x00; x<10; ++x) {
+    for (int x = 0x00; x < 10; ++x) {
         for (int y = 0; y < 10; y++) {
             int n = snprintf(buf, sizeof(buf), "%d", x);
             assert(n > 0 && n < sizeof(buf));
             StringContentsSerializer key(buf);
             for (int z = 0; z < y; z++)
                 key += key;
-            uint32_t value = x*x;
+            uint32_t value = x * x;
             BOOST_CHECK(dbw.Write(key, value));
         }
     }
@@ -206,7 +209,7 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering)
         assert(n > 0 && n < sizeof(buf));
         StringContentsSerializer seek_key(buf);
         it->Seek(seek_key);
-        for (int x=seek_start; x<10; ++x) {
+        for (int x = seek_start; x < 10; ++x) {
             for (int y = 0; y < 10; y++) {
                 int n = snprintf(buf, sizeof(buf), "%d", x);
                 assert(n > 0 && n < sizeof(buf));
@@ -221,14 +224,13 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering)
                 BOOST_CHECK(it->GetKey(key));
                 BOOST_CHECK(it->GetValue(value));
                 BOOST_CHECK_EQUAL(key.str, exp_key);
-                BOOST_CHECK_EQUAL(value, x*x);
+                BOOST_CHECK_EQUAL(value, x * x);
                 it->Next();
             }
         }
         BOOST_CHECK(!it->Valid());
     }
 }
-
 
 
 BOOST_AUTO_TEST_SUITE_END()

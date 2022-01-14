@@ -53,10 +53,10 @@ bool CheckForConflictingLocks(CTransaction& tx);
 
 void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
-//check if we need to vote on this transaction
+// check if we need to vote on this transaction
 void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight);
 
-//process consensus vote message
+// process consensus vote message
 bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx);
 
 // keep transaction locks in memory for an hour

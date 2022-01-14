@@ -14,7 +14,7 @@
 
 typedef struct HistoryNode {
     unsigned char bytes[NODE_SERIALIZED_LENGTH];
-}  HistoryNode;
+} HistoryNode;
 static_assert(
     sizeof(HistoryNode) == NODE_SERIALIZED_LENGTH,
     "HistoryNode struct is not the same size as the underlying byte array");
@@ -22,7 +22,7 @@ static_assert(alignof(HistoryNode) == 1, "HistoryNode struct alignment is not 1"
 
 typedef struct HistoryEntry {
     unsigned char bytes[ENTRY_SERIALIZED_LENGTH];
-}  HistoryEntry;
+} HistoryEntry;
 static_assert(
     sizeof(HistoryEntry) == ENTRY_SERIALIZED_LENGTH,
     "HistoryEntry struct is not the same size as the underlying byte array");

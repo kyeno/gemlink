@@ -12,6 +12,7 @@
 #include "serialize.h"
 #include "streams.h"
 #include "uint256.h"
+
 #include "consensus/consensus.h"
 
 #include <array>
@@ -20,20 +21,22 @@
 
 #include "zcash/NoteEncryption.hpp"
 #include "zcash/Zcash.h"
+
 #include "zcash/JoinSplit.hpp"
 #include "zcash/Proof.hpp"
+
 static const int32_t OVERWINTER_TX_VERSION = 3;
 static_assert(OVERWINTER_TX_VERSION >= OVERWINTER_MIN_TX_VERSION,
-    "Overwinter tx version must not be lower than minimum");
+              "Overwinter tx version must not be lower than minimum");
 static_assert(OVERWINTER_TX_VERSION <= OVERWINTER_MAX_TX_VERSION,
-    "Overwinter tx version must not be higher than maximum");
+              "Overwinter tx version must not be higher than maximum");
 
 // Sapling transaction version
 static const int32_t SAPLING_TX_VERSION = 4;
 static_assert(SAPLING_TX_VERSION >= SAPLING_MIN_TX_VERSION,
-    "Sapling tx version must not be lower than minimum");
+              "Sapling tx version must not be lower than minimum");
 static_assert(SAPLING_TX_VERSION <= SAPLING_MAX_TX_VERSION,
-    "Sapling tx version must not be higher than maximum");
+              "Sapling tx version must not be higher than maximum");
 
 /**
  * A shielded input to a transaction. It contains data that describes a Spend transfer.
@@ -50,12 +53,13 @@ public:
     libzcash::GrothProof zkproof;  //!< A zero-knowledge proof using the spend circuit.
     spend_auth_sig_t spendAuthSig; //!< A signature authorizing this spend.
 
-    SpendDescription() { }
+    SpendDescription() {}
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(cv);
         READWRITE(anchor);
         READWRITE(nullifier);
@@ -72,8 +76,7 @@ public:
             a.nullifier == b.nullifier &&
             a.rk == b.rk &&
             a.zkproof == b.zkproof &&
-            a.spendAuthSig == b.spendAuthSig
-            );
+            a.spendAuthSig == b.spendAuthSig);
     }
 
     friend bool operator!=(const SpendDescription& a, const SpendDescription& b)
@@ -88,19 +91,20 @@ public:
 class OutputDescription
 {
 public:
-    uint256 cv;                     //!< A value commitment to the value of the output note.
-    uint256 cm;                     //!< The note commitment for the output note.
-    uint256 ephemeralKey;           //!< A Jubjub public key.
+    uint256 cv;                                   //!< A value commitment to the value of the output note.
+    uint256 cm;                                   //!< The note commitment for the output note.
+    uint256 ephemeralKey;                         //!< A Jubjub public key.
     libzcash::SaplingEncCiphertext encCiphertext; //!< A ciphertext component for the encrypted output note.
     libzcash::SaplingOutCiphertext outCiphertext; //!< A ciphertext component for the encrypted output note.
-    libzcash::GrothProof zkproof;   //!< A zero-knowledge proof using the output circuit.
+    libzcash::GrothProof zkproof;                 //!< A zero-knowledge proof using the output circuit.
 
-    OutputDescription() { }
+    OutputDescription() {}
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(cv);
         READWRITE(cm);
         READWRITE(ephemeralKey);
@@ -117,8 +121,7 @@ public:
             a.ephemeralKey == b.ephemeralKey &&
             a.encCiphertext == b.encCiphertext &&
             a.outCiphertext == b.outCiphertext &&
-            a.zkproof == b.zkproof
-            );
+            a.zkproof == b.zkproof);
     }
 
     friend bool operator!=(const OutputDescription& a, const OutputDescription& b)
@@ -153,14 +156,14 @@ public:
     }
 };
 
-template<typename Stream, typename T>
+template <typename Stream, typename T>
 inline void SerReadWriteSproutProof(Stream& s, const T& proof, bool useGroth, CSerActionSerialize ser_action)
 {
     auto ps = SproutProofSerializer<Stream>(s, useGroth);
     boost::apply_visitor(ps, proof);
 }
 
-template<typename Stream, typename T>
+template <typename Stream, typename T>
 inline void SerReadWriteSproutProof(Stream& s, T& proof, bool useGroth, CSerActionUnserialize ser_action)
 {
     if (useGroth) {
@@ -208,7 +211,7 @@ public:
     // These contain trapdoors, values and other information
     // that the recipient needs, including a memo field. It
     // is encrypted using the scheme implemented in crypto/NoteEncryption.cpp
-    std::array<ZCNoteEncryption::Ciphertext, ZC_NUM_JS_OUTPUTS> ciphertexts = {{ {{0}} }};
+    std::array<ZCNoteEncryption::Ciphertext, ZC_NUM_JS_OUTPUTS> ciphertexts = {{{{0}}}};
 
     // Random seed
     uint256 randomSeed;
@@ -222,41 +225,39 @@ public:
     // This is a zk-SNARK which ensures that this JoinSplit is valid.
     libzcash::SproutProof proof;
 
-    JSDescription(): vpub_old(0), vpub_new(0) { }
+    JSDescription() : vpub_old(0), vpub_new(0) {}
 
     JSDescription(
-            ZCJoinSplit& params,
-            const uint256& joinSplitPubKey,
-            const uint256& rt,
-            const std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-            const std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-            CAmount vpub_old,
-            CAmount vpub_new,
-            bool computeProof = true, // Set to false in some tests
-            uint256 *esk = nullptr // payment disclosure
+        ZCJoinSplit& params,
+        const uint256& joinSplitPubKey,
+        const uint256& rt,
+        const std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
+        const std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+        CAmount vpub_old,
+        CAmount vpub_new,
+        bool computeProof = true, // Set to false in some tests
+        uint256* esk = nullptr    // payment disclosure
     );
 
     static JSDescription Randomized(
-            ZCJoinSplit& params,
-            const uint256& joinSplitPubKey,
-            const uint256& rt,
-            std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-            std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-            std::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
-            std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap,
-            CAmount vpub_old,
-            CAmount vpub_new,
-            bool computeProof = true, // Set to false in some tests
-            uint256 *esk = nullptr, // payment disclosure
-            std::function<int(int)> gen = GetRandInt
-    );
+        ZCJoinSplit& params,
+        const uint256& joinSplitPubKey,
+        const uint256& rt,
+        std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
+        std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+        std::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
+        std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap,
+        CAmount vpub_old,
+        CAmount vpub_new,
+        bool computeProof = true, // Set to false in some tests
+        uint256* esk = nullptr,   // payment disclosure
+        std::function<int(int)> gen = GetRandInt);
 
     // Verifies that the JoinSplit proof is correct.
     bool Verify(
         ZCJoinSplit& params,
         libzcash::ProofVerifier& verifier,
-        const uint256& joinSplitPubKey
-    ) const;
+        const uint256& joinSplitPubKey) const;
 
     // Returns the calculated h_sig
     uint256 h_sig(ZCJoinSplit& params, const uint256& joinSplitPubKey) const;
@@ -264,7 +265,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         // nVersion is set by CTransaction and CMutableTransaction to
         // (tx.fOverwintered << 31) | tx.nVersion
         bool fOverwintered = s.GetVersion() >> 31;
@@ -295,8 +297,7 @@ public:
             a.ciphertexts == b.ciphertexts &&
             a.randomSeed == b.randomSeed &&
             a.macs == b.macs &&
-            a.proof == b.proof
-            );
+            a.proof == b.proof);
     }
 
     friend bool operator!=(const JSDescription& a, const JSDescription& b)
@@ -312,18 +313,27 @@ public:
     uint32_t n;
 
     BaseOutPoint() { SetNull(); }
-    BaseOutPoint(uint256 hashIn, uint32_t nIn) { hash = hashIn; n = nIn; }
+    BaseOutPoint(uint256 hashIn, uint32_t nIn)
+    {
+        hash = hashIn;
+        n = nIn;
+    }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(hash);
         READWRITE(n);
     }
 
-    void SetNull() { hash.SetNull(); n = (uint32_t) -1; }
-    bool IsNull() const { return (hash.IsNull() && n == (uint32_t) -1); }
+    void SetNull()
+    {
+        hash.SetNull();
+        n = (uint32_t)-1;
+    }
+    bool IsNull() const { return (hash.IsNull() && n == (uint32_t)-1); }
 
     friend bool operator<(const BaseOutPoint& a, const BaseOutPoint& b)
     {
@@ -345,8 +355,8 @@ public:
 class COutPoint : public BaseOutPoint
 {
 public:
-    COutPoint() : BaseOutPoint() {};
-    COutPoint(uint256 hashIn, uint32_t nIn) : BaseOutPoint(hashIn, nIn) {};
+    COutPoint() : BaseOutPoint(){};
+    COutPoint(uint256 hashIn, uint32_t nIn) : BaseOutPoint(hashIn, nIn){};
     std::string ToString() const;
     std::string ToStringShort() const;
 
@@ -358,8 +368,8 @@ public:
 class SaplingOutPoint : public BaseOutPoint
 {
 public:
-    SaplingOutPoint() : BaseOutPoint() {};
-    SaplingOutPoint(uint256 hashIn, uint32_t nIn) : BaseOutPoint(hashIn, nIn) {}; 
+    SaplingOutPoint() : BaseOutPoint(){};
+    SaplingOutPoint(uint256 hashIn, uint32_t nIn) : BaseOutPoint(hashIn, nIn){};
     std::string ToString() const;
 };
 
@@ -380,13 +390,14 @@ public:
         nSequence = std::numeric_limits<unsigned int>::max();
     }
 
-    explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn=CScript(), uint32_t nSequenceIn=std::numeric_limits<unsigned int>::max());
-    CTxIn(uint256 hashPrevTx, uint32_t nOut, CScript scriptSigIn=CScript(), uint32_t nSequenceIn=std::numeric_limits<uint32_t>::max());
+    explicit CTxIn(COutPoint prevoutIn, CScript scriptSigIn = CScript(), uint32_t nSequenceIn = std::numeric_limits<unsigned int>::max());
+    CTxIn(uint256 hashPrevTx, uint32_t nOut, CScript scriptSigIn = CScript(), uint32_t nSequenceIn = std::numeric_limits<uint32_t>::max());
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(prevout);
         READWRITE(*(CScriptBase*)(&scriptSig));
         READWRITE(nSequence);
@@ -399,7 +410,7 @@ public:
 
     friend bool operator==(const CTxIn& a, const CTxIn& b)
     {
-        return (a.prevout   == b.prevout &&
+        return (a.prevout == b.prevout &&
                 a.scriptSig == b.scriptSig &&
                 a.nSequence == b.nSequence);
     }
@@ -432,7 +443,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(nValue);
         READWRITE(*(CScriptBase*)(&scriptPubKey));
     }
@@ -451,7 +463,7 @@ public:
 
     uint256 GetHash() const;
 
-    CAmount GetDustThreshold(const CFeeRate &minRelayTxFee) const
+    CAmount GetDustThreshold(const CFeeRate& minRelayTxFee) const
     {
         // "Dust" is defined in terms of CTransaction::minRelayTxFee,
         // which has units satoshis-per-kilobyte.
@@ -465,19 +477,19 @@ public:
             return 0;
 
         size_t nSize = GetSerializeSize(*this, SER_DISK, 0) + 148u;
-        return 3*minRelayTxFee.GetFee(nSize);
+        return 3 * minRelayTxFee.GetFee(nSize);
     }
 
-    bool IsDust(const CFeeRate &minRelayTxFee) const
+    bool IsDust(const CFeeRate& minRelayTxFee) const
     {
         return (nValue < GetDustThreshold(minRelayTxFee));
     }
 
     friend bool operator==(const CTxOut& a, const CTxOut& b)
     {
-        return (a.nValue       == b.nValue &&
+        return (a.nValue == b.nValue &&
                 a.scriptPubKey == b.scriptPubKey &&
-                a.nRounds      == b.nRounds);
+                a.nRounds == b.nRounds);
     }
 
     friend bool operator!=(const CTxOut& a, const CTxOut& b)
@@ -512,7 +524,7 @@ protected:
     /** Developer testing only.  Set evilDeveloperFlag to true.
      * Convert a CMutableTransaction into a CTransaction without invoking UpdateHash()
      */
-    CTransaction(const CMutableTransaction &tx, bool evilDeveloperFlag);
+    CTransaction(const CMutableTransaction& tx, bool evilDeveloperFlag);
 
 public:
     typedef std::array<unsigned char, 64> joinsplit_sig_t;
@@ -532,15 +544,15 @@ public:
     static_assert(OVERWINTER_MIN_CURRENT_VERSION >= OVERWINTER_MIN_TX_VERSION,
                   "standard rule for tx version should be consistent with network rule");
 
-    static_assert( (OVERWINTER_MAX_CURRENT_VERSION <= OVERWINTER_MAX_TX_VERSION &&
-                    OVERWINTER_MAX_CURRENT_VERSION >= OVERWINTER_MIN_CURRENT_VERSION),
+    static_assert((OVERWINTER_MAX_CURRENT_VERSION <= OVERWINTER_MAX_TX_VERSION &&
+                   OVERWINTER_MAX_CURRENT_VERSION >= OVERWINTER_MIN_CURRENT_VERSION),
                   "standard rule for tx version should be consistent with network rule");
 
     static_assert(SAPLING_MIN_CURRENT_VERSION >= SAPLING_MIN_TX_VERSION,
                   "standard rule for tx version should be consistent with network rule");
 
-    static_assert( (SAPLING_MAX_CURRENT_VERSION <= SAPLING_MAX_TX_VERSION &&
-                    SAPLING_MAX_CURRENT_VERSION >= SAPLING_MIN_CURRENT_VERSION),
+    static_assert((SAPLING_MAX_CURRENT_VERSION <= SAPLING_MAX_TX_VERSION &&
+                   SAPLING_MAX_CURRENT_VERSION >= SAPLING_MIN_CURRENT_VERSION),
                   "standard rule for tx version should be consistent with network rule");
 
     // The local variables are made const to prevent unintended modification
@@ -567,15 +579,16 @@ public:
     CTransaction();
 
     /** Convert a CMutableTransaction into a CTransaction. */
-    CTransaction(const CMutableTransaction &tx);
-    CTransaction(CMutableTransaction &&tx);
+    CTransaction(const CMutableTransaction& tx);
+    CTransaction(CMutableTransaction&& tx);
 
     CTransaction& operator=(const CTransaction& tx);
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         uint32_t header;
         if (ser_action.ForRead()) {
             // When deserializing, unpack the 4 byte header to extract fOverwintered and nVersion.
@@ -629,17 +642,22 @@ public:
     }
 
     template <typename Stream>
-    CTransaction(deserialize_type, Stream& s) : CTransaction(CMutableTransaction(deserialize, s)) {}
+    CTransaction(deserialize_type, Stream& s) : CTransaction(CMutableTransaction(deserialize, s))
+    {
+    }
 
-    bool IsNull() const {
+    bool IsNull() const
+    {
         return vin.empty() && vout.empty();
     }
 
-    const uint256& GetHash() const {
+    const uint256& GetHash() const
+    {
         return hash;
     }
 
-    uint32_t GetHeader() const {
+    uint32_t GetHeader() const
+    {
         // When serializing v1 and v2, the 4 byte header is nVersion
         uint32_t header = this->nVersion;
         // When serializing Overwintered tx, the 4 byte header is the combination of fOverwintered and nVersion
@@ -669,10 +687,10 @@ public:
     CAmount GetShieldedValueIn() const;
 
     // Compute priority, given priority of inputs and (optionally) tx size
-    double ComputePriority(double dPriorityInputs, unsigned int nTxSize=0) const;
+    double ComputePriority(double dPriorityInputs, unsigned int nTxSize = 0) const;
 
     // Compute modified tx size for priority calculation (optionally given tx size)
-    unsigned int CalculateModifiedSize(unsigned int nTxSize=0) const;
+    unsigned int CalculateModifiedSize(unsigned int nTxSize = 0) const;
 
     bool IsCoinBase() const
     {
@@ -693,8 +711,7 @@ public:
 };
 
 /** A mutable version of CTransaction. */
-struct CMutableTransaction
-{
+struct CMutableTransaction {
     bool fOverwintered;
     int32_t nVersion;
     uint32_t nVersionGroupId;
@@ -716,7 +733,8 @@ struct CMutableTransaction
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         uint32_t header;
         if (ser_action.ForRead()) {
             // When deserializing, unpack the 4 byte header to extract fOverwintered and nVersion.
@@ -773,7 +791,8 @@ struct CMutableTransaction
     }
 
     template <typename Stream>
-    CMutableTransaction(deserialize_type, Stream& s) {
+    CMutableTransaction(deserialize_type, Stream& s)
+    {
         Unserialize(s);
     }
 

@@ -10,8 +10,8 @@
 #include <boost/bind.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
-#include <boost/thread.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/thread.hpp>
 
 BOOST_AUTO_TEST_SUITE(scheduler_tests)
 
@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(manythreads)
     CScheduler microTasks;
 
     boost::mutex counterMutex[10];
-    int counter[10] = { 0 };
+    int counter[10] = {0};
     boost::random::mt19937 rng(insecure_rand());
     boost::random::uniform_int_distribution<> zeroToNine(0, 9);
     boost::random::uniform_int_distribution<> randomMsec(-11, 1000);

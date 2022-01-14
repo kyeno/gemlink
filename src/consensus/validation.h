@@ -19,7 +19,8 @@ static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
 
 /** Capture information about block/transaction validation */
-class CValidationState {
+class CValidationState
+{
 private:
     enum mode_state {
         MODE_VALID,   //! everything ok
@@ -30,11 +31,11 @@ private:
     std::string strRejectReason;
     unsigned char chRejectCode;
     bool corruptionPossible;
+
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}
-    virtual bool DoS(int level, bool ret = false,
-             unsigned char chRejectCodeIn=0, std::string strRejectReasonIn="",
-             bool corruptionIn=false) {
+    virtual bool DoS(int level, bool ret = false, unsigned char chRejectCodeIn = 0, std::string strRejectReasonIn = "", bool corruptionIn = false)
+    {
         chRejectCode = chRejectCodeIn;
         strRejectReason = strRejectReasonIn;
         corruptionPossible = corruptionIn;
@@ -45,32 +46,40 @@ public:
         return ret;
     }
     virtual bool Invalid(bool ret = false,
-                 unsigned char _chRejectCode=0, std::string _strRejectReason="") {
+                         unsigned char _chRejectCode = 0,
+                         std::string _strRejectReason = "")
+    {
         return DoS(0, ret, _chRejectCode, _strRejectReason);
     }
-    virtual bool Error(const std::string& strRejectReasonIn) {
+    virtual bool Error(const std::string& strRejectReasonIn)
+    {
         if (mode == MODE_VALID)
             strRejectReason = strRejectReasonIn;
         mode = MODE_ERROR;
         return false;
     }
-    virtual bool IsValid() const {
+    virtual bool IsValid() const
+    {
         return mode == MODE_VALID;
     }
-    virtual bool IsInvalid() const {
+    virtual bool IsInvalid() const
+    {
         return mode == MODE_INVALID;
     }
-    virtual bool IsError() const {
+    virtual bool IsError() const
+    {
         return mode == MODE_ERROR;
     }
-    virtual bool IsInvalid(int &nDoSOut) const {
+    virtual bool IsInvalid(int& nDoSOut) const
+    {
         if (IsInvalid()) {
             nDoSOut = nDoS;
             return true;
         }
         return false;
     }
-    virtual bool CorruptionPossible() const {
+    virtual bool CorruptionPossible() const
+    {
         return corruptionPossible;
     }
     virtual unsigned char GetRejectCode() const { return chRejectCode; }

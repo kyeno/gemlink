@@ -1,12 +1,13 @@
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "httprpc.cpp"
 #include "httpserver.h"
 
 using ::testing::Return;
 
-class MockHTTPRequest : public HTTPRequest {
+class MockHTTPRequest : public HTTPRequest
+{
 public:
     MOCK_METHOD0(GetPeer, CService());
     MOCK_METHOD0(GetRequestMethod, HTTPRequest::RequestMethod());
@@ -15,13 +16,15 @@ public:
     MOCK_METHOD2(WriteReply, void(int nStatus, const std::string& strReply));
 
     MockHTTPRequest() : HTTPRequest(nullptr) {}
-    void CleanUp() {
+    void CleanUp()
+    {
         // So the parent destructor doesn't try to send a reply
         replySent = true;
     }
 };
 
-TEST(HTTPRPC, FailsOnGET) {
+TEST(HTTPRPC, FailsOnGET)
+{
     MockHTTPRequest req;
     EXPECT_CALL(req, GetRequestMethod())
         .WillRepeatedly(Return(HTTPRequest::GET));
@@ -31,7 +34,8 @@ TEST(HTTPRPC, FailsOnGET) {
     req.CleanUp();
 }
 
-TEST(HTTPRPC, FailsWithoutAuthHeader) {
+TEST(HTTPRPC, FailsWithoutAuthHeader)
+{
     MockHTTPRequest req;
     EXPECT_CALL(req, GetRequestMethod())
         .WillRepeatedly(Return(HTTPRequest::POST));
@@ -45,7 +49,8 @@ TEST(HTTPRPC, FailsWithoutAuthHeader) {
     req.CleanUp();
 }
 
-TEST(HTTPRPC, FailsWithBadAuth) {
+TEST(HTTPRPC, FailsWithBadAuth)
+{
     MockHTTPRequest req;
     EXPECT_CALL(req, GetRequestMethod())
         .WillRepeatedly(Return(HTTPRequest::POST));
