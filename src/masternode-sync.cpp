@@ -26,8 +26,64 @@ CMasternodeSync::CMasternodeSync()
 }
 
 
+bool CMasternodeSync::IsSporkListSynced()
+{
+    return RequestedMasternodeAssets > MASTERNODE_SYNC_SPORKS;
+}
+
+bool CMasternodeSync::IsMasternodeListSynced()
+{
+    return RequestedMasternodeAssets > MASTERNODE_SYNC_LIST;
+}
+
+bool CMasternodeSync::NotCompleted()
+{
+    return (!IsSynced() && (!IsSporkListSynced() ||
+                            IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) ||
+                            IsSporkActive(SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT) ||
+                            IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)));
+}
+
+bool CMasternodeSync::IsBlockchainSynced()
+{
+    int64_t now = GetTime();
+
+    // if the last call to this function was more than 60 minutes ago (client was in sleep mode) reset the sync process
+    if (now > lastProcess + 60 * 60) {
+        Reset();
+        fBlockchainSynced = false;
+    }
+    lastProcess = now;
+
+    if (fBlockchainSynced)
+        return true;
+
+    if (fImporting || fReindex)
+        return false;
+
+    int64_t blockTime = 0;
+    {
+        TRY_LOCK(cs_main, lockMain);
+        if (!lockMain)
+            return false;
+        CBlockIndex* pindex = chainActive.Tip();
+        if (pindex == nullptr)
+            return false;
+        blockTime = pindex->nTime;
+    }
+
+    if (blockTime + 60 * 60 < lastProcess)
+        return false;
+
+    fBlockchainSynced = true;
+
+    return true;
+}
+
 void CMasternodeSync::Reset()
 {
+    fBlockchainSynced = false;
+    lastProcess = 0;
     lastMasternodeList = 0;
     lastMasternodeWinner = 0;
     lastBudgetItem = 0;

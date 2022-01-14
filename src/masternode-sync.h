@@ -40,6 +40,9 @@ public:
     int64_t lastFailure;
     int nCountFailures;
 
+    std::atomic<int64_t> lastProcess;
+    std::atomic<bool> fBlockchainSynced;
+
     // sum of all counts
     int sumMasternodeList;
     int sumMasternodeWinner;
@@ -73,11 +76,12 @@ public:
     void Reset();
     void Process();
     bool IsFailed() { return RequestedMasternodeAssets == MASTERNODE_SYNC_FAILED; }
-    bool IsBlockchainSynced() { return RequestedMasternodeAssets > MASTERNODE_SYNC_SPORKS; }
-    bool IsMasternodeListSynced() { return RequestedMasternodeAssets > MASTERNODE_SYNC_LIST; }
-    bool IsWinnersListSynced() { return RequestedMasternodeAssets > MASTERNODE_SYNC_MNW; }
     bool IsSynced() { return RequestedMasternodeAssets == MASTERNODE_SYNC_FINISHED; }
     void ClearFulfilledRequest();
+    bool NotCompleted();
+    bool IsSporkListSynced();
+    bool IsMasternodeListSynced();
+    bool IsBlockchainSynced();
 };
 
 #endif

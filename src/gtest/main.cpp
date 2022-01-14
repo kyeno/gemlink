@@ -26,9 +26,9 @@ int main(int argc, char** argv)
     libsnark::default_r1cs_ppzksnark_pp::init_public_params();
     libsnark::inhibit_profiling_info = true;
     libsnark::inhibit_profiling_counters = true;
-    boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
-    boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
-    params = ZCJoinSplit::Prepared(vk_path.string(), pk_path.string());
+    // boost::filesystem::path pk_path = ZC_GetParamsDir() / "sprout-proving.key";
+    // boost::filesystem::path vk_path = ZC_GetParamsDir() / "sprout-verifying.key";
+    // params = ZCJoinSplit::Prepared(vk_path.string(), pk_path.string());
 
     boost::filesystem::path sapling_spend = ZC_GetParamsDir() / "sapling-spend.params";
     boost::filesystem::path sapling_output = ZC_GetParamsDir() / "sapling-output.params";
