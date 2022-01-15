@@ -486,7 +486,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     // make sure signature isn't in the future (past is OK)
     if (sigTime > GetAdjustedTime() + 60 * 60) {
         LogPrint("masternode", "mnb - Signature rejected, too far into the future %s\n", vin.prevout.hash.ToString());
-        nDos = 1;
+        nDos = 30;
         return false;
     }
 
@@ -775,13 +775,13 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
 {
     if (sigTime > GetAdjustedTime() + 60 * 60) {
         LogPrint("masternode", "CMasternodePing::CheckAndUpdate - Signature rejected, too far into the future %s\n", vin.prevout.hash.ToString());
-        nDos = 1;
+        nDos = 30;
         return false;
     }
 
     if (sigTime <= GetAdjustedTime() - 60 * 60) {
         LogPrint("masternode", "CMasternodePing::CheckAndUpdate - Signature rejected, too far into the past %s - %d %d \n", vin.prevout.hash.ToString(), sigTime, GetAdjustedTime());
-        nDos = 1;
+        nDos = 30;
         return false;
     }
 
