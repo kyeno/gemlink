@@ -34,6 +34,7 @@ enum UpgradeIndex {
     UPGRADE_KNOWHERE,
     UPGRADE_WAKANDA,
     UPGRADE_ATLANTIS,
+    UPGRADE_MORAG,
     // NOTE: Also add new upgrades to NetworkUpgradeInfo in upgrades.cpp
     MAX_NETWORK_UPGRADES
 };

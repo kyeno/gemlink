@@ -170,6 +170,7 @@ BITCOIN_CORE_H = \
   masternodeman.h \
   masternodeconfig.h \
   merkleblock.h \
+  messagesigner.h \
   metrics.h \
   miner.h \
   mruset.h \
@@ -269,6 +270,7 @@ libbitcoin_server_a_SOURCES = \
   dbwrapper.cpp \
   main.cpp \
   merkleblock.cpp \
+  messagesigner.cpp \
   metrics.cpp \
   miner.cpp \
   net.cpp \

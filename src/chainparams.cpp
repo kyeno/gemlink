@@ -113,6 +113,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_WAKANDA].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nActivationHeight = 1760000; // 2021, May 10th
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2760000; // 2021, May 10th
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170011;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
         // The best chain should have at least this much work.
@@ -329,6 +331,8 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_WAKANDA].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nActivationHeight = 28610;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 38610;
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170010;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
         consensus.nZawyLWMA3AveragingWindow = 60;

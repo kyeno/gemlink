@@ -161,42 +161,42 @@ public:
 };
 
 // for storing the winning payments
-class CMasternodePaymentWinner
+class CMasternodePaymentWinner : public CSignedMessage
 {
 public:
     CTxIn vinMasternode;
 
     int nBlockHeight;
     CScript payee;
-    std::vector<unsigned char> vchSig;
 
-    CMasternodePaymentWinner()
+    CMasternodePaymentWinner() : CSignedMessage(),
+                                 vinMasternode(CTxIn()),
+                                 nBlockHeight(0),
+                                 payee(CScript())
     {
-        nBlockHeight = 0;
-        vinMasternode = CTxIn();
-        payee = CScript();
     }
 
-    CMasternodePaymentWinner(CTxIn vinIn)
+    CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage(),
+                                            vinMasternode(vinIn),
+                                            nBlockHeight(0),
+                                            payee(CScript())
     {
-        nBlockHeight = 0;
-        vinMasternode = vinIn;
-        payee = CScript();
     }
 
-    uint256 GetHash()
-    {
-        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-        ss << *(CScriptBase*)(&payee);
-        ss << nBlockHeight;
-        ss << vinMasternode.prevout;
+    uint256 GetHash() const;
 
-        return ss.GetHash();
-    }
+    // override CSignedMessage functions
+    uint256 GetSignatureHash() const override { return GetHash(); }
+    std::string GetStrMessage() const override;
+    // TODO gemlink can remove after morag fork
+    bool VerifyMessage(CPubKey pubkey, const std::vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const;
+    bool CheckSignature() const;
+    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode, bool fNewSigs);
+    // end
 
-    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
+    const CTxIn GetVin() const override { return vinMasternode; };
+
     bool IsValid(CNode* pnode, std::string& strError);
-    bool SignatureValid();
     void Relay();
 
     void AddPayee(CScript payeeIn)
@@ -214,6 +214,11 @@ public:
         READWRITE(nBlockHeight);
         READWRITE(*(CScriptBase*)(&payee));
         READWRITE(vchSig);
+        try {
+            READWRITE(nMessVersion);
+        } catch (...) {
+            nMessVersion = MessageVersion::MESS_VER_STRMESS;
+        }
     }
 
     std::string ToString()

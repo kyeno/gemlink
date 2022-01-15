@@ -436,6 +436,7 @@ am_libbitcoin_server_a_OBJECTS =  \
 	libbitcoin_server_a-dbwrapper.$(OBJEXT) \
 	libbitcoin_server_a-main.$(OBJEXT) \
 	libbitcoin_server_a-merkleblock.$(OBJEXT) \
+	libbitcoin_server_a-messagesigner.$(OBJEXT) \
 	libbitcoin_server_a-metrics.$(OBJEXT) \
 	libbitcoin_server_a-miner.$(OBJEXT) \
 	libbitcoin_server_a-net.$(OBJEXT) \
@@ -484,8 +485,8 @@ am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	key.h key_io.h keystore.h dbwrapper.h limitedmap.h main.h \
 	memusage.h masternode.h masternode-payments.h \
 	masternode-budget.h masternode-sync.h masternodeman.h \
-	masternodeconfig.h merkleblock.h metrics.h miner.h mruset.h \
-	net.h netbase.h noui.h paymentdisclosure.h \
+	masternodeconfig.h merkleblock.h messagesigner.h metrics.h \
+	miner.h mruset.h net.h netbase.h noui.h paymentdisclosure.h \
 	paymentdisclosuredb.h policy/fees.h pow.h prevector.h \
 	primitives/block.h primitives/transaction.h protocol.h \
 	pubkey.h random.h reverselock.h rpc/client.h rpc/protocol.h \
@@ -948,6 +949,7 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_server_a-init.Po \
 	./$(DEPDIR)/libbitcoin_server_a-main.Po \
 	./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po \
+	./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po \
 	./$(DEPDIR)/libbitcoin_server_a-metrics.Po \
 	./$(DEPDIR)/libbitcoin_server_a-miner.Po \
 	./$(DEPDIR)/libbitcoin_server_a-net.Po \
@@ -1524,14 +1526,14 @@ am__relativize = \
     dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
   done; \
   reldir="$$dir2"
-ACLOCAL = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing aclocal-1.16
+ACLOCAL = ${SHELL} /mnt/m/github/gemlink/gemlink_ubuntu/build-aux/missing aclocal-1.16
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 0
-AR = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/llvm-ar
+AR = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/llvm-ar
 ARFLAGS = cr
-AUTOCONF = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing autoconf
-AUTOHEADER = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing autoheader
-AUTOMAKE = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing automake-1.16
+AUTOCONF = ${SHELL} /mnt/m/github/gemlink/gemlink_ubuntu/build-aux/missing autoconf
+AUTOHEADER = ${SHELL} /mnt/m/github/gemlink/gemlink_ubuntu/build-aux/missing autoheader
+AUTOMAKE = ${SHELL} /mnt/m/github/gemlink/gemlink_ubuntu/build-aux/missing automake-1.16
 AWK = gawk
 BDB_CPPFLAGS = 
 BDB_LIBS = -ldb_cxx-6.2
@@ -1539,18 +1541,18 @@ BITCOIN_CLI_NAME = snowgem-cli
 BITCOIN_DAEMON_NAME = snowgemd
 BITCOIN_TX_NAME = snowgem-tx
 BOOST_CHRONO_LIB = -lboost_chrono
-BOOST_CPPFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../include
+BOOST_CPPFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../include
 BOOST_FILESYSTEM_LIB = -lboost_filesystem
-BOOST_LDFLAGS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib
-BOOST_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
+BOOST_LDFLAGS = -L/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../lib
+BOOST_LIBS = -L/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono
 BOOST_PROGRAM_OPTIONS_LIB = -lboost_program_options
 BOOST_SYSTEM_LIB = -lboost_system
 BOOST_THREAD_LIB = -lboost_thread
 BOOST_UNIT_TEST_FRAMEWORK_LIB = -lboost_unit_test_framework
 BREW = 
-CARGO = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/cargo
-CC = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -m64
-CCACHE = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache
+CARGO = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../native/bin/cargo
+CC = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin -m64
+CCACHE = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache
 CCDEPMODE = depmode=gcc3
 CFLAGS = -pipe -O3 
 CLIENT_VERSION_BUILD = 50
@@ -1559,11 +1561,11 @@ CLIENT_VERSION_MAJOR = 3
 CLIENT_VERSION_MINOR = 1
 CLIENT_VERSION_REVISION = 4
 COPYRIGHT_YEAR = 2021
-CPP = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -m64 -E
+CPP = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin -m64 -E
 CPPFILT = /usr/bin/c++filt
-CPPFLAGS = -Qunused-arguments -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS
-CXX = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64 -std=c++17
-CXXCPP = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64 -std=c++17 -E
+CPPFLAGS = -Qunused-arguments -I/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../include/  -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS
+CXX = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../native/bin/ccache /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64 -std=c++17
+CXXCPP = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64 -std=c++17 -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -pipe -O3  -fwrapv -fno-strict-aliasing
 CYGPATH_W = echo
@@ -1579,10 +1581,10 @@ ECHO_N = -n
 ECHO_T = 
 EGREP = /usr/bin/grep -E
 ERROR_CXXFLAGS = 
-EVENT_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
-EVENT_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -levent
-EVENT_PTHREADS_CFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
-EVENT_PTHREADS_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -levent_pthreads -levent
+EVENT_CFLAGS = -I/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/include
+EVENT_LIBS = -L/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/lib -levent
+EVENT_PTHREADS_CFLAGS = -pthread -I/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/include
+EVENT_PTHREADS_LIBS = -L/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/lib -levent_pthreads -levent
 EXEEXT = 
 FGREP = /usr/bin/grep -F
 GCOV = 
@@ -1605,7 +1607,7 @@ INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LCOV = 
 LD = /usr/bin/ld -m elf_x86_64
-LDFLAGS = -fuse-ld=lld -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib  -static-libstdc++ -lc++abi
+LDFLAGS = -fuse-ld=lld -L/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../lib  -static-libstdc++ -lc++abi
 LEVELDB_CPPFLAGS =  $(am__append_14)
 LEVELDB_TARGET_FLAGS = -DOS_LINUX
 LIBLEVELDB =  $(am__append_12)
@@ -1620,13 +1622,13 @@ LN_S = ln -s
 LTLIBOBJS = 
 LT_SYS_LIBRARY_PATH = 
 MAINT = 
-MAKEINFO = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/missing makeinfo
+MAKEINFO = ${SHELL} /mnt/m/github/gemlink/gemlink_ubuntu/build-aux/missing makeinfo
 MAKENSIS = 
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
-NM = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/llvm-nm
+NM = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/llvm-nm
 NMEDIT = 
-OBJCXX = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64
+OBJCXX = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/clang++ -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin -stdlib=libc++ -m64
 OBJCXXDEPMODE = depmode=gcc3
 OBJCXXFLAGS = -g -O2
 OBJDUMP = objdump
@@ -1644,37 +1646,37 @@ PATH_SEPARATOR = :
 PIC_FLAGS = -fPIC
 PIE_FLAGS = -fPIE
 PKG_CONFIG = /usr/bin/pkg-config --static
-PKG_CONFIG_LIBDIR = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../lib/pkgconfig
-PKG_CONFIG_PATH = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../share/pkgconfig
+PKG_CONFIG_LIBDIR = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../lib/pkgconfig
+PKG_CONFIG_PATH = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../share/pkgconfig
 PORT = 
-PTHREAD_CC = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin -m64
+PTHREAD_CC = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/clang -target x86_64-pc-linux-gnu -B/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin -m64
 PTHREAD_CFLAGS = -Qunused-arguments -pthread
 PTHREAD_LIBS = 
-RANLIB = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/native/bin/llvm-ranlib
+RANLIB = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/native/bin/llvm-ranlib
 READELF = /usr/bin/readelf
 RELDFLAGS = 
-RUSTC = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../native/bin/rustc
+RUSTC = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../native/bin/rustc
 RUST_TARGET = x86_64-unknown-linux-gnu
-RUST_VENDORED_SOURCES = /mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources
+RUST_VENDORED_SOURCES = /mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../vendored-sources
 SANITIZER_CXXFLAGS = 
 SANITIZER_LDFLAGS = 
 SED = /usr/bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
 SSE42_CXXFLAGS = 
-SSL_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
-SSL_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -lssl -lcrypto -ldl -pthread
+SSL_CFLAGS = -I/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/include
+SSL_LIBS = -L/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/lib -lssl -lcrypto -ldl -pthread
 STRIP = /usr/bin/strip
 TESTDEFS = 
 VERSION = 3.1.4
 WINDRES = 
 XGETTEXT = 
-ZMQ_CFLAGS = -I/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/include
-ZMQ_LIBS = -L/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/lib -lzmq -lstdc++ -lpthread -lrt
-abs_builddir = /mnt/m/github/gemlink/gemlink/src
-abs_srcdir = /mnt/m/github/gemlink/gemlink/src
-abs_top_builddir = /mnt/m/github/gemlink/gemlink
-abs_top_srcdir = /mnt/m/github/gemlink/gemlink
+ZMQ_CFLAGS = -I/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/include
+ZMQ_LIBS = -L/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/lib -lzmq -lstdc++ -lpthread -lrt
+abs_builddir = /mnt/m/github/gemlink/gemlink_ubuntu/src
+abs_srcdir = /mnt/m/github/gemlink/gemlink_ubuntu/src
+abs_top_builddir = /mnt/m/github/gemlink/gemlink_ubuntu
+abs_top_srcdir = /mnt/m/github/gemlink/gemlink_ubuntu
 ac_ct_AR = 
 ac_ct_CC = 
 ac_ct_CXX = 
@@ -1706,7 +1708,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /mnt/m/github/gemlink/gemlink/build-aux/install-sh
+install_sh = ${SHELL} /mnt/m/github/gemlink/gemlink_ubuntu/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -1841,6 +1843,7 @@ BITCOIN_CORE_H = \
   masternodeman.h \
   masternodeconfig.h \
   merkleblock.h \
+  messagesigner.h \
   metrics.h \
   miner.h \
   mruset.h \
@@ -1934,6 +1937,7 @@ libbitcoin_server_a_SOURCES = \
   dbwrapper.cpp \
   main.cpp \
   merkleblock.cpp \
+  messagesigner.cpp \
   metrics.cpp \
   miner.cpp \
   net.cpp \
@@ -3339,6 +3343,7 @@ include ./$(DEPDIR)/libbitcoin_server_a-httpserver.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-init.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-main.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po # am--include-marker
+include ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-metrics.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-miner.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_server_a-net.Po # am--include-marker
@@ -4974,6 +4979,20 @@ libbitcoin_server_a-merkleblock.obj: merkleblock.cpp
 #	$(AM_V_CXX)source='merkleblock.cpp' object='libbitcoin_server_a-merkleblock.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-merkleblock.obj `if test -f 'merkleblock.cpp'; then $(CYGPATH_W) 'merkleblock.cpp'; else $(CYGPATH_W) '$(srcdir)/merkleblock.cpp'; fi`
+
+libbitcoin_server_a-messagesigner.o: messagesigner.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-messagesigner.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo -c -o libbitcoin_server_a-messagesigner.o `test -f 'messagesigner.cpp' || echo '$(srcdir)/'`messagesigner.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo $(DEPDIR)/libbitcoin_server_a-messagesigner.Po
+#	$(AM_V_CXX)source='messagesigner.cpp' object='libbitcoin_server_a-messagesigner.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-messagesigner.o `test -f 'messagesigner.cpp' || echo '$(srcdir)/'`messagesigner.cpp
+
+libbitcoin_server_a-messagesigner.obj: messagesigner.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-messagesigner.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo -c -o libbitcoin_server_a-messagesigner.obj `if test -f 'messagesigner.cpp'; then $(CYGPATH_W) 'messagesigner.cpp'; else $(CYGPATH_W) '$(srcdir)/messagesigner.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-messagesigner.Tpo $(DEPDIR)/libbitcoin_server_a-messagesigner.Po
+#	$(AM_V_CXX)source='messagesigner.cpp' object='libbitcoin_server_a-messagesigner.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-messagesigner.obj `if test -f 'messagesigner.cpp'; then $(CYGPATH_W) 'messagesigner.cpp'; else $(CYGPATH_W) '$(srcdir)/messagesigner.cpp'; fi`
 
 libbitcoin_server_a-metrics.o: metrics.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-metrics.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-metrics.Tpo -c -o libbitcoin_server_a-metrics.o `test -f 'metrics.cpp' || echo '$(srcdir)/'`metrics.cpp
@@ -8170,6 +8189,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-init.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-main.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-metrics.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-miner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-net.Po
@@ -8510,6 +8530,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-init.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-main.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po
+	-rm -f ./$(DEPDIR)/libbitcoin_server_a-messagesigner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-metrics.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-miner.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_server_a-net.Po
