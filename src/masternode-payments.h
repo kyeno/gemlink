@@ -169,19 +169,9 @@ public:
     int nBlockHeight;
     CScript payee;
 
-    CMasternodePaymentWinner() : CSignedMessage(),
-                                 vinMasternode(CTxIn()),
-                                 nBlockHeight(0),
-                                 payee(CScript())
-    {
-    }
+    CMasternodePaymentWinner();
 
-    CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage(),
-                                            vinMasternode(vinIn),
-                                            nBlockHeight(0),
-                                            payee(CScript())
-    {
-    }
+    CMasternodePaymentWinner(CTxIn vinIn);
 
     uint256 GetHash() const;
 

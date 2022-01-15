@@ -149,6 +149,28 @@ CMasternodePaymentDB::ReadResult CMasternodePaymentDB::Read(CMasternodePayments&
     return Ok;
 }
 
+CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
+                                                       vinMasternode(CTxIn()),
+                                                       nBlockHeight(0),
+                                                       payee(CScript())
+{
+    const bool fNewSigs = NetworkUpgradeActive(chainActive.Height(), Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+    }
+}
+
+CMasternodePaymentWinner::CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage(),
+                                                                  vinMasternode(vinIn),
+                                                                  nBlockHeight(0),
+                                                                  payee(CScript())
+{
+    const bool fNewSigs = NetworkUpgradeActive(chainActive.Height(), Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+    }
+}
+
 uint256 CMasternodePaymentWinner::GetHash() const
 {
     CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
