@@ -84,6 +84,12 @@ Makefile
 Makefile.test
 src/test/buildenv.py
 
+# Rust
+.cargo/.configured-for-*
+.cargo/config
+target/
+target1/
+
 # Resources cpp
 qrc_*.cpp
 
