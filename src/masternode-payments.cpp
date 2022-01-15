@@ -182,12 +182,9 @@ bool CMasternodePaymentWinner::CheckSignature() const
                 return error("%s : VerifyMessage failed: %s", __func__, strError);
             }
         }
-
-        return false;
-        }
-
-        return true;
     }
+    return true;
+}
 
 bool CMasternodePaymentWinner::VerifyMessage(CPubKey pubkey, const vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const
 {
