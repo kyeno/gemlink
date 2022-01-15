@@ -10,8 +10,8 @@
 #include "primitives/transaction.h" // for CTxIn
 
 enum MessageVersion {
-        MESS_VER_STRMESS    = 0,
-        MESS_VER_HASH       = 1,
+    MESS_VER_STRMESS = 0,
+    MESS_VER_HASH = 1,
 };
 
 /** Helper class for signing messages and checking their signatures
@@ -55,20 +55,20 @@ protected:
 public:
     int nMessVersion;
 
-    CSignedMessage() :
-        vchSig(),
-        nMessVersion(MessageVersion::MESS_VER_HASH)
-    {}
+    CSignedMessage() : vchSig(std::vector<unsigned char>()),
+                       nMessVersion(MessageVersion::MESS_VER_STRMESS)
+    {
+    }
     CSignedMessage(const CSignedMessage& other)
     {
         vchSig = other.GetVchSig();
         nMessVersion = other.nMessVersion;
     }
-    virtual ~CSignedMessage() {};
+    virtual ~CSignedMessage(){};
 
     // Sign-Verify message
-    bool Sign(const CKey& key, const CPubKey& pubKey, const bool fNewSigs);
-    bool Sign(const std::string strSignKey, const bool fNewSigs);
+    // bool Sign(const CKey& key, const CPubKey& pubKey, const bool fNewSigs);
+    // bool Sign(const std::string strSignKey, const bool fNewSigs);
     bool CheckSignature(const CPubKey& pubKey) const;
     bool CheckSignature(const bool fSignatureCheck = true) const;
 

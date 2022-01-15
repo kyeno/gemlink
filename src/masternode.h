@@ -137,7 +137,6 @@ public:
     CPubKey pubKeyMasternode;
     CPubKey pubKeyCollateralAddress1;
     CPubKey pubKeyMasternode1;
-    std::vector<unsigned char> sig;
     int activeState;
     int64_t sigTime; // mnb message time
     int cacheInputAge;

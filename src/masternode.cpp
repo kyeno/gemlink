@@ -86,6 +86,16 @@ CMasternode::CMasternode()
     lastTimeChecked = 0;
     nLastDsee = 0;  // temporary, do not save. Remove after migration to v12
     nLastDseep = 0; // temporary, do not save. Remove after migration to v12
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+    } else {
+        nMessVersion = MessageVersion::MESS_VER_STRMESS;
+    }
 }
 
 CMasternode::CMasternode(const CMasternode& other)
@@ -365,7 +375,18 @@ CMasternodeBroadcast::CMasternodeBroadcast(CService newAddr, CTxIn newVin, CPubK
     addr = newAddr;
     pubKeyCollateralAddress = pubKeyCollateralAddressNew;
     pubKeyMasternode = pubKeyMasternodeNew;
+    vchSig = std::vector<unsigned char>();
+    activeState = MASTERNODE_ENABLED;
+    sigTime = GetAdjustedTime();
+    lastPing = CMasternodePing();
+    cacheInputAge = 0;
+    cacheInputAgeBlock = 0;
+    unitTest = false;
+    allowFreeTx = true;
     protocolVersion = protocolVersionIn;
+    nLastDsq = 0;
+    nScanningErrorCount = 0;
+    nLastScanningErrorBlockHeight = 0;
 }
 
 CMasternodeBroadcast::CMasternodeBroadcast(const CMasternode& mn) : CMasternode(mn)
@@ -718,6 +739,16 @@ CMasternodePing::CMasternodePing()
     blockHash = uint256();
     sigTime = GetAdjustedTime();
     vchSig = std::vector<unsigned char>();
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+    } else {
+        nMessVersion = MessageVersion::MESS_VER_STRMESS;
+    }
 }
 CMasternodePing::CMasternodePing(CTxIn& newVin) : CSignedMessage(),
                                                   vin(newVin),
@@ -729,6 +760,18 @@ CMasternodePing::CMasternodePing(CTxIn& newVin) : CSignedMessage(),
         nHeight = chainActive.Height();
         if (nHeight > 12)
             blockHash = chainActive[nHeight - 12]->GetBlockHash();
+    }
+    vchSig = std::vector<unsigned char>();
+    vchSig = std::vector<unsigned char>();
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+    } else {
+        nMessVersion = MessageVersion::MESS_VER_STRMESS;
     }
 }
 
@@ -764,6 +807,7 @@ bool CMasternodePing::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
         }
 
     } else {
+        nMessVersion = MessageVersion::MESS_VER_STRMESS;
         std::string errorMessage;
         std::string strMessage = GetStrMessage();
 

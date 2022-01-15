@@ -168,7 +168,6 @@ public:
 
     int nBlockHeight;
     CScript payee;
-    std::vector<unsigned char> vchSig;
 
     CMasternodePaymentWinner() : CSignedMessage(),
                                  vinMasternode(CTxIn()),

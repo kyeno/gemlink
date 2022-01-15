@@ -181,6 +181,7 @@ bool CMasternodePaymentWinner::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
         }
 
     } else {
+        nMessVersion = MessageVersion::MESS_VER_STRMESS;
         std::string errorMessage;
         std::string strMessage = GetStrMessage();
 
