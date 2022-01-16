@@ -196,26 +196,6 @@ bool CMasternodePaymentWinner::CheckSignature() const
     return true;
 }
 
-// bool CMasternodePaymentWinner::VerifyMessage(CPubKey pubkey, const vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const
-// {
-//     CHashWriter ss(SER_GETHASH, 0);
-//     ss << strMessageMagic;
-//     ss << strMessage;
-
-//     CPubKey pubkey2;
-
-//     if (!pubkey2.RecoverCompact(ss.GetHash(), vchSig)) {
-//         errorMessage = _("Error recovering public key.");
-//         return false;
-//     }
-
-//     if (fDebug && pubkey2.GetID() != pubkey.GetID()) {
-//         errorMessage = _("VerifyMessage -- keys don't match");
-//     }
-//     return (pubkey2.GetID() == pubkey.GetID());
-// }
-
-
 // TODO gemlink can remove after morag fork
 bool CMasternodePaymentWinner::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
 {
@@ -322,7 +302,7 @@ bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue)
     } else { // we're synced and have data so check the budget schedule
 
         // are these blocks even enabled
-        if (!IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)) {
+        if (!sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)) {
             if (block.vtx[0].GetValueOut() > nExpectedValue)
                 return false;
         }
@@ -349,12 +329,12 @@ bool IsBlockPayeeValid(const CBlock& block, int nBlockHeight)
     const CTransaction& txNew = block.vtx[0];
 
     // check if it's a budget block
-    if (IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)) {
+    if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)) {
         if (budget.IsBudgetPaymentBlock(nBlockHeight)) {
             if (budget.IsTransactionValid(txNew, nBlockHeight))
                 return true;
 
-            if (IsSporkActive(SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)) {
+            if (sporkManager.IsSporkActive(SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)) {
                 LogPrintf("Invalid budget payment detected %s\n", txNew.ToString().c_str());
                 return false;
             }
@@ -370,7 +350,7 @@ bool IsBlockPayeeValid(const CBlock& block, int nBlockHeight)
 
     LogPrintf("masternodepayments", "Invalid mn payment detected %s\n", txNew.ToString().c_str());
 
-    if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT))
+    if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT))
         return false;
     LogPrint("masternodepayments", "Masternode payment enforcement is disabled, accepting block\n");
 
@@ -384,7 +364,7 @@ void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
     if (!pindexPrev)
         return;
 
-    if (IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(pindexPrev->nHeight + 1)) {
+    if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(pindexPrev->nHeight + 1)) {
         budget.FillBlockPayee(txNew, nFees);
     } else {
         masternodePayments.FillBlockPayee(txNew, nFees);
@@ -393,7 +373,7 @@ void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
 
 std::string GetRequiredPaymentsString(int nBlockHeight)
 {
-    if (IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(nBlockHeight)) {
+    if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(nBlockHeight)) {
         return budget.GetRequiredPaymentsString(nBlockHeight);
     } else {
         return masternodePayments.GetRequiredPaymentsString(nBlockHeight);
@@ -481,7 +461,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
 int CMasternodePayments::GetMinMasternodePaymentsProto()
 {
-    if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+    if (sporkManager.IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
         return ActiveProtocol(); // Allow only updated peers
     else {
         int minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT;
@@ -669,7 +649,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
 
     CAmount nReward = GetBlockSubsidy(nBlockHeight, Params().GetConsensus());
 
-    if (IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
+    if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
         // Get a stable number of masternodes by ignoring newly activated (< 8000 sec old) masternodes
         nMasternode_Drift_Count = mnodeman.stable_size() + Params().MasternodeCountDrift();
     } else {

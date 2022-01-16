@@ -208,7 +208,7 @@ bool CActiveMasternode::SendMasternodePing(std::string& errorMessage)
          * AFTER MIGRATION TO V12 IS DONE
          */
 
-        if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+        if (sporkManager.IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
             return true;
         // for migration purposes ping our node on old masternodes network too
         std::string retErrorMessage;
@@ -318,7 +318,7 @@ bool CActiveMasternode::CreateBroadcast(CTxIn vin, CService service, CKey keyCol
      * AFTER MIGRATION TO V12 IS DONE
      */
 
-    if (IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
+    if (sporkManager.IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
         return true;
     // for migration purposes inject our node in old masternodes' list too
     std::string retErrorMessage;

@@ -5845,7 +5845,7 @@ int CMerkleTx::GetTransactionLockSignatures() const
 {
     if (fLargeWorkForkFound || fLargeWorkInvalidChainFound)
         return -2;
-    if (!IsSporkActive(SPORK_2_SWIFTTX))
+    if (sporkManager.IsSporkActive(SPORK_2_SWIFTTX))
         return -3;
     if (!fEnableSwiftTX)
         return -1;
