@@ -314,7 +314,6 @@ public:
     bool Sign(const CKey& key, const CPubKey& pubKey, const bool fNewSigs);
     bool Sign(const std::string strSignKey, const bool fNewSigs);
     bool CheckSignature() const;
-    std::string GetStrMessage() const override;
 
     ADD_SERIALIZE_METHODS;
 

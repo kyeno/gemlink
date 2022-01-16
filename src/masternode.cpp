@@ -142,15 +142,6 @@ std::string CMasternode::GetStrMessage() const
     strMessage = addr.ToString() + std::to_string(sigTime) + vchPubKey + vchPubKey2 + std::to_string(protocolVersion);
     return strMessage;
 }
-std::string CMasternodeBroadcast::GetStrMessage() const
-{
-    std::string strMessage;
-
-    std::string vchPubKey(pubKeyCollateralAddress.begin(), pubKeyCollateralAddress.end());
-    std::string vchPubKey2(pubKeyMasternode.begin(), pubKeyMasternode.end());
-    strMessage = addr.ToString() + std::to_string(sigTime) + vchPubKey + vchPubKey2 + std::to_string(protocolVersion);
-    return strMessage;
-}
 
 //
 // When a new masternode broadcast is sent, update our information

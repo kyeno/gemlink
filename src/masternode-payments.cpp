@@ -174,7 +174,7 @@ CMasternodePaymentWinner::CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage
 uint256 CMasternodePaymentWinner::GetHash() const
 {
     CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-    ss << *(CScriptBase*)(&payee);
+    ss << std::vector<unsigned char>(payee.begin(), payee.end());
     ss << nBlockHeight;
     ss << vinMasternode.prevout;
 
@@ -185,25 +185,13 @@ std::string CMasternodePaymentWinner::GetStrMessage() const
 {
     return vinMasternode.prevout.ToStringShort() + std::to_string(nBlockHeight) + payee.ToString();
 }
+
 bool CMasternodePaymentWinner::CheckSignature() const
 {
-    std::string err = "";
-    const auto pubKey = GetPublicKey(err);
     std::string strError = "";
-
-    if (nMessVersion == MessageVersion::MESS_VER_HASH) {
-        uint256 hash = GetSignatureHash();
-        if (!CHashSigner::VerifyHash(hash, pubKey, vchSig, strError))
-            return error("%s : VerifyHash failed: %s", __func__, strError);
-
-    } else {
-        CMasternode* pmn = mnodeman.Find(vinMasternode);
-        if (pmn != NULL) {
-            std::string strMessage = GetStrMessage();
-            if (!VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, strError)) {
-                return error("%s : VerifyMessage failed: %s", __func__, strError);
-            }
-        }
+    if (!CSignedMessage::CheckSignature(strError)) {
+        LogPrintf("CMasternodePaymentWinner::CheckSignature Error - %s\n", strError);
+        return false;
     }
     return true;
 }
@@ -231,37 +219,9 @@ bool CMasternodePaymentWinner::VerifyMessage(CPubKey pubkey, const vector<unsign
 // TODO gemlink can remove after morag fork
 bool CMasternodePaymentWinner::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
 {
-    std::string strError = "";
-    if (fNewSigs) {
-        nMessVersion = MessageVersion::MESS_VER_HASH;
-        uint256 hash = GetSignatureHash();
-
-        if (!CHashSigner::SignHash(hash, key, vchSig)) {
-            return error("%s : SignHash() failed", __func__);
-        }
-
-        if (!CHashSigner::VerifyHash(hash, pubKey, vchSig, strError)) {
-            return error("%s : VerifyHash() failed, error: %s", __func__, strError);
-        }
-
-    } else {
-        nMessVersion = MessageVersion::MESS_VER_STRMESS;
-        std::string errorMessage;
-        std::string strMessage = GetStrMessage();
-
-        if (!CMessageSigner::SignMessage(strMessage, vchSig, key)) {
-            LogPrint("masternode", "CMasternodePaymentWinner::Sign() - Error: %s\n", errorMessage);
-            return false;
-        }
-
-        if (!VerifyMessage(pubKey, vchSig, strMessage, errorMessage)) {
-            LogPrint("masternode", "CMasternodePaymentWinner::Sign() - Error: %s\n", errorMessage);
-            return false;
-        }
-
-        return true;
-    }
+    return CSignedMessage::SignMessage(key, pubKey, fNewSigs);
 }
+
 bool CMasternodePaymentWinner::IsValid(CNode* pnode, std::string& strError)
 {
     CMasternode* pmn = mnodeman.Find(vinMasternode);
