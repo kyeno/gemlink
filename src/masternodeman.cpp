@@ -9,6 +9,7 @@
 #include "addrman.h"
 #include "consensus/validation.h"
 #include "masternode.h"
+#include "messagesigner.h"
 #include "obfuscation.h"
 #include "spork.h"
 #include "util.h"
@@ -806,7 +807,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         // make sure the vout that was signed is related to the transaction that spawned the Masternode
         //  - this is expensive, so it's only done once per Masternode
-        if (!obfuScationSigner.IsVinAssociatedWithPubkey(mnb.vin, mnb.pubKeyCollateralAddress)) {
+        if (!mnb.IsInputAssociatedWithPubkey()) {
             LogPrint("masternode", "mnb - Got mismatched pubkey and vin\n");
             Misbehaving(pfrom->GetId(), 33);
             return;
@@ -855,7 +856,6 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         // something significant is broken or mn is unknown,
         // we might have to ask for a masternode entry once
         AskForMN(pfrom, mnp.vin);
-
     } else if (strCommand == "dseg") { // Get Masternode list or specific entry
 
         CTxIn vin;
@@ -980,9 +980,9 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             return;
         }
 
-        std::string errorMessage = "";
-        if (!obfuScationSigner.VerifyMessage(pubkey, vchSig, strMessage, errorMessage)) {
-            LogPrint("masternode", "dsee - Got bad Masternode address signature\n");
+        std::string strError = "";
+        if (!CMessageSigner::VerifyMessage(pubkey, vchSig, strMessage, strError)) {
+            LogPrint("masternode", "dsee - Got bad Masternode address signature: %s\n", strError);
             Misbehaving(pfrom->GetId(), 100);
             return;
         }
@@ -1038,7 +1038,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         mapSeenDsee.insert(make_pair(vin.prevout, pubkey));
         // make sure the vout that was signed is related to the transaction that spawned the Masternode
         //  - this is expensive, so it's only done once per Masternode
-        if (!obfuScationSigner.IsVinAssociatedWithPubkey(vin, pubkey)) {
+        if (!pmn->IsInputAssociatedWithPubkey()) {
             LogPrint("masternode", "dsee - Got mismatched pubkey and vin\n");
             Misbehaving(pfrom->GetId(), 100);
             return;
@@ -1169,9 +1169,9 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             if (sigTime - pmn->nLastDseep > MASTERNODE_MIN_MNP_SECONDS) {
                 std::string strMessage = pmn->addr.ToString() + std::to_string(sigTime) + std::to_string(stop);
 
-                std::string errorMessage = "";
-                if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {
-                    LogPrint("masternode", "dseep - Got bad Masternode address signature %s \n", vin.prevout.hash.ToString());
+                std::string strError = "";
+                if (!CMessageSigner::VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, strError)) {
+                    LogPrint("masternode", "dseep - Got bad Masternode address signature %s, error: %s\n", vin.prevout.hash.ToString(), strError);
                     // Misbehaving(pfrom->GetId(), 100);
                     return;
                 }
