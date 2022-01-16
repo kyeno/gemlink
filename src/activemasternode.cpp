@@ -306,7 +306,7 @@ bool CActiveMasternode::CreateBroadcast(CTxIn vin, CService service, CKey keyCol
 
     mnb = CMasternodeBroadcast(service, vin, pubKeyCollateralAddress, pubKeyMasternode, PROTOCOL_VERSION);
     mnb.lastPing = mnp;
-    if (!mnb.Sign(keyCollateralAddress)) {
+    if (!mnb.Sign(keyCollateralAddress, pubKeyCollateralAddress, fNewSigs)) {
         errorMessage = strprintf("Failed to sign broadcast, vin: %s", vin.ToString());
         LogPrintf("CActiveMasternode::CreateBroadcast() - %s\n", errorMessage);
         mnb = CMasternodeBroadcast();

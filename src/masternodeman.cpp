@@ -1008,7 +1008,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                     if (pmn->protocolVersion < GETHEADERS_VERSION) {
                         pmn->pubKeyMasternode = pubkey2;
                         pmn->sigTime = sigTime;
-                        pmn->sig = vchSig;
+                        pmn->SetVchSig(vchSig);
                         pmn->protocolVersion = protocolVersion;
                         pmn->addr = addr;
                         // fake ping
@@ -1095,7 +1095,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             mn.addr = addr;
             mn.vin = vin;
             mn.pubKeyCollateralAddress = pubkey;
-            mn.sig = vchSig;
+            mn.SetVchSig(vchSig);
             mn.sigTime = sigTime;
             mn.pubKeyMasternode = pubkey2;
             mn.protocolVersion = protocolVersion;
