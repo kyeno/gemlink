@@ -196,30 +196,34 @@ bool CMasternodePaymentWinner::CheckSignature() const
     return true;
 }
 
-bool CMasternodePaymentWinner::VerifyMessage(CPubKey pubkey, const vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const
-{
-    CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
-    ss << strMessage;
+// bool CMasternodePaymentWinner::VerifyMessage(CPubKey pubkey, const vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const
+// {
+//     CHashWriter ss(SER_GETHASH, 0);
+//     ss << strMessageMagic;
+//     ss << strMessage;
 
-    CPubKey pubkey2;
+//     CPubKey pubkey2;
 
-    if (!pubkey2.RecoverCompact(ss.GetHash(), vchSig)) {
-        errorMessage = _("Error recovering public key.");
-        return false;
-    }
+//     if (!pubkey2.RecoverCompact(ss.GetHash(), vchSig)) {
+//         errorMessage = _("Error recovering public key.");
+//         return false;
+//     }
 
-    if (fDebug && pubkey2.GetID() != pubkey.GetID()) {
-        errorMessage = _("VerifyMessage -- keys don't match");
-    }
-    return (pubkey2.GetID() == pubkey.GetID());
-}
+//     if (fDebug && pubkey2.GetID() != pubkey.GetID()) {
+//         errorMessage = _("VerifyMessage -- keys don't match");
+//     }
+//     return (pubkey2.GetID() == pubkey.GetID());
+// }
 
 
 // TODO gemlink can remove after morag fork
 bool CMasternodePaymentWinner::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
 {
-    return CSignedMessage::SignMessage(key, pubKey, fNewSigs);
+    if (!CSignedMessage::SignMessage(key, pubKey, fNewSigs)) {
+        LogPrint("masternode", "CMasternodePaymentWinner::Sign() - Error\n");
+        return false;
+    }
+    return true;
 }
 
 bool CMasternodePaymentWinner::IsValid(CNode* pnode, std::string& strError)

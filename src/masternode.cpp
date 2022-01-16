@@ -437,7 +437,7 @@ bool CMasternodeBroadcast::Create(CTxIn txin, CService service, CKey keyCollater
              pubKeyMasternodeNew.GetID().ToString());
 
     CMasternodePing mnp(txin);
-    if (!mnp.Sign(keyMasternodeNew, pubKeyMasternodeNew)) {
+    if (!mnp.Sign(keyMasternodeNew, pubKeyMasternodeNew, fNewSigs)) {
         strErrorRet = strprintf("Failed to sign ping, masternode=%s", txin.prevout.hash.ToString());
         LogPrint("masternode", "CMasternodeBroadcast::Create -- %s\n", strErrorRet);
         mnbRet = CMasternodeBroadcast();
@@ -709,52 +709,73 @@ uint256 CMasternodeBroadcast::GetHash() const
     ss << pubKeyCollateralAddress;
     return ss.GetHash();
 }
-CMasternodePing::CMasternodePing()
+
+CMasternodePing::CMasternodePing() : CSignedMessage(),
+                                     vin(),
+                                     blockHash(),
+                                     sigTime(GetAdjustedTime())
 {
-    vin = CTxIn();
-    blockHash = uint256();
-    sigTime = 0;
-    vchSig = std::vector<unsigned char>();
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+    }
 }
 
-CMasternodePing::CMasternodePing(CTxIn& newVin)
+CMasternodePing::CMasternodePing(CTxIn& newVin) : CSignedMessage(),
+                                                  vin(newVin),
+                                                  sigTime(GetAdjustedTime())
 {
-    vin = newVin;
-    blockHash = chainActive[chainActive.Height() - 12]->GetBlockHash();
-    sigTime = GetAdjustedTime();
-    vchSig = std::vector<unsigned char>();
+    int nHeight;
+    {
+        LOCK(cs_main);
+        nHeight = chainActive.Height();
+        if (nHeight > 12)
+            blockHash = chainActive[nHeight - 12]->GetBlockHash();
+    }
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+    if (fNewSigs) {
+        nMessVersion = MessageVersion::MESS_VER_HASH;
+    }
 }
 
-
-bool CMasternodePing::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
+uint256 CMasternodePing::GetHash() const
 {
-    std::string errorMessage;
-    std::string strMasterNodeSignMessage;
+    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+    ss << vin;
+    if (nMessVersion == MessageVersion::MESS_VER_HASH)
+        ss << blockHash;
+    ss << sigTime;
+    return ss.GetHash();
+}
 
-    sigTime = GetAdjustedTime();
-    std::string strMessage = vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
+std::string CMasternodePing::GetStrMessage() const
+{
+    return vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
+}
 
-    if (!obfuScationSigner.SignMessage(strMessage, errorMessage, vchSig, keyMasternode)) {
-        LogPrint("masternode", "CMasternodePing::Sign() - Error: %s\n", errorMessage);
+bool CMasternodePing::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
+{
+    if (!CSignedMessage::SignMessage(key, pubKey, fNewSigs)) {
+        LogPrint("masternode", "CMasternodePing::Sign() - Error\n");
         return false;
     }
-
-    if (!obfuScationSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, errorMessage)) {
-        LogPrint("masternode", "CMasternodePing::Sign() - Error: %s\n", errorMessage);
-        return false;
-    }
-
     return true;
 }
 
-bool CMasternodePing::VerifySignature(CPubKey& pubKeyMasternode, int& nDos)
+bool CMasternodePing::CheckSignature(const CPubKey& pubKey) const
 {
-    std::string strMessage = vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
-    std::string errorMessage = "";
-
-    if (!obfuScationSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, errorMessage)) {
-        nDos = 33;
-        return error("CMasternodePing::VerifySignature - Got bad Masternode ping signature %s Error: %s", vin.ToString(), errorMessage);
+    std::string strError = "";
+    if (!CSignedMessage::CheckSignature(strError)) {
+        LogPrintf("CMasternodePaymentWinner::CheckSignature Error - %s\n", strError);
+        return false;
     }
     return true;
 }
@@ -773,19 +794,23 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
         return false;
     }
 
+    // see if we have this Masternode
+    CMasternode* pmn = mnodeman.Find(vin);
+    const bool isMasternodeFound = (pmn != nullptr);
+    const bool isSignatureValid = (isMasternodeFound && CheckSignature(pmn->pubKeyMasternode));
 
     if (fCheckSigTimeOnly) {
-        CMasternode* pmn = mnodeman.Find(vin);
-        if (pmn)
-            return VerifySignature(pmn->pubKeyMasternode, nDos);
+        if (isMasternodeFound && !isSignatureValid) {
+            nDos = 33;
+            return false;
+        }
         return true;
     }
 
     LogPrint("masternode", "CMasternodePing::CheckAndUpdate - New Ping - %s - %lli\n", blockHash.ToString(), sigTime);
 
     // see if we have this Masternode
-    CMasternode* pmn = mnodeman.Find(vin);
-    if (pmn != NULL && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
+    if (isMasternodeFound && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
         if (fRequireEnabled && !pmn->IsEnabled())
             return false;
 

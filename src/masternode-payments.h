@@ -179,7 +179,7 @@ public:
     uint256 GetSignatureHash() const override { return GetHash(); }
     std::string GetStrMessage() const override;
     // TODO gemlink can remove after morag fork
-    bool VerifyMessage(CPubKey pubkey, const std::vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const;
+    // bool VerifyMessage(CPubKey pubkey, const std::vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const;
     bool CheckSignature() const;
     bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode, bool fNewSigs);
     // end

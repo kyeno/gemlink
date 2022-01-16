@@ -38,13 +38,12 @@ bool GetBlockHash(uint256& hash, int nBlockHeight);
 // The Masternode Ping Class : Contains a different serialize method for sending pings from masternodes throughout the network
 //
 
-class CMasternodePing
+class CMasternodePing : public CSignedMessage
 {
 public:
     CTxIn vin;
     uint256 blockHash;
     int64_t sigTime; // mnb message times
-    std::vector<unsigned char> vchSig;
     // removed stop
 
     CMasternodePing();
@@ -59,23 +58,29 @@ public:
         READWRITE(blockHash);
         READWRITE(sigTime);
         READWRITE(vchSig);
+        try {
+            READWRITE(nMessVersion);
+        } catch (...) {
+            nMessVersion = MessageVersion::MESS_VER_STRMESS;
+        }
     }
 
+    uint256 GetHash() const;
+
+    // override CSignedMessage functions
+    uint256 GetSignatureHash() const override { return GetHash(); }
+    std::string GetStrMessage() const override;
+    const CTxIn GetVin() const override { return vin; };
     bool CheckAndUpdate(int& nDos, bool fRequireEnabled = true, bool fCheckSigTimeOnly = false);
-    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
-    bool VerifySignature(CPubKey& pubKeyMasternode, int& nDos);
     void Relay();
-
-    uint256 GetHash()
-    {
-        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-        ss << vin;
-        ss << sigTime;
-        return ss.GetHash();
-    }
+    // TODO gemlink can remove after morag fork
+    // bool VerifyMessage(CPubKey pubkey, const vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage) const;
+    bool CheckSignature(const CPubKey& pubKey) const;
+    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode, bool fNewSigs);
 
     void swap(CMasternodePing& first, CMasternodePing& second) // nothrow
     {
+        CSignedMessage::swap(first, second);
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
 
@@ -84,7 +89,6 @@ public:
         swap(first.vin, second.vin);
         swap(first.blockHash, second.blockHash);
         swap(first.sigTime, second.sigTime);
-        swap(first.vchSig, second.vchSig);
     }
 
     CMasternodePing& operator=(CMasternodePing from)
