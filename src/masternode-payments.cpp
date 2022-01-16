@@ -154,7 +154,7 @@ CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
                                                        nBlockHeight(0),
                                                        payee(CScript())
 {
-    const bool fNewSigs = NetworkUpgradeActive(chainActive.Height(), Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
         nMessVersion = MessageVersion::MESS_VER_HASH;
     }
@@ -165,7 +165,7 @@ CMasternodePaymentWinner::CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage
                                                                   nBlockHeight(0),
                                                                   payee(CScript())
 {
-    const bool fNewSigs = NetworkUpgradeActive(chainActive.Height(), Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
         nMessVersion = MessageVersion::MESS_VER_HASH;
     }
