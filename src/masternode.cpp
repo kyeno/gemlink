@@ -770,7 +770,7 @@ bool CMasternodePing::Sign(CKey& key, CPubKey& pubKey, bool fNewSigs)
     return true;
 }
 
-bool CMasternodePing::CheckSignature(const CPubKey& pubKey) const
+bool CMasternodePing::CheckSignature() const
 {
     std::string strError = "";
     if (!CSignedMessage::CheckSignature(strError)) {
@@ -797,7 +797,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
     // see if we have this Masternode
     CMasternode* pmn = mnodeman.Find(vin);
     const bool isMasternodeFound = (pmn != nullptr);
-    const bool isSignatureValid = (isMasternodeFound && CheckSignature(pmn->pubKeyMasternode));
+    const bool isSignatureValid = (isMasternodeFound && CheckSignature());
 
     if (fCheckSigTimeOnly) {
         if (isMasternodeFound && !isSignatureValid) {
@@ -820,8 +820,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
         if (!pmn->IsPingedWithin(MASTERNODE_MIN_MNP_SECONDS - 60, sigTime)) {
             std::string strMessage = vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
 
-            std::string errorMessage = "";
-            if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage)) {
+            if (!CheckSignature()) {
                 LogPrint("masternode", "CMasternodePing::CheckAndUpdate - Got bad Masternode address signature %s\n", vin.prevout.hash.ToString());
                 nDos = 33;
                 return false;

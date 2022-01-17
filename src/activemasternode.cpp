@@ -261,8 +261,8 @@ bool CActiveMasternode::CreateBroadcast(std::string strService, std::string strK
         return false;
     }
 
-    if (!obfuScationSigner.SetKey(strKeyMasternode, errorMessage, keyMasternode, pubKeyMasternode)) {
-        errorMessage = strprintf("Can't find keys for masternode %s - %s", strService, errorMessage);
+    if (!CMessageSigner::GetKeysFromSecret(strKeyMasternode, keyMasternode, pubKeyMasternode)) {
+        errorMessage = strprintf("Can't find keys for masternode %s", strService);
         LogPrintf("CActiveMasternode::CreateBroadcast() - %s\n", errorMessage);
         return false;
     }

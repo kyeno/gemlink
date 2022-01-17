@@ -281,12 +281,18 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
     ctx.vinMasternode = activeMasternode.vin;
     ctx.txHash = tx.GetHash();
     ctx.nBlockHeight = nBlockHeight;
-    if (!ctx.Sign()) {
-        LogPrintf("SwiftX::DoConsensusVote - Failed to sign consensus vote\n");
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
+    if (!ctx.SignMessage(strMasterNodePrivKey, fNewSigs)) {
+        LogPrintf("%s : Failed to sign consensus vote\n", __func__);
         return;
     }
-    if (!ctx.SignatureValid()) {
-        LogPrintf("SwiftX::DoConsensusVote - Signature invalid\n");
+    string strError = "";
+    if (!ctx.CheckSignature(strError)) {
+        LogPrintf("%s : Signature invalid %s\n", __func__, strError);
         return;
     }
 
@@ -316,9 +322,9 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
         LogPrint("swiftx", "SwiftX::ProcessConsensusVote - Masternode not in the top %d (%d) - %s\n", SWIFTTX_SIGNATURES_TOTAL, n, ctx.GetHash().ToString().c_str());
         return false;
     }
-
-    if (!ctx.SignatureValid()) {
-        LogPrintf("SwiftX::ProcessConsensusVote - Signature invalid\n");
+    string strError = "";
+    if (!ctx.CheckSignature(strError)) {
+        LogPrintf("SwiftX::ProcessConsensusVote - Signature invalid %s\n", strError);
         // don't ban, it could just be a non-synced masternode
         mnodeman.AskForMN(pnode, ctx.vinMasternode);
         return false;
@@ -459,6 +465,19 @@ void CleanTransactionLocksList()
     }
 }
 
+int GetTransactionLockSignatures(uint256 txHash)
+{
+    if (fLargeWorkForkFound || fLargeWorkInvalidChainFound)
+        return -2;
+    if (!sporkManager.IsSporkActive(SPORK_2_SWIFTTX))
+        return -1;
+
+    std::map<uint256, CTransactionLock>::iterator it = mapTxLocks.find(txHash);
+    if (it != mapTxLocks.end())
+        return it->second.CountSignatures();
+
+    return -1;
+}
 uint256 CConsensusVote::GetHash() const
 {
     arith_uint256 temp = (UintToArith256)(vinMasternode.prevout.hash) + vinMasternode.prevout.n;
@@ -466,55 +485,20 @@ uint256 CConsensusVote::GetHash() const
 }
 
 
-bool CConsensusVote::SignatureValid()
+uint256 CConsensusVote::GetSignatureHash() const
 {
-    std::string errorMessage;
-    std::string strMessage = txHash.ToString().c_str() + std::to_string(nBlockHeight);
-    // LogPrintf("verify strMessage %s \n", strMessage.c_str());
-
-    CMasternode* pmn = mnodeman.Find(vinMasternode);
-
-    if (pmn == NULL) {
-        LogPrintf("SwiftX::CConsensusVote::SignatureValid() - Unknown Masternode\n");
-        return false;
-    }
-
-    if (!obfuScationSigner.VerifyMessage(pmn->pubKeyMasternode, vchMasterNodeSignature, strMessage, errorMessage)) {
-        LogPrintf("SwiftX::CConsensusVote::SignatureValid() - Verify message failed\n");
-        return false;
-    }
-
-    return true;
+    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+    ss << nMessVersion;
+    ss << vinMasternode;
+    ss << txHash;
+    ss << nBlockHeight;
+    return ss.GetHash();
 }
 
-bool CConsensusVote::Sign()
+std::string CConsensusVote::GetStrMessage() const
 {
-    std::string errorMessage;
-
-    CKey key2;
-    CPubKey pubkey2;
-    std::string strMessage = txHash.ToString().c_str() + std::to_string(nBlockHeight);
-    // LogPrintf("signing strMessage %s \n", strMessage.c_str());
-    // LogPrintf("signing privkey %s \n", strMasterNodePrivKey.c_str());
-
-    if (!obfuScationSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubkey2)) {
-        LogPrintf("CConsensusVote::Sign() - ERROR: Invalid masternodeprivkey: '%s'\n", errorMessage.c_str());
-        return false;
-    }
-
-    if (!obfuScationSigner.SignMessage(strMessage, errorMessage, vchMasterNodeSignature, key2)) {
-        LogPrintf("CConsensusVote::Sign() - Sign message failed");
-        return false;
-    }
-
-    if (!obfuScationSigner.VerifyMessage(pubkey2, vchMasterNodeSignature, strMessage, errorMessage)) {
-        LogPrintf("CConsensusVote::Sign() - Verify message failed");
-        return false;
-    }
-
-    return true;
+    return txHash.ToString().c_str() + std::to_string(nBlockHeight);
 }
-
 
 bool CTransactionLock::SignaturesValid()
 {
@@ -530,9 +514,9 @@ bool CTransactionLock::SignaturesValid()
             LogPrintf("CTransactionLock::SignaturesValid() - Masternode not in the top %s\n", SWIFTTX_SIGNATURES_TOTAL);
             return false;
         }
-
-        if (!vote.SignatureValid()) {
-            LogPrintf("CTransactionLock::SignaturesValid() - Signature not valid\n");
+        string strError = "";
+        if (!vote.CheckSignature(strError)) {
+            LogPrintf("CTransactionLock::SignaturesValid() - Signature not valid %s\n", strError);
             return false;
         }
     }
