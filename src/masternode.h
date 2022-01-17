@@ -332,9 +332,20 @@ public:
         READWRITE(sigTime);
         READWRITE(protocolVersion);
         READWRITE(lastPing);
-        READWRITE(nMessVersion); // abuse nLastDsq (which will be removed) for old serialization
-        if (ser_action.ForRead())
-            nLastDsq = 0;
+
+        if (protocolVersion >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion) {
+            READWRITE(nMessVersion); // abuse nLastDsq (which will be removed) for old serialization
+            if (ser_action.ForRead())
+                nLastDsq = 0;
+        } else {
+            try {
+                READWRITE(nLastDsq);
+            } catch (...) {
+                nLastDsq = 0;
+            }
+            if (ser_action.ForRead())
+                nMessVersion = MessageVersion::MESS_VER_STRMESS;
+        }
     }
 
     uint256 GetHash()
