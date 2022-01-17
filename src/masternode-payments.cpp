@@ -9,13 +9,11 @@
 #include "masternode-budget.h"
 #include "masternode-sync.h"
 #include "masternodeman.h"
-#include "obfuscation.h"
 #include "spork.h"
 #include "sync.h"
 #include "util.h"
 #include "utilmoneystr.h"
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "key_io.h"
 
@@ -640,36 +638,18 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
     LOCK(cs_vecPayments);
 
     int nMaxSignatures = 0;
-    int nMasternode_Drift_Count = 0;
+
+    for (CMasternodePayee& payee : vecPayments)
+        if (payee.nVotes >= nMaxSignatures && payee.nVotes >= MNPAYMENTS_SIGNATURES_REQUIRED)
+            nMaxSignatures = payee.nVotes;
+
+    // if we don't have at least 6 signatures on a payee, approve whichever is the longest chain
+    if (nMaxSignatures < MNPAYMENTS_SIGNATURES_REQUIRED)
+        return true;
 
     std::string strPayeesPossible = "";
-
     CAmount nReward = GetBlockSubsidy(nBlockHeight, Params().GetConsensus());
-
-    if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
-        // Get a stable number of masternodes by ignoring newly activated (< 8000 sec old) masternodes
-        nMasternode_Drift_Count = mnodeman.stable_size() + Params().MasternodeCountDrift();
-    } else {
-        // account for the fact that all peers do not see the same masternode count. A allowance of being off our masternode count is given
-        // we only need to look at an increased masternode count because as count increases, the reward decreases. This code only checks
-        // for mnPayment >= required, so it only makes sense to check the max node count allowed.
-        nMasternode_Drift_Count = mnodeman.size() + Params().MasternodeCountDrift();
-    }
-
-    CAmount requiredMasternodePayment = GetMasternodePayment(nBlockHeight, nReward, nMasternode_Drift_Count);
-
-    // //require at least 6 signatures
-    if (NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ALFHEIMR)) {
-        for (CMasternodePayee& payee : vecPayments) {
-            LogPrint("masternode", "Masternode payment nVotes=%d nMaxSignatures=%d\n", payee.nVotes, nMaxSignatures);
-            if (payee.nVotes >= nMaxSignatures && payee.nVotes >= MNPAYMENTS_SIGNATURES_REQUIRED)
-                nMaxSignatures = payee.nVotes;
-        }
-
-        // if we don't have at least 6 signatures on a payee, approve whichever is the longest chain
-        if (nMaxSignatures < MNPAYMENTS_SIGNATURES_REQUIRED)
-            return true;
-    }
+    CAmount requiredMasternodePayment = GetMasternodePayment(nBlockHeight, nReward);
 
     for (CMasternodePayee& payee : vecPayments) {
         bool found = false;
@@ -683,19 +663,19 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
             }
         }
 
-        if (found)
-            return true;
+        if (payee.nVotes >= MNPAYMENTS_SIGNATURES_REQUIRED) {
+            if (found)
+                return true;
 
-        try {
             CTxDestination address1;
             ExtractDestination(payee.scriptPubKey, address1);
+            CBitcoinAddress address2(address1);
 
             if (strPayeesPossible == "") {
-                strPayeesPossible += EncodeDestination(address1);
+                strPayeesPossible += address2.ToString();
             } else {
-                strPayeesPossible += "," + EncodeDestination(address1);
+                strPayeesPossible += "," + address2.ToString();
             }
-        } catch (...) {
         }
     }
 
@@ -831,16 +811,20 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
         }
     }
 
+    bool fNewSigs = false;
+    {
+        LOCK(cs_main);
+        fNewSigs = NetworkUpgradeActive(chainActive.Height() - 20, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
+    }
     std::string errorMessage;
     CPubKey pubKeyMasternode;
     CKey keyMasternode;
 
-    if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode)) {
+    if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode, fNewSigs)) {
         LogPrint("masternode", "CMasternodePayments::ProcessBlock() - Error upon calling GetKeysFromSecret.\n");
         return false;
     }
 
-    const bool fNewSigs = NetworkUpgradeActive(nBlockHeight - 20, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     LogPrint("masternode", "CMasternodePayments::ProcessBlock() - Signing Winner\n");
     if (newWinner.Sign(keyMasternode, pubKeyMasternode, fNewSigs)) {
         LogPrint("masternode", "CMasternodePayments::ProcessBlock() - AddWinningMasternode\n");

@@ -12,7 +12,6 @@
 #include "masternode-sync.h"
 #include "masternode.h"
 #include "masternodeman.h"
-#include "obfuscation.h"
 #include "util.h"
 #include <boost/filesystem.hpp>
 
@@ -1527,10 +1526,11 @@ bool CBudgetProposal::AddOrUpdateVote(CBudgetVote& vote, std::string& strError)
 void CBudgetProposal::CleanAndRemove()
 {
     std::map<uint256, CBudgetVote>::iterator it = mapVotes.begin();
-    std::string strError = "";
+
     while (it != mapVotes.end()) {
         CMasternode* pmn = mnodeman.Find((*it).second.GetVin());
         (*it).second.fValid = (pmn != nullptr);
+        ++it;
     }
 }
 
@@ -1856,10 +1856,11 @@ void CFinalizedBudget::AutoCheck()
 void CFinalizedBudget::CleanAndRemove()
 {
     std::map<uint256, CFinalizedBudgetVote>::iterator it = mapVotes.begin();
-    string strError = "";
+
     while (it != mapVotes.end()) {
         CMasternode* pmn = mnodeman.Find((*it).second.GetVin());
         (*it).second.fValid = (pmn != nullptr);
+        ++it;
     }
 }
 
@@ -2038,7 +2039,7 @@ void CFinalizedBudget::SubmitVote()
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
 
-    if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode)) {
+    if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode, fNewSigs)) {
         LogPrint("mnbudget", "CFinalizedBudget::SubmitVote - Error upon calling GetKeysFromSecret\n");
         return;
     }

@@ -7,8 +7,6 @@
 #include "consensus/upgrades.h"
 #include "core_io.h"
 
-#include "obfuscation.h"
-#include "coincontrol.h"
 #include "init.h"
 #include "key_io.h"
 #include "main.h"
@@ -28,6 +26,9 @@
 
 #include "script/interpreter.h"
 #include "zcash/zip32.h"
+
+// need to put it here
+#include "coincontrol.h"
 
 #include "asyncrpcoperation.h"
 #include "asyncrpcqueue.h"

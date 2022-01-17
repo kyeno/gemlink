@@ -11,6 +11,7 @@
 #include "key_io.h"
 #include "main.h"
 #include "masternode-payments.h"
+#include "masternode-sync.h"
 #include "masternodeconfig.h"
 #include "masternodeman.h"
 #include "rpc/server.h"
@@ -404,7 +405,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
         UniValue statusObj(UniValue::VOBJ);
 
         while (true) {
-            if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("node", "local"));
                 statusObj.push_back(Pair("result", "failed"));
@@ -471,7 +472,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
@@ -545,7 +546,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "failed"));
@@ -909,7 +910,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode)) {
+            if (!CMessageSigner::GetKeysFromSecret(mne.getPrivKey(), keyMasternode, pubKeyMasternode, fNewSigs)) {
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Masternode signing error, could not set key correctly: " + errorMessage));
@@ -969,7 +970,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
         CKey keyMasternode;
         std::string errorMessage;
 
-        if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode))
+        if (!CMessageSigner::GetKeysFromSecret(strMasterNodePrivKey, keyMasternode, pubKeyMasternode, fNewSigs))
             return "Error upon calling SetKey";
 
         CMasternode* pmn = mnodeman.Find(activeMasternode.vin);

@@ -8,7 +8,7 @@
 
 #include "uint256.h"
 
-#include <boost/optional.hpp>
+#include "optional.h"
 
 int32_t MAX_BLOCK_SIZE(int32_t height);
 

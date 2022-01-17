@@ -103,9 +103,6 @@ enum WalletFeature {
 
 enum AvailableCoinsType {
     ALL_COINS = 1,
-    ONLY_DENOMINATED = 2,
-    ONLY_NOT10000IFMN = 3,
-    ONLY_NONDENOMINATED_NOT10000IFMN = 4, // ONLY_NONDENOMINATED and not 10000 TENT at the same time
     ONLY_10000 = 5                        // find masternode outputs including locked ones (use with caution)
 };
 
@@ -630,13 +627,10 @@ public:
     CAmount GetCredit(const isminefilter& filter) const;
     CAmount GetImmatureCredit(bool fUseCache = true) const;
     CAmount GetAvailableCredit(bool fUseCache = true) const;
-    CAmount GetAnonymizableCredit(bool fUseCache = true) const;
-    CAmount GetAnonymizedCredit(bool fUseCache = true) const;
     // Return sum of unlocked coins
     CAmount GetUnlockedCredit() const;
     // Return sum of unlocked coins
     CAmount GetLockedCredit() const;
-    CAmount GetDenominatedCredit(bool unconfirmed, bool fUseCache = true) const;
     CAmount GetImmatureWatchOnlyCredit(const bool& fUseCache = true) const;
     CAmount GetAvailableWatchOnlyCredit(const bool& fUseCache = true) const;
     CAmount GetChange() const;
@@ -863,13 +857,7 @@ private:
     void AddToSpends(const uint256& wtxid);
 
 public:
-    bool SelectCoinsDark(CAmount nValueMin, CAmount nValueMax, std::vector<CTxIn>& setCoinsRet, CAmount& nValueRet, int nObfuscationRoundsMin, int nObfuscationRoundsMax) const;
-    bool SelectCoinsByDenominations(int nDenom, CAmount nValueMin, CAmount nValueMax, std::vector<CTxIn>& vCoinsRet, std::vector<COutput>& vCoinsRet2, CAmount& nValueRet, int nObfuscationRoundsMin, int nObfuscationRoundsMax);
-    bool SelectCoinsDarkDenominated(CAmount nTargetValue, std::vector<CTxIn>& setCoinsRet, CAmount& nValueRet) const;
-    bool HasCollateralInputs(bool fOnlyConfirmed = true) const;
-    bool IsCollateralAmount(CAmount nInputAmount) const;
     int CountInputsWithAmount(CAmount nInputAmount);
-    bool SelectCoinsCollateral(std::vector<CTxIn>& setCoinsRet, CAmount& nValueRet) const;
     /*
      * Size of the incremental witness cache for the notes in our wallet.
      * This will always be greater than or equal to the size of the largest
@@ -1213,16 +1201,10 @@ public:
                                 const std::vector<unsigned char>& vchCryptedSecret);
 
     bool ConvertList(std::vector<CTxIn> vCoins, std::vector<int64_t>& vecAmounts);
-    int GenerateObfuscationOutputs(int nTotalValue, std::vector<CTxOut>& vout);
-    bool CreateCollateralTransaction(CMutableTransaction& txCollateral, std::string& strReason);
     CAmount GetLockedCoins() const;
     CAmount GetUnlockedCoins() const;
-    CAmount GetAnonymizableBalance() const;
-    CAmount GetAnonymizedBalance() const;
     double GetAverageAnonymizedRounds() const;
-    CAmount GetNormalizedAnonymizedBalance() const;
-    CAmount GetDenominatedBalance(bool unconfirmed = false) const;
-    /**
+    /** 
      * Increment the next transaction order id
      * @return next transaction order id
      */
@@ -1291,11 +1273,6 @@ public:
     bool GetBudgetSystemCollateralTX(CTransaction& tx, uint256 hash, bool useIX);
     bool GetBudgetSystemCollateralTX(CWalletTx& tx, uint256 hash, bool useIX);
 
-    // get the Obfuscation chain depth for a given input
-    int GetRealInputObfuscationRounds(CTxIn in, int rounds) const;
-    // respect current settings
-    int GetInputObfuscationRounds(CTxIn in) const;
-
     bool IsDenominated(const CTxIn& txin) const;
     bool IsDenominated(const CTransaction& tx) const;
 
@@ -1336,7 +1313,6 @@ public:
 
     // Return sum of unlocked coins
     CAmount GetLockedCredit() const;
-    CAmount GetDenominatedCredit(bool unconfirmed, bool fUseCache = true) const;
     CAmount GetImmatureWatchOnlyCredit(const bool& fUseCache = true) const;
     CAmount GetAvailableWatchOnlyCredit(const bool& fUseCache = true) const;
 

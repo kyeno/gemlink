@@ -19,12 +19,13 @@ CMasternodeConfig::CMasternodeEntry* CMasternodeConfig::add(std::string alias, s
 {
     CMasternodeEntry cme(alias, ip, privKey, txHash, outputIndex);
     entries.push_back(cme);
-    return &(entries[entries.size()-1]);
+    return &(entries[entries.size() - 1]);
 }
 
-void CMasternodeConfig::remove(std::string alias) {
+void CMasternodeConfig::remove(std::string alias)
+{
     int pos = -1;
-    for (int i = 0; i < ((int) entries.size()); ++i) {
+    for (int i = 0; i < ((int)entries.size()); ++i) {
         CMasternodeEntry e = entries[i];
         if (e.getAlias() == alias) {
             pos = i;
@@ -78,21 +79,14 @@ bool CMasternodeConfig::read(std::string& strErr)
         }
 
         int port = 0;
+        int nDefaultPort = Params().GetDefaultPort();
         std::string hostname = "";
         SplitHostPort(ip, port, hostname);
 
-        if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN) {
-            if (port != 16113) {
-                strErr = _("Invalid port detected in masternode.conf") + "\n" +
-                         strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
-                         _("(must be 16113 for mainnet)");
-                streamConfig.close();
-                return false;
-            }
-        } else if (port == 16113) {
-            strErr = _("Invalid port detected in masternode.conf") + "\n" +
-                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
-                     _("(16113 could be used only on mainnet)");
+        if (port != nDefaultPort) {
+            strErr = strprintf(_("Invalid port %d detected in masternode.conf"), port) + "\n" +
+                     strprintf(_("Line: %d"), linenumber) + "\n\"" + ip + "\"" + "\n" +
+                     strprintf(_("(must be %d for %s-net)"), nDefaultPort, Params().NetworkIDString());
             streamConfig.close();
             return false;
         }
@@ -105,7 +99,7 @@ bool CMasternodeConfig::read(std::string& strErr)
     return true;
 }
 
-bool CMasternodeConfig::CMasternodeEntry::castOutputIndex(int& n)
+bool CMasternodeConfig::CMasternodeEntry::castOutputIndex(int& n) const
 {
     try {
         n = std::stoi(outputIndex);

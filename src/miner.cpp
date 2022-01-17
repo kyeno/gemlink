@@ -482,6 +482,9 @@ static bool ProcessBlockFound(CBlock* pblock)
     }
 #endif
 
+    // Inform about the new block
+    GetMainSignals().BlockFound(pblock->GetHash());
+
     // Process this block the same as if we had received it from another node
     CValidationState state;
 

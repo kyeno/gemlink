@@ -12,17 +12,29 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
-bool CMessageSigner::GetKeysFromSecret(const std::string& strSecret, CKey& keyRet, CPubKey& pubkeyRet)
+bool CMessageSigner::GetKeysFromSecret(const std::string& strSecret, CKey& keyRet, CPubKey& pubkeyRet, const bool fNewSigs)
 {
-    CKey key2 = DecodeSecret(strSecret);
+    if (!fNewSigs) {
+        CKey key2 = DecodeSecret(strSecret);
 
-    if (!key2.IsValid())
-        return false;
+        if (!key2.IsValid())
+            return false;
 
-    keyRet = key2;
-    pubkeyRet = keyRet.GetPubKey();
+        keyRet = key2;
+        pubkeyRet = keyRet.GetPubKey();
 
-    return true;
+        return true;
+    } else {
+        CBitcoinSecret vchSecret;
+
+        if (!vchSecret.SetString(strSecret))
+            return false;
+
+        keyRet = vchSecret.GetKey();
+        pubkeyRet = keyRet.GetPubKey();
+
+        return true;
+    }
 }
 
 
@@ -118,7 +130,7 @@ bool CSignedMessage::SignMessage(const std::string strSignKey, const bool fNewSi
     CKey key;
     CPubKey pubkey;
 
-    if (!CMessageSigner::GetKeysFromSecret(strSignKey, key, pubkey)) {
+    if (!CMessageSigner::GetKeysFromSecret(strSignKey, key, pubkey, fNewSigs)) {
         return error("%s : Invalid strSignKey", __func__);
     }
 

@@ -202,7 +202,7 @@ public:
     }
 
     // CALCULATE A RANK AGAINST OF GIVEN BLOCK
-    arith_uint256 CalculateScore(const uint256& blockHash);
+    arith_uint256 CalculateScore(int64_t nBlockHeight = 0);
 
     ADD_SERIALIZE_METHODS;
 
@@ -232,6 +232,13 @@ public:
     int64_t SecondsSincePayment();
 
     bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
+
+    inline uint64_t SliceHash(uint256& hash, int slice)
+    {
+        uint64_t n = 0;
+        memcpy(&n, &hash + slice * 64, 64);
+        return n;
+    }
 
     void Check(bool forceCheck = false);
 
@@ -359,7 +366,7 @@ public:
     /// Create Masternode broadcast, needs to be relayed manually after that
     static bool Create(CTxIn vin, CService service, CKey keyCollateralAddressNew, CPubKey pubKeyCollateralAddressNew, CKey keyMasternodeNew, CPubKey pubKeyMasternodeNew, std::string& strErrorRet, CMasternodeBroadcast& mnbRet);
     static bool Create(std::string strService, std::string strKey, std::string strTxHash, std::string strOutputIndex, std::string& strErrorRet, CMasternodeBroadcast& mnbRet, bool fOffline = false);
-    static bool CheckDefaultPort(std::string strService, std::string& strErrorRet, std::string strContext);
+    static bool CheckDefaultPort(CService service, std::string& strErrorRet, std::string strContext);
 };
 
 #endif

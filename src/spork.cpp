@@ -14,17 +14,10 @@
 #include "sporkdb.h"
 #include "sync.h"
 #include "util.h"
-#include <boost/lexical_cast.hpp>
+
 
 using namespace std;
 using namespace boost;
-
-class CSporkMessage;
-class CSporkManager;
-
-CSporkManager sporkManager;
-
-std::map<uint256, CSporkMessage> mapSporks;
 
 #define MAKE_SPORK_DEF(name, defaultValue) CSporkDef(name, defaultValue, #name)
 
@@ -43,6 +36,9 @@ std::vector<CSporkDef> sporkDefs = {
     MAKE_SPORK_DEF(SPORK_17_COLDSTAKING_ENFORCEMENT, 4070908800ULL),       // OFF
     MAKE_SPORK_DEF(SPORK_18_ZEROCOIN_PUBLICSPEND_V4, 4070908800ULL),       // OFF
 };
+
+CSporkManager sporkManager;
+std::map<uint256, CSporkMessage> mapSporks;
 
 CSporkMessage::CSporkMessage() : CSignedMessage(),
                                  nSporkID(0),
@@ -103,7 +99,9 @@ void CSporkMessage::Relay()
 
 CSporkManager::CSporkManager()
 {
+    LogPrintf("init spork mânger\n");
     for (auto& sporkDef : sporkDefs) {
+        LogPrintf("id %d, name %s\n", (int)sporkDef.sporkId, sporkDef.name);
         sporkDefsById.emplace((int)sporkDef.sporkId, &sporkDef);
         sporkDefsByName.emplace(sporkDef.name, &sporkDef);
     }
@@ -257,10 +255,7 @@ int64_t CSporkManager::GetSporkValue(int nSporkID)
 // grab the spork value, and see if it's off
 bool CSporkManager::IsSporkActive(int nSporkID)
 {
-    int64_t r = GetSporkValue(nSporkID);
-    if (r == -1)
-        return false;
-    return r < GetTime();
+    return GetSporkValue(nSporkID) < GetAdjustedTime();
 }
 
 

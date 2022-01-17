@@ -299,13 +299,14 @@ extern UniValue reconsiderblock(const UniValue& params, bool fHelp);
 
 // MN
 extern UniValue obfuscation(const UniValue& params, bool fHelp); // in rpcmasternode.cpp
-extern UniValue getpoolinfo(const UniValue& params, bool fHelp);
 extern UniValue masternode(const UniValue& params, bool fHelp);
 extern UniValue listmasternodes(const UniValue& params, bool fHelp);
 extern UniValue getmasternodecount(const UniValue& params, bool fHelp);
+extern UniValue createmasternodebroadcast(const UniValue& params, bool fHelp);
+extern UniValue decodemasternodebroadcast(const UniValue& params, bool fHelp);
+extern UniValue relaymasternodebroadcast(const UniValue& params, bool fHelp);
 extern UniValue masternodeconnect(const UniValue& params, bool fHelp);
 extern UniValue masternodecurrent(const UniValue& params, bool fHelp);
-extern UniValue masternodedebug(const UniValue& params, bool fHelp);
 extern UniValue startmasternode(const UniValue& params, bool fHelp);
 extern UniValue createmasternodekey(const UniValue& params, bool fHelp);
 extern UniValue getmasternodeoutputs(const UniValue& params, bool fHelp);
@@ -313,7 +314,6 @@ extern UniValue listmasternodeconf(const UniValue& params, bool fHelp);
 extern UniValue getmasternodestatus(const UniValue& params, bool fHelp);
 extern UniValue getmasternodewinners(const UniValue& params, bool fHelp);
 extern UniValue getmasternodescores(const UniValue& params, bool fHelp);
-extern UniValue getfreyjainfo(const UniValue& params, bool fHelp);
 extern UniValue startalias(const UniValue& params, bool fHelp);
 
 extern UniValue mnbudget(const UniValue& params, bool fHelp); // in rpcmasternode-budget.cpp

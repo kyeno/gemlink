@@ -16,7 +16,10 @@
 
 #include "compat.h"
 #include "tinyformat.h"
+
 #include "utiltime.h"
+
+#include "util/threadnames.h"
 
 #include <atomic>
 #include <exception>

@@ -257,9 +257,11 @@ static const CRPCCommand vRPCCommands[] =
         /* MN features */
         {"snowgem", "listmasternodes", &listmasternodes, true},
         {"snowgem", "getmasternodecount", &getmasternodecount, true},
+        {"snowgem", "createmasternodebroadcast", &createmasternodebroadcast, true},
+        {"snowgem", "decodemasternodebroadcast", &decodemasternodebroadcast, true},
+        {"snowgem", "relaymasternodebroadcast", &relaymasternodebroadcast, true},
         {"snowgem", "masternodeconnect", &masternodeconnect, true},
         {"snowgem", "masternodecurrent", &masternodecurrent, true},
-        {"snowgem", "masternodedebug", &masternodedebug, true},
         {"snowgem", "startmasternode", &startmasternode, true},
         {"snowgem", "createmasternodekey", &createmasternodekey, true},
         {"snowgem", "getmasternodeoutputs", &getmasternodeoutputs, true},
@@ -267,7 +269,6 @@ static const CRPCCommand vRPCCommands[] =
         {"snowgem", "getmasternodestatus", &getmasternodestatus, true},
         {"snowgem", "getmasternodewinners", &getmasternodewinners, true},
         {"snowgem", "getmasternodescores", &getmasternodescores, true},
-        {"snowgem", "getfreyjainfo", &getfreyjainfo, true},
         {"snowgem", "mnbudget", &mnbudget, true},
         {"snowgem", "preparebudget", &preparebudget, true},
         {"snowgem", "submitbudget", &submitbudget, true},
@@ -281,7 +282,6 @@ static const CRPCCommand vRPCCommands[] =
         {"snowgem", "checkbudgets", &checkbudgets, true},
         {"snowgem", "mnsync", &mnsync, true},
         {"snowgem", "spork", &spork, true},
-        {"snowgem", "getpoolinfo", &getpoolinfo, true},
         {"snowgem", "startalias", &startalias, true},
 
 };

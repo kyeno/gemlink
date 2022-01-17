@@ -16,7 +16,6 @@
 #include "sporkid.h"
 #include "util.h"
 
-#include "obfuscation.h"
 #include "protocol.h"
 #include <boost/lexical_cast.hpp>
 
@@ -75,6 +74,12 @@ public:
         READWRITE(nValue);
         READWRITE(nTimeSigned);
         READWRITE(vchSig);
+        try
+        {
+            READWRITE(nMessVersion);
+        } catch (...) {
+            nMessVersion = MessageVersion::MESS_VER_STRMESS;
+        }
     }
 };
 
@@ -83,7 +88,6 @@ class CSporkManager
 {
 private:
     mutable CCriticalSection cs;
-    std::vector<unsigned char> vchSig;
     std::string strMasterPrivKey;
 
     std::map<int, CSporkDef*> sporkDefsById;
