@@ -70,7 +70,7 @@ public:
     bool SignMessage(const CKey& key, const CPubKey& pubKey, const bool fNewSigs);
     bool SignMessage(const std::string strSignKey, const bool fNewSigs);
     bool CheckSignature(const CPubKey& pubKey, std::string& strError) const;
-    bool CheckSignature(std::string& strErro, const bool fSignatureCheck = true) const;
+    bool CheckSignature(std::string& strErro) const;
 
     // Pure virtual functions (used in Sign-Verify functions)
     // Must be implemented in child classes

@@ -492,8 +492,8 @@ am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	pubkey.h random.h reverselock.h rpc/client.h rpc/protocol.h \
 	rpc/server.h rpc/register.h scheduler.h script/interpreter.h \
 	script/script.h script/script_error.h script/sigcache.h \
-	script/sign.h script/standard.h serialize.h spork.h sporkdb.h \
-	streams.h support/allocators/secure.h \
+	script/sign.h script/standard.h serialize.h spork.h sporkid.h \
+	sporkdb.h streams.h support/allocators/secure.h \
 	support/allocators/zeroafterfree.h support/cleanse.h \
 	support/events.h support/lockedpool.h sync.h threadsafety.h \
 	timedata.h tinyformat.h torcontrol.h transaction_builder.h \
@@ -1874,6 +1874,7 @@ BITCOIN_CORE_H = \
   script/standard.h \
   serialize.h \
   spork.h \
+  sporkid.h \
   sporkdb.h \
   streams.h \
   support/allocators/secure.h \

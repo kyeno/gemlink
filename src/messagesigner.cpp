@@ -141,13 +141,13 @@ bool CSignedMessage::CheckSignature(const CPubKey& pubKey, std::string& strError
     return true;
 }
 
-bool CSignedMessage::CheckSignature(std::string& strError, const bool fSignatureCheck) const
+bool CSignedMessage::CheckSignature(std::string& strError) const
 {
     const CPubKey pubkey = GetPublicKey(strError);
     if (pubkey == CPubKey())
         return error("%s : ERROR: %s", __func__, strError);
 
-    return !fSignatureCheck || CheckSignature(pubkey, strError);
+    return CheckSignature(pubkey, strError);
 }
 
 const CPubKey CSignedMessage::GetPublicKey(std::string& strErrorRet) const

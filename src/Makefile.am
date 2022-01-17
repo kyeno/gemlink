@@ -201,6 +201,7 @@ BITCOIN_CORE_H = \
   script/standard.h \
   serialize.h \
   spork.h \
+  sporkid.h \
   sporkdb.h \
   streams.h \
   support/allocators/secure.h \
