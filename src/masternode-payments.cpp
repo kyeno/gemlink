@@ -461,21 +461,18 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
 int CMasternodePayments::GetMinMasternodePaymentsProto()
 {
-    if (sporkManager.IsSporkActive(SPORK_10_MASTERNODE_PAY_UPDATED_NODES))
-        return ActiveProtocol(); // Allow only updated peers
-    else {
-        int minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT;
-        int nHeight = 0;
-        {
-            if (chainActive.Tip() != NULL) {
-                nHeight = chainActive.Tip()->nHeight;
-            }
-        }
-        if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
-            minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG;
-        }
-        return minPeer;
+    int minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT;
+    int nHeight = 0;
+    {
+        TRY_LOCK(cs_main, locked);
+        if (!locked || chainActive.Tip() == NULL)
+            return MIN_PEER_PROTO_VERSION_ENFORCEMENT;
+        nHeight = chainActive.Tip()->nHeight;
     }
+    if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+        minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG;
+    }
+    return minPeer;
 }
 
 void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)

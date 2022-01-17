@@ -5884,11 +5884,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         CAddress addrFrom;
         uint64_t nNonce = 1;
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-        if (pfrom->nVersion < MIN_PEER_PROTO_VERSION) {
+        if (pfrom->nVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
             // disconnect from peers older than this proto version
             LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
-                               strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
+                               strprintf("Version must be %d or greater", masternodePayments.GetMinMasternodePaymentsProto()));
             pfrom->fDisconnect = true;
             return false;
         }
@@ -6762,7 +6762,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 //       it was the one which was commented out
 int ActiveProtocol()
 {
-    return MIN_PEER_PROTO_VERSION_ENFORCEMENT;
+    return masternodePayments.GetMinMasternodePaymentsProto();
 }
 
 // requires LOCK(cs_vRecvMsg)
