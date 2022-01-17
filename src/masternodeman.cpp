@@ -546,15 +546,12 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
     int nCountTenth = 0;
     arith_uint256 nHighest = 0;
 
-    
-    bool isMoragActive = NetworkUpgradeActive(nBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
-
     for (PAIRTYPE(int64_t, CTxIn) & s : vecMasternodeLastPaid) {
         CMasternode* pmn = Find(s.second);
         if (!pmn)
             break;
 
-        arith_uint256 n = pmn->CalculateScore(isMoragActive ? nBlockHeight - 101 : nBlockHeight - 100);
+        arith_uint256 n = pmn->CalculateScore(nBlockHeight - 101);
         if (n > nHighest) {
             nHighest = n;
             pBestMasternode = pmn;
@@ -597,9 +594,10 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
     int64_t nMasternode_Min_Age = MN_WINNER_MINIMUM_AGE;
     int64_t nMasternode_Age = 0;
 
-    //make sure we know about this block
+    // make sure we know about this block
     uint256 hash;
-    if (!GetBlockHash(hash, nBlockHeight)) return -1;
+    if (!GetBlockHash(hash, nBlockHeight))
+        return -1;
 
     // scan for winner
     for (CMasternode& mn : vMasternodes) {
