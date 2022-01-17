@@ -39,7 +39,6 @@
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
 {
-    const CChainParams& chainParams = Params();
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
     unsigned int nProofOfWorkLimitTop = UintToArith256(params.powLimitTop).GetCompact();
 
@@ -48,7 +47,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return nProofOfWorkLimit;
 
     // Reset the difficulty after the algo fork
-    if (pindexLast->nTime < chainParams.eh_epoch_1_end() && pindexLast->nTime >= chainParams.eh_epoch_2_start()) {
+    if (pindexLast->nTime < params.eh_epoch_1_end()
+        && pindexLast->nTime >= params.eh_epoch_2_start()) {
         LogPrint("pow", "Reset the difficulty for the eh_epoch_2 algo change: %d\n", nProofOfWorkLimit);
         return nProofOfWorkLimit;
     }
@@ -192,7 +192,7 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
     return nextTarget.GetCompact();
 }
 
-bool CheckEquihashSolution(const CBlockHeader* pblock, const CChainParams& params)
+bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& params)
 {
     // Set parameters N,K from solution size. Filtering of valid parameters
     // for the givenblock height will be carried out in main.cpp/ContextualCheckBlockHeader

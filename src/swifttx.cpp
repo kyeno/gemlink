@@ -44,6 +44,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
     if (!masternodeSync.IsBlockchainSynced())
         return;
 
+    const CChainParams& chainparams = Params();
     if (strCommand == "ix") {
         // LogPrintf("ProcessMessageSwiftTX::ix\n");
         CDataStream vMsg(vRecv);
@@ -78,7 +79,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
         bool fAccepted = false;
         {
             LOCK(cs_main);
-            fAccepted = AcceptToMemoryPool(mempool, state, tx, true, &fMissingInputs);
+            fAccepted = AcceptToMemoryPool(chainparams, mempool, state, tx, true, &fMissingInputs);
         }
         if (fAccepted) {
             RelayInv(inv);
@@ -116,8 +117,8 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
                     if (!CheckForConflictingLocks(tx)) {
                         LogPrintf("ProcessMessageSwiftTX::ix - Found Existing Complete IX Lock\n");
 
-                        // reprocess the last 15 blocks
-                        ReprocessBlocks(15);
+                        //reprocess the last 15 blocks
+                        ReprocessBlocks(chainparams, 15);
                         mapTxLockReq.insert(make_pair(tx.GetHash(), tx));
                     }
                 }
@@ -185,7 +186,7 @@ bool IsIXTXValid(const CTransaction& txCollateral)
     for (const CTxIn i : txCollateral.vin) {
         CTransaction tx2;
         uint256 hash;
-        if (GetTransaction(i.prevout.hash, tx2, hash, true)) {
+        if (GetTransaction(i.prevout.hash, tx2, Params().GetConsensus(), hash, true)) {
             if (tx2.vout.size() > i.prevout.n) {
                 nValueIn += tx2.vout[i.prevout.n].nValue;
             }
@@ -383,7 +384,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
                 // if this tx lock was rejected, we need to remove the conflicting blocks
                 if (mapTxLockReqRejected.count((*i).second.txHash)) {
                     // reprocess the last 15 blocks
-                    ReprocessBlocks(15);
+                    ReprocessBlocks(Params(), 15);
                 }
             }
         }

@@ -429,7 +429,7 @@ public:
         return GetDepthInMainChainINTERNAL(pindexRet) > 0;
     }
     int GetBlocksToMaturity() const;
-    bool AcceptToMemoryPool(bool fLimitFree = true, bool fRejectAbsurdFee = true, bool ignoreFees = false);
+    bool AcceptToMemoryPool(const CChainParams& chainparams, bool fLimitFree = true, bool fRejectAbsurdFee = true, bool ignoreFees = false);
     int GetTransactionLockSignatures() const;
     bool IsTransactionLockTimedOut() const;
 };
@@ -875,8 +875,8 @@ protected:
     /**
      * pindex is the new tip being connected.
      */
-    int VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessOnly);
-    void BuildWitnessCache(const CBlockIndex* pindex, bool witnessOnly);
+    int VerifyAndSetInitialWitness(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly);
+    void BuildWitnessCache(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly);
     /**
      * pindex is the old tip being disconnected.
      */
@@ -925,6 +925,7 @@ protected:
 private:
     template <class T>
     void SyncMetaData(std::pair<typename TxSpendMap<T>::iterator, typename TxSpendMap<T>::iterator>);
+    void ChainTipAdded(const CBlockIndex *pindex, const CBlock *pblock, SproutMerkleTree sproutTree, SaplingMerkleTree saplingTree);
 
 protected:
     bool UpdatedNoteData(const CWalletTx& wtxIn, CWalletTx& wtx);
@@ -1225,6 +1226,7 @@ public:
     void UpdateNullifierNoteMapWithTx(const CWalletTx& wtx);
     void UpdateSproutNullifierNoteMapWithTx(CWalletTx& wtx);
     void UpdateSaplingNullifierNoteMapWithTx(CWalletTx& wtx);
+    void UpdateSaplingNullifierNoteMapForBlock(const CBlock* pblock);
     void UpdateNullifierNoteMapForBlock(const CBlock* pblock);
     bool AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet, CWalletDB* pwalletdb);
     void SyncTransaction(const CTransaction& tx, const CBlock* pblock);

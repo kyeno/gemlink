@@ -348,7 +348,7 @@ bool CMasternode::IsInputAssociatedWithPubkey() const
 
     CTransaction txVin;
     uint256 hash;
-    if (GetTransaction(vin.prevout.hash, txVin, hash, true)) {
+    if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hash, true)) {
         for (CTxOut out : txVin.vout) {
             if (out.nValue == 10000 * COIN && out.scriptPubKey == payee)
                 return true;
@@ -675,7 +675,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     // should be at least not earlier than block when 10000 TENT tx got MASTERNODE_MIN_CONFIRMATIONS
     uint256 hashBlock = uint256();
     CTransaction tx2;
-    GetTransaction(vin.prevout.hash, tx2, hashBlock, true);
+    GetTransaction(vin.prevout.hash, tx2, Params().GetConsensus(), hashBlock, true);
     BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
     if (mi != mapBlockIndex.end() && (*mi).second) {
         CBlockIndex* pMNIndex = (*mi).second;                                                        // block for 1000 SnowGem tx -> 1 confirmation

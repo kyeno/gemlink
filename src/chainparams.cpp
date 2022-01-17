@@ -131,12 +131,12 @@ public:
         nMaxTipAge = 24 * 60 * 60;
         nPruneAfterHeight = 100000;
         newTimeRule = 246600;
-        eh_epoch_1 = eh200_9;
-        eh_epoch_2 = eh144_5;
+        consensus.eh_epoch_1 = Consensus::eh200_9;
+        consensus.eh_epoch_2 = Consensus::eh144_5;
         // eh_epoch_1_endblock = 266000;
         // eh_epoch_2_startblock = 265983;
-        eh_epoch_1_endtime = 1530187171;
-        eh_epoch_2_starttime = 1530187141;
+        consensus.eh_epoch_1_endtime = 1530187171;
+        consensus.eh_epoch_2_starttime = 1530187141;
 
         nMasternodeCountDrift = 0;
 
@@ -347,10 +347,10 @@ public:
         nDefaultPort = 26113;
         nMaxTipAge = 24 * 60 * 60;
         nPruneAfterHeight = 1000;
-        eh_epoch_1 = eh200_9;
-        eh_epoch_2 = eh144_5;
-        eh_epoch_1_endtime = 1529432082;
-        eh_epoch_2_starttime = 1529402266;
+        consensus.eh_epoch_1 = Consensus::eh200_9;
+        consensus.eh_epoch_2 = Consensus::eh144_5;
+        consensus.eh_epoch_1_endtime = 1529432082;
+        consensus.eh_epoch_2_starttime = 1529402266;
         // eh_epoch_1_endblock = 7600;
         // eh_epoch_2_startblock = 7583;
 
@@ -475,10 +475,10 @@ public:
         nDefaultPort = 26114;
         nMaxTipAge = 24 * 60 * 60;
         nPruneAfterHeight = 1000;
-        eh_epoch_1 = eh48_5;
-        eh_epoch_2 = eh48_5;
-        eh_epoch_1_endtime = 1;
-        eh_epoch_2_starttime = 1;
+        consensus.eh_epoch_1 = Consensus::eh48_5;
+        consensus.eh_epoch_2 = Consensus::eh48_5;
+        consensus.eh_epoch_1_endtime = 1;
+        consensus.eh_epoch_2_starttime = 1;
 
         genesis = CreateGenesisBlock(
             1296688602,
@@ -604,7 +604,7 @@ std::string CChainParams::GetFoundersRewardAddressAtHeight(int nHeight) const
 
     size_t addressChangeInterval = (maxHeight + vFoundersRewardAddress.size()) / vFoundersRewardAddress.size();
     size_t i = (nHeight / addressChangeInterval) % vFoundersRewardAddress.size();
-    if (!NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+    if (!Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS)) {
         return vFoundersRewardAddress[i];
     } else {
         return nHeight % 2 == 0 ? vFoundersRewardAddress[i] : vFoundersRewardAddress2[i];
@@ -663,29 +663,11 @@ std::string CChainParams::GetTreasuryRewardAddressAtIndex(int i) const
 
 bool CChainParams::GetCoinbaseProtected(int height) const
 {
-    if (!NetworkUpgradeActive(height, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+    if (!consensus.NetworkUpgradeActive(height, Consensus::UPGRADE_ATLANTIS)) {
         return true;
     } else {
         return false;
     }
-}
-
-int validEHparameterList(EHparameters* ehparams, unsigned int blocktime, const CChainParams& params)
-{
-    // if in overlap period, there will be two valid solutions, else 1.
-    // The upcoming version of EH is preferred so will always be first element
-    // returns number of elements in list
-    if (blocktime >= params.eh_epoch_2_start() && blocktime > params.eh_epoch_1_end()) {
-        ehparams[0] = params.eh_epoch_2_params();
-        return 1;
-    }
-    if (blocktime < params.eh_epoch_2_start()) {
-        ehparams[0] = params.eh_epoch_1_params();
-        return 1;
-    }
-    ehparams[0] = params.eh_epoch_2_params();
-    ehparams[1] = params.eh_epoch_1_params();
-    return 2;
 }
 
 void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivationHeight)

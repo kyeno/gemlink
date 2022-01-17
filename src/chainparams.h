@@ -23,19 +23,6 @@ struct SeedSpec6 {
     uint16_t port;
 };
 
-struct EHparameters {
-    unsigned char n;
-    unsigned char k;
-    unsigned short int nSolSize;
-};
-
-// EH sol size = (pow(2, k) * ((n/(k+1))+1)) / 8;
-static const EHparameters eh200_9 = {200, 9, 1344};
-static const EHparameters eh144_5 = {144, 5, 100};
-static const EHparameters eh96_5 = {96, 5, 68};
-static const EHparameters eh48_5 = {48, 5, 36};
-static const unsigned int MAX_EH_PARAM_LIST_LEN = 2;
-
 typedef std::map<int, uint256> MapCheckpoints;
 
 struct CCheckpointData {
@@ -95,11 +82,6 @@ public:
     int64_t MaxTipAge() const { return nMaxTipAge; }
     int64_t PruneAfterHeight() const { return nPruneAfterHeight; }
 
-    EHparameters eh_epoch_1_params() const { return eh_epoch_1; }
-    EHparameters eh_epoch_2_params() const { return eh_epoch_2; }
-    unsigned int eh_epoch_1_end() const { return eh_epoch_1_endtime; }
-    unsigned int eh_epoch_2_start() const { return eh_epoch_2_starttime; }
-
     /** The masternode count that we will allow the see-saw reward payments to be off by */
     int MasternodeCountDrift() const { return nMasternodeCountDrift; }
     std::string CurrencyUnits() const { return strCurrencyUnits; }
@@ -149,10 +131,6 @@ protected:
     int nDefaultPort = 0;
     long nMaxTipAge = 0;
     uint64_t nPruneAfterHeight = 0;
-    EHparameters eh_epoch_1 = eh200_9;
-    EHparameters eh_epoch_2 = eh144_5;
-    unsigned int eh_epoch_1_endtime = 150000;   // it's time, not height
-    unsigned int eh_epoch_2_starttime = 140000; // it's time, not height
 
     std::vector<CDNSSeedData> vSeeds;
     std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
@@ -200,8 +178,6 @@ void SelectParams(CBaseChainParams::Network network);
  * Returns false if an invalid combination is given.
  */
 bool SelectParamsFromCommandLine();
-
-int validEHparameterList(EHparameters* ehparams, unsigned int blocktime, const CChainParams& params);
 
 /**
  * Allows modifying the network upgrade regtest parameters.

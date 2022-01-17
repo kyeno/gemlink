@@ -113,11 +113,11 @@ void AsyncRPCOperation_shieldcoinbase::main()
     bool success = false;
 
 #ifdef ENABLE_MINING
-#ifdef ENABLE_WALLET
-    GenerateBitcoins(false, NULL, 0);
-#else
-    GenerateBitcoins(false, 0);
-#endif
+  #ifdef ENABLE_WALLET
+    GenerateBitcoins(false, NULL, 0, Params());
+  #else
+    GenerateBitcoins(false, 0, Params());
+  #endif
 #endif
 
     try {
@@ -142,11 +142,11 @@ void AsyncRPCOperation_shieldcoinbase::main()
     }
 
 #ifdef ENABLE_MINING
-#ifdef ENABLE_WALLET
-    GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
-#else
-    GenerateBitcoins(GetBoolArg("-gen", false), GetArg("-genproclimit", 1));
-#endif
+  #ifdef ENABLE_WALLET
+    GenerateBitcoins(GetBoolArg("-gen",false), pwalletMain, GetArg("-genproclimit", 1), Params());
+  #else
+    GenerateBitcoins(GetBoolArg("-gen",false), GetArg("-genproclimit", 1), Params());
+  #endif
 #endif
 
     stop_execution_clock();

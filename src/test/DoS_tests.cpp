@@ -7,6 +7,7 @@
 //
 
 
+
 #include "consensus/upgrades.h"
 #include "keystore.h"
 #include "main.h"
@@ -23,8 +24,8 @@
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/foreach.hpp>
-#include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/test/data/test_case.hpp>
 
 // Tests this internal-to-main.cpp method:
 extern bool AddOrphanTx(const CTransaction& tx, NodeId peer);
@@ -35,7 +36,7 @@ struct COrphanTx {
     NodeId fromPeer;
 };
 extern std::map<uint256, COrphanTx> mapOrphanTransactions;
-extern std::map<uint256, std::set<uint256>> mapOrphanTransactionsByPrev;
+extern std::map<uint256, std::set<uint256> > mapOrphanTransactionsByPrev;
 
 CService ip(uint32_t i)
 {
@@ -48,48 +49,51 @@ BOOST_FIXTURE_TEST_SUITE(DoS_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(DoS_banning)
 {
+    const Consensus::Params& params = Params().GetConsensus();
     CNode::ClearBanned();
     CAddress addr1(ip(0xa0b0c001));
     CNode dummyNode1(INVALID_SOCKET, addr1, "", true);
     dummyNode1.nVersion = 1;
     Misbehaving(dummyNode1.GetId(), 100); // Should get banned
-    SendMessages(&dummyNode1, false);
+    SendMessages(params, &dummyNode1, false);
     BOOST_CHECK(CNode::IsBanned(addr1));
-    BOOST_CHECK(!CNode::IsBanned(ip(0xa0b0c001 | 0x0000ff00))); // Different IP, not banned
+    BOOST_CHECK(!CNode::IsBanned(ip(0xa0b0c001|0x0000ff00))); // Different IP, not banned
 
     CAddress addr2(ip(0xa0b0c002));
     CNode dummyNode2(INVALID_SOCKET, addr2, "", true);
     dummyNode2.nVersion = 1;
     Misbehaving(dummyNode2.GetId(), 50);
-    SendMessages(&dummyNode2, false);
+    SendMessages(params, &dummyNode2, false);
     BOOST_CHECK(!CNode::IsBanned(addr2)); // 2 not banned yet...
     BOOST_CHECK(CNode::IsBanned(addr1));  // ... but 1 still should be
     Misbehaving(dummyNode2.GetId(), 50);
-    SendMessages(&dummyNode2, false);
+    SendMessages(params, &dummyNode2, false);
     BOOST_CHECK(CNode::IsBanned(addr2));
 }
 
 BOOST_AUTO_TEST_CASE(DoS_banscore)
 {
+    const Consensus::Params& params = Params().GetConsensus();
     CNode::ClearBanned();
     mapArgs["-banscore"] = "111"; // because 11 is my favorite number
     CAddress addr1(ip(0xa0b0c001));
     CNode dummyNode1(INVALID_SOCKET, addr1, "", true);
     dummyNode1.nVersion = 1;
     Misbehaving(dummyNode1.GetId(), 100);
-    SendMessages(&dummyNode1, false);
+    SendMessages(params, &dummyNode1, false);
     BOOST_CHECK(!CNode::IsBanned(addr1));
     Misbehaving(dummyNode1.GetId(), 10);
-    SendMessages(&dummyNode1, false);
+    SendMessages(params, &dummyNode1, false);
     BOOST_CHECK(!CNode::IsBanned(addr1));
     Misbehaving(dummyNode1.GetId(), 1);
-    SendMessages(&dummyNode1, false);
+    SendMessages(params, &dummyNode1, false);
     BOOST_CHECK(CNode::IsBanned(addr1));
     mapArgs.erase("-banscore");
 }
 
 BOOST_AUTO_TEST_CASE(DoS_bantime)
 {
+    const Consensus::Params& params = Params().GetConsensus();
     CNode::ClearBanned();
     int64_t nStartTime = GetTime();
     SetMockTime(nStartTime); // Overrides future calls to GetTime()
@@ -99,13 +103,13 @@ BOOST_AUTO_TEST_CASE(DoS_bantime)
     dummyNode.nVersion = 1;
 
     Misbehaving(dummyNode.GetId(), 100);
-    SendMessages(&dummyNode, false);
+    SendMessages(params, &dummyNode, false);
     BOOST_CHECK(CNode::IsBanned(addr));
 
-    SetMockTime(nStartTime + 60 * 60);
+    SetMockTime(nStartTime+60*60);
     BOOST_CHECK(CNode::IsBanned(addr));
 
-    SetMockTime(nStartTime + 60 * 60 * 24 + 1);
+    SetMockTime(nStartTime+60*60*24+1);
     BOOST_CHECK(!CNode::IsBanned(addr));
 }
 
@@ -129,21 +133,23 @@ BOOST_DATA_TEST_CASE(DoS_mapOrphans, boost::unit_test::data::xrange(static_cast<
     keystore.AddKey(key);
 
     // 50 orphan transactions:
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 50; i++)
+    {
         CMutableTransaction tx;
         tx.vin.resize(1);
         tx.vin[0].prevout.n = 0;
         tx.vin[0].prevout.hash = GetRandHash();
         tx.vin[0].scriptSig << OP_1;
         tx.vout.resize(1);
-        tx.vout[0].nValue = 1 * CENT;
+        tx.vout[0].nValue = 1*CENT;
         tx.vout[0].scriptPubKey = GetScriptForDestination(key.GetPubKey().GetID());
 
         AddOrphanTx(tx, i);
     }
 
     // ... and 50 that depend on other orphans:
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 50; i++)
+    {
         CTransaction txPrev = RandomOrphan();
 
         CMutableTransaction tx;
@@ -151,7 +157,7 @@ BOOST_DATA_TEST_CASE(DoS_mapOrphans, boost::unit_test::data::xrange(static_cast<
         tx.vin[0].prevout.n = 0;
         tx.vin[0].prevout.hash = txPrev.GetHash();
         tx.vout.resize(1);
-        tx.vout[0].nValue = 1 * CENT;
+        tx.vout[0].nValue = 1*CENT;
         tx.vout[0].scriptPubKey = GetScriptForDestination(key.GetPubKey().GetID());
         SignSignature(keystore, txPrev, tx, 0, SIGHASH_ALL, consensusBranchId);
 
@@ -159,15 +165,17 @@ BOOST_DATA_TEST_CASE(DoS_mapOrphans, boost::unit_test::data::xrange(static_cast<
     }
 
     // This really-big orphan should be ignored:
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         CTransaction txPrev = RandomOrphan();
 
         CMutableTransaction tx;
         tx.vout.resize(1);
-        tx.vout[0].nValue = 1 * CENT;
+        tx.vout[0].nValue = 1*CENT;
         tx.vout[0].scriptPubKey = GetScriptForDestination(key.GetPubKey().GetID());
         tx.vin.resize(500);
-        for (unsigned int j = 0; j < tx.vin.size(); j++) {
+        for (unsigned int j = 0; j < tx.vin.size(); j++)
+        {
             tx.vin[j].prevout.n = j;
             tx.vin[j].prevout.hash = txPrev.GetHash();
         }
@@ -181,7 +189,8 @@ BOOST_DATA_TEST_CASE(DoS_mapOrphans, boost::unit_test::data::xrange(static_cast<
     }
 
     // Test EraseOrphansFor:
-    for (NodeId i = 0; i < 3; i++) {
+    for (NodeId i = 0; i < 3; i++)
+    {
         size_t sizeBefore = mapOrphanTransactions.size();
         EraseOrphansFor(i);
         BOOST_CHECK(mapOrphanTransactions.size() < sizeBefore);
