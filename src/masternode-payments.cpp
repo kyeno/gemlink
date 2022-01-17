@@ -471,8 +471,8 @@ int CMasternodePayments::GetMinMasternodePaymentsProto()
                 nHeight = chainActive.Tip()->nHeight;
             }
         }
-        if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_KNOWHERE)) {
-            minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_KNOWHERE;
+        if (NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+            minPeer = MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG;
         }
         return minPeer;
     }

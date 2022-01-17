@@ -22,7 +22,7 @@ static const int MIN_PEER_PROTO_VERSION = 170004;
 
 //! disconnect from peers older than this proto version
 static const int MIN_PEER_PROTO_VERSION_ENFORCEMENT = 170004;
-static const int MIN_PEER_PROTO_VERSION_ENFORCEMENT_KNOWHERE = 170009;
+static const int MIN_PEER_PROTO_VERSION_ENFORCEMENT_MORAG = 170010;
 
 //! nTime field added to CAddress, starting with this version;
 //! if possible, avoid requesting addresses nodes older than this
