@@ -41,8 +41,8 @@
 #include "txdb.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "utilmoneystr.h"
 #include "util/threadnames.h"
+#include "utilmoneystr.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
 #include "wallet/asyncrpcoperation_saplingconsolidation.h"
@@ -50,6 +50,7 @@
 #include "wallet/walletdb.h"
 #endif
 #include <stdint.h>
+
 #include <stdio.h>
 
 #ifndef WIN32
@@ -1883,7 +1884,11 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     uiInterface.InitMessage(_("Loading budget cache..."));
 
     CBudgetDB budgetdb;
-    CBudgetDB::ReadResult readResult2 = budgetdb.Read(budget);
+    int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););
+    const bool fDryRun = (nChainHeight <= 0);
+    CBudgetDB::ReadResult readResult2 = budgetdb.Read(budget, fDryRun);
+    if (nChainHeight > 0)
+        budget.SetBestHeight(nChainHeight);
 
     if (readResult2 == CBudgetDB::FileError)
         LogPrintf("Missing budget cache - budget.dat, will try to recreate\n");

@@ -146,6 +146,7 @@ struct Params {
     int64_t nPowMaxAdjustUp;
     int64_t nPowTargetSpacing;
     int64_t nTimeshiftPriv;
+    int64_t nProposalEstablishmentTime;
     int nMasternodePaymentsStartBlock;
     int nMasternodePaymentsIncreasePeriod; // in blocks
     EHparameters eh_epoch_1 = eh200_9;

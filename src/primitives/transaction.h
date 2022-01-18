@@ -360,7 +360,7 @@ public:
     std::string ToString() const;
     std::string ToStringShort() const;
 
-    uint256 GetHash();
+    uint256 GetHash() const;
 };
 
 /** An outpoint - a combination of a transaction hash and an index n into its sapling

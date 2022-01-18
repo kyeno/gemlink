@@ -4579,8 +4579,9 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, C
 
     if (!fLiteMode) {
         if (masternodeSync.RequestedMasternodeAssets > MASTERNODE_SYNC_LIST) {
-            masternodePayments.ProcessBlock(GetHeight() + 10);
-            budget.NewBlock();
+            const int height = GetHeight();
+            masternodePayments.ProcessBlock(height + 10);
+            budget.NewBlock(height);
         }
     }
 
@@ -5694,25 +5695,25 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         }
         return false;
     case MSG_BUDGET_VOTE:
-        if (budget.mapSeenMasternodeBudgetVotes.count(inv.hash)) {
+        if (budget.HaveSeenProposalVote(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_PROPOSAL:
-        if (budget.mapSeenMasternodeBudgetProposals.count(inv.hash)) {
+        if (budget.HaveSeenProposal(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_FINALIZED_VOTE:
-        if (budget.mapSeenFinalizedBudgetVotes.count(inv.hash)) {
+        if (budget.HaveSeenFinalizedBudgetVote(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_FINALIZED:
-        if (budget.mapSeenFinalizedBudgets.count(inv.hash)) {
+        if (budget.HaveSeenFinalizedBudget(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
@@ -5878,40 +5879,40 @@ void static ProcessGetData(const Consensus::Params& consensusParams, CNode* pfro
                         }
                     }
                     if (!pushed && inv.type == MSG_BUDGET_VOTE) {
-                        if (budget.mapSeenMasternodeBudgetVotes.count(inv.hash)) {
+                        if (budget.HaveSeenProposalVote(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.mapSeenMasternodeBudgetVotes[inv.hash];
+                            ss << budget.GetProposalVoteSerialized(inv.hash);
                             pfrom->PushMessage("mvote", ss);
                             pushed = true;
                         }
                     }
 
                     if (!pushed && inv.type == MSG_BUDGET_PROPOSAL) {
-                        if (budget.mapSeenMasternodeBudgetProposals.count(inv.hash)) {
+                        if (budget.HaveSeenProposal(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.mapSeenMasternodeBudgetProposals[inv.hash];
+                            ss << budget.GetProposalSerialized(inv.hash);
                             pfrom->PushMessage("mprop", ss);
                             pushed = true;
                         }
                     }
 
                     if (!pushed && inv.type == MSG_BUDGET_FINALIZED_VOTE) {
-                        if (budget.mapSeenFinalizedBudgetVotes.count(inv.hash)) {
+                        if (budget.HaveSeenFinalizedBudgetVote(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.mapSeenFinalizedBudgetVotes[inv.hash];
+                            ss << budget.GetFinalizedBudgetVoteSerialized(inv.hash);
                             pfrom->PushMessage("fbvote", ss);
                             pushed = true;
                         }
                     }
 
                     if (!pushed && inv.type == MSG_BUDGET_FINALIZED) {
-                        if (budget.mapSeenFinalizedBudgets.count(inv.hash)) {
+                        if (budget.HaveSeenFinalizedBudget(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.mapSeenFinalizedBudgets[inv.hash];
+                            ss << budget.GetFinalizedBudgetSerialized(inv.hash);
                             pfrom->PushMessage("fbs", ss);
                             pushed = true;
                         }

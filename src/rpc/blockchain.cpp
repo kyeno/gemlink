@@ -11,6 +11,7 @@
 #include "consensus/validation.h"
 #include "key_io.h"
 #include "main.h"
+#include "masternode-budget.h"
 #include "primitives/transaction.h"
 #include "pubkey.h"
 #include "rpc/server.h"
@@ -1133,6 +1134,7 @@ UniValue invalidateblock(const UniValue& params, bool fHelp)
 
     if (state.IsValid()) {
         ActivateBestChain(state, Params());
+        budget.SetBestHeight(WITH_LOCK(cs_main, return chainActive.Height();));
     }
 
     if (!state.IsValid()) {
@@ -1170,6 +1172,7 @@ UniValue reconsiderblock(const UniValue& params, bool fHelp)
 
     if (state.IsValid()) {
         ActivateBestChain(state, Params());
+        budget.SetBestHeight(WITH_LOCK(cs_main, return chainActive.Height();));
     }
 
     if (!state.IsValid()) {

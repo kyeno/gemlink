@@ -319,6 +319,7 @@ bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue)
 
 bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int nBlockHeight)
 {
+    TrxValidationStatus transactionStatus = TrxValidationStatus::InValid;
     if (!masternodeSync.IsSynced()) { // there is no budget data to use to check anything -- find the longest chain
         LogPrint("masternodepayments", "Client not synced, skipping block payee checks\n");
         return true;
@@ -329,8 +330,10 @@ bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int
     // check if it's a budget block
     if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)) {
         if (budget.IsBudgetPaymentBlock(nBlockHeight)) {
-            if (budget.IsTransactionValid(txNew, nBlockHeight))
+            transactionStatus = budget.IsTransactionValid(txNew, nBlockHeight);
+            if (transactionStatus == TrxValidationStatus::Valid) {
                 return true;
+            }
 
             if (sporkManager.IsSporkActive(SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)) {
                 LogPrintf("Invalid budget payment detected %s\n", txNew.ToString().c_str());
