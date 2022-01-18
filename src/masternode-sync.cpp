@@ -9,7 +9,8 @@
 #include "activemasternode.h"
 #include "masternode-sync.h"
 #include "masternode-payments.h"
-#include "masternode-budget.h"
+#include "budget/budgetdb.h"
+#include "budget/budgetmanager.h"
 #include "masternode.h"
 #include "masternodeman.h"
 #include "spork.h"
@@ -133,8 +134,8 @@ void CMasternodeSync::AddedMasternodeWinner(const uint256& hash)
 
 void CMasternodeSync::AddedBudgetItem(const uint256& hash)
 {
-    if (budget.HaveSeenProposal(hash) ||
-        budget.HaveSeenProposalVote(hash) ||
+    if (budget.HaveProposal(hash) ||
+        budget.HaveProposalVote(hash) ||
         budget.HaveSeenFinalizedBudget(hash) ||
         budget.HaveSeenFinalizedBudgetVote(hash)) {
         if (mapSeenSyncBudget[hash] < MASTERNODE_SYNC_THRESHOLD) {

@@ -484,18 +484,21 @@ am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	consensus/params.h consensus/upgrades.h consensus/validation.h \
 	core_io.h core_memusage.h deprecation.h hash.h httprpc.h \
 	httpserver.h init.h swifttx.h key.h key_io.h keystore.h \
-	dbwrapper.h limitedmap.h main.h memusage.h masternode.h \
-	masternode-payments.h masternode-budget.h masternode-sync.h \
-	masternodeman.h masternodeconfig.h merkleblock.h \
-	messagesigner.h metrics.h miner.h mruset.h net.h netbase.h \
-	noui.h paymentdisclosure.h paymentdisclosuredb.h policy/fees.h \
-	optional.h pow.h prevector.h primitives/block.h \
-	primitives/transaction.h protocol.h pubkey.h random.h \
-	reverse_iterator.h reverselock.h rpc/client.h rpc/protocol.h \
-	rpc/server.h rpc/register.h scheduler.h script/interpreter.h \
-	script/script.h script/script_error.h script/sigcache.h \
-	script/sign.h script/standard.h serialize.h spork.h sporkid.h \
-	sporkdb.h streams.h support/allocators/secure.h \
+	dbwrapper.h limitedmap.h main.h memusage.h budget/budgetdb.h \
+	budget/budgetmanager.h budget/budgetproposal.h \
+	budget/budgetvote.h budget/finalizedbudget.h \
+	budget/finalizedbudgetvote.h masternode.h \
+	masternode-payments.h masternode-sync.h masternodeman.h \
+	masternodeconfig.h merkleblock.h messagesigner.h metrics.h \
+	miner.h mruset.h net.h netbase.h noui.h paymentdisclosure.h \
+	paymentdisclosuredb.h policy/fees.h optional.h pow.h \
+	prevector.h primitives/block.h primitives/transaction.h \
+	protocol.h pubkey.h random.h reverse_iterator.h reverselock.h \
+	rpc/client.h rpc/protocol.h rpc/server.h rpc/register.h \
+	scheduler.h script/interpreter.h script/script.h \
+	script/script_error.h script/sigcache.h script/sign.h \
+	script/standard.h serialize.h spork.h sporkid.h sporkdb.h \
+	streams.h support/allocators/secure.h \
 	support/allocators/zeroafterfree.h support/cleanse.h \
 	support/events.h support/lockedpool.h sync.h threadsafety.h \
 	timedata.h tinyformat.h torcontrol.h transaction_builder.h \
@@ -552,9 +555,13 @@ am_libbitcoin_wallet_a_OBJECTS =  \
 	wallet/libbitcoin_wallet_a-asyncrpcoperation_shieldcoinbase.$(OBJEXT) \
 	wallet/libbitcoin_wallet_a-crypter.$(OBJEXT) \
 	wallet/libbitcoin_wallet_a-db.$(OBJEXT) \
-	libbitcoin_wallet_a-swifttx.$(OBJEXT) \
+	budget/libbitcoin_wallet_a-budgetdb.$(OBJEXT) \
+	budget/libbitcoin_wallet_a-budgetmanager.$(OBJEXT) \
+	budget/libbitcoin_wallet_a-budgetproposal.$(OBJEXT) \
+	budget/libbitcoin_wallet_a-budgetvote.$(OBJEXT) \
+	budget/libbitcoin_wallet_a-finalizedbudget.$(OBJEXT) \
+	budget/libbitcoin_wallet_a-finalizedbudgetvote.$(OBJEXT) \
 	libbitcoin_wallet_a-masternode.$(OBJEXT) \
-	libbitcoin_wallet_a-masternode-budget.$(OBJEXT) \
 	libbitcoin_wallet_a-masternode-payments.$(OBJEXT) \
 	libbitcoin_wallet_a-masternode-sync.$(OBJEXT) \
 	libbitcoin_wallet_a-masternodeconfig.$(OBJEXT) \
@@ -976,7 +983,6 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_util_a-utilstrencodings.Po \
 	./$(DEPDIR)/libbitcoin_util_a-utiltime.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-activemasternode.Po \
-	./$(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-masternode-payments.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-masternode-sync.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-masternode.Po \
@@ -984,7 +990,6 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-masternodeman.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosure.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosuredb.Po \
-	./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po \
 	./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po \
 	./$(DEPDIR)/libzcash_script_la-hash.Plo \
@@ -1005,6 +1010,12 @@ am__depfiles_remade = ./$(DEPDIR)/libbitcoin_common_a-amount.Po \
 	bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po \
 	bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po \
 	bench/$(DEPDIR)/bench_bitcoin-verification.Po \
+	budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Po \
+	budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Po \
+	budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Po \
+	budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Po \
+	budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Po \
+	budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po \
 	compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po \
@@ -1835,9 +1846,14 @@ BITCOIN_CORE_H = \
   limitedmap.h \
   main.h \
   memusage.h \
+  budget/budgetdb.h \
+  budget/budgetmanager.h \
+  budget/budgetproposal.h \
+  budget/budgetvote.h \
+  budget/finalizedbudget.h \
+  budget/finalizedbudgetvote.h \
   masternode.h \
   masternode-payments.h \
-  masternode-budget.h \
   masternode-sync.h \
   masternodeman.h \
   masternodeconfig.h \
@@ -1993,9 +2009,13 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/asyncrpcoperation_shieldcoinbase.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
-  swifttx.cpp \
+  budget/budgetdb.cpp \
+  budget/budgetmanager.cpp \
+  budget/budgetproposal.cpp \
+  budget/budgetvote.cpp \
+  budget/finalizedbudget.cpp \
+  budget/finalizedbudgetvote.cpp \
   masternode.cpp \
-  masternode-budget.cpp \
   masternode-payments.cpp \
   masternode-sync.cpp \
   masternodeconfig.cpp \
@@ -2942,6 +2962,24 @@ wallet/libbitcoin_wallet_a-crypter.$(OBJEXT): wallet/$(am__dirstamp) \
 	wallet/$(DEPDIR)/$(am__dirstamp)
 wallet/libbitcoin_wallet_a-db.$(OBJEXT): wallet/$(am__dirstamp) \
 	wallet/$(DEPDIR)/$(am__dirstamp)
+budget/$(am__dirstamp):
+	@$(MKDIR_P) budget
+	@: > budget/$(am__dirstamp)
+budget/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) budget/$(DEPDIR)
+	@: > budget/$(DEPDIR)/$(am__dirstamp)
+budget/libbitcoin_wallet_a-budgetdb.$(OBJEXT): budget/$(am__dirstamp) \
+	budget/$(DEPDIR)/$(am__dirstamp)
+budget/libbitcoin_wallet_a-budgetmanager.$(OBJEXT):  \
+	budget/$(am__dirstamp) budget/$(DEPDIR)/$(am__dirstamp)
+budget/libbitcoin_wallet_a-budgetproposal.$(OBJEXT):  \
+	budget/$(am__dirstamp) budget/$(DEPDIR)/$(am__dirstamp)
+budget/libbitcoin_wallet_a-budgetvote.$(OBJEXT):  \
+	budget/$(am__dirstamp) budget/$(DEPDIR)/$(am__dirstamp)
+budget/libbitcoin_wallet_a-finalizedbudget.$(OBJEXT):  \
+	budget/$(am__dirstamp) budget/$(DEPDIR)/$(am__dirstamp)
+budget/libbitcoin_wallet_a-finalizedbudgetvote.$(OBJEXT):  \
+	budget/$(am__dirstamp) budget/$(DEPDIR)/$(am__dirstamp)
 wallet/libbitcoin_wallet_a-rpcdisclosure.$(OBJEXT):  \
 	wallet/$(am__dirstamp) wallet/$(DEPDIR)/$(am__dirstamp)
 wallet/libbitcoin_wallet_a-rpcdump.$(OBJEXT): wallet/$(am__dirstamp) \
@@ -3294,6 +3332,7 @@ test/test_bitcoin$(EXEEXT): $(test_test_bitcoin_OBJECTS) $(test_test_bitcoin_DEP
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f bench/*.$(OBJEXT)
+	-rm -f budget/*.$(OBJEXT)
 	-rm -f compat/*.$(OBJEXT)
 	-rm -f compat/*.lo
 	-rm -f consensus/*.$(OBJEXT)
@@ -3383,7 +3422,6 @@ include ./$(DEPDIR)/libbitcoin_util_a-utilmoneystr.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_util_a-utilstrencodings.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_util_a-utiltime.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-activemasternode.Po # am--include-marker
-include ./$(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-masternode-payments.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-masternode-sync.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-masternode.Po # am--include-marker
@@ -3391,7 +3429,6 @@ include ./$(DEPDIR)/libbitcoin_wallet_a-masternodeconfig.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-masternodeman.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosure.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosuredb.Po # am--include-marker
-include ./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po # am--include-marker
 include ./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po # am--include-marker
 include ./$(DEPDIR)/libzcash_script_la-hash.Plo # am--include-marker
@@ -3412,6 +3449,12 @@ include bench/$(DEPDIR)/bench_bitcoin-perf.Po # am--include-marker
 include bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po # am--include-marker
 include bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po # am--include-marker
 include bench/$(DEPDIR)/bench_bitcoin-verification.Po # am--include-marker
+include budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Po # am--include-marker
+include budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Po # am--include-marker
+include budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Po # am--include-marker
+include budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Po # am--include-marker
+include budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Po # am--include-marker
+include budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po # am--include-marker
 include compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po # am--include-marker
@@ -5750,19 +5793,89 @@ wallet/libbitcoin_wallet_a-db.obj: wallet/db.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o wallet/libbitcoin_wallet_a-db.obj `if test -f 'wallet/db.cpp'; then $(CYGPATH_W) 'wallet/db.cpp'; else $(CYGPATH_W) '$(srcdir)/wallet/db.cpp'; fi`
 
-libbitcoin_wallet_a-swifttx.o: swifttx.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_wallet_a-swifttx.o -MD -MP -MF $(DEPDIR)/libbitcoin_wallet_a-swifttx.Tpo -c -o libbitcoin_wallet_a-swifttx.o `test -f 'swifttx.cpp' || echo '$(srcdir)/'`swifttx.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_wallet_a-swifttx.Tpo $(DEPDIR)/libbitcoin_wallet_a-swifttx.Po
-#	$(AM_V_CXX)source='swifttx.cpp' object='libbitcoin_wallet_a-swifttx.o' libtool=no \
+budget/libbitcoin_wallet_a-budgetdb.o: budget/budgetdb.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetdb.o -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Tpo -c -o budget/libbitcoin_wallet_a-budgetdb.o `test -f 'budget/budgetdb.cpp' || echo '$(srcdir)/'`budget/budgetdb.cpp
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Po
+#	$(AM_V_CXX)source='budget/budgetdb.cpp' object='budget/libbitcoin_wallet_a-budgetdb.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_wallet_a-swifttx.o `test -f 'swifttx.cpp' || echo '$(srcdir)/'`swifttx.cpp
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetdb.o `test -f 'budget/budgetdb.cpp' || echo '$(srcdir)/'`budget/budgetdb.cpp
 
-libbitcoin_wallet_a-swifttx.obj: swifttx.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_wallet_a-swifttx.obj -MD -MP -MF $(DEPDIR)/libbitcoin_wallet_a-swifttx.Tpo -c -o libbitcoin_wallet_a-swifttx.obj `if test -f 'swifttx.cpp'; then $(CYGPATH_W) 'swifttx.cpp'; else $(CYGPATH_W) '$(srcdir)/swifttx.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_wallet_a-swifttx.Tpo $(DEPDIR)/libbitcoin_wallet_a-swifttx.Po
-#	$(AM_V_CXX)source='swifttx.cpp' object='libbitcoin_wallet_a-swifttx.obj' libtool=no \
+budget/libbitcoin_wallet_a-budgetdb.obj: budget/budgetdb.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetdb.obj -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Tpo -c -o budget/libbitcoin_wallet_a-budgetdb.obj `if test -f 'budget/budgetdb.cpp'; then $(CYGPATH_W) 'budget/budgetdb.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetdb.cpp'; fi`
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Po
+#	$(AM_V_CXX)source='budget/budgetdb.cpp' object='budget/libbitcoin_wallet_a-budgetdb.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_wallet_a-swifttx.obj `if test -f 'swifttx.cpp'; then $(CYGPATH_W) 'swifttx.cpp'; else $(CYGPATH_W) '$(srcdir)/swifttx.cpp'; fi`
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetdb.obj `if test -f 'budget/budgetdb.cpp'; then $(CYGPATH_W) 'budget/budgetdb.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetdb.cpp'; fi`
+
+budget/libbitcoin_wallet_a-budgetmanager.o: budget/budgetmanager.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetmanager.o -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Tpo -c -o budget/libbitcoin_wallet_a-budgetmanager.o `test -f 'budget/budgetmanager.cpp' || echo '$(srcdir)/'`budget/budgetmanager.cpp
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Po
+#	$(AM_V_CXX)source='budget/budgetmanager.cpp' object='budget/libbitcoin_wallet_a-budgetmanager.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetmanager.o `test -f 'budget/budgetmanager.cpp' || echo '$(srcdir)/'`budget/budgetmanager.cpp
+
+budget/libbitcoin_wallet_a-budgetmanager.obj: budget/budgetmanager.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetmanager.obj -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Tpo -c -o budget/libbitcoin_wallet_a-budgetmanager.obj `if test -f 'budget/budgetmanager.cpp'; then $(CYGPATH_W) 'budget/budgetmanager.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetmanager.cpp'; fi`
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Po
+#	$(AM_V_CXX)source='budget/budgetmanager.cpp' object='budget/libbitcoin_wallet_a-budgetmanager.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetmanager.obj `if test -f 'budget/budgetmanager.cpp'; then $(CYGPATH_W) 'budget/budgetmanager.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetmanager.cpp'; fi`
+
+budget/libbitcoin_wallet_a-budgetproposal.o: budget/budgetproposal.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetproposal.o -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Tpo -c -o budget/libbitcoin_wallet_a-budgetproposal.o `test -f 'budget/budgetproposal.cpp' || echo '$(srcdir)/'`budget/budgetproposal.cpp
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Po
+#	$(AM_V_CXX)source='budget/budgetproposal.cpp' object='budget/libbitcoin_wallet_a-budgetproposal.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetproposal.o `test -f 'budget/budgetproposal.cpp' || echo '$(srcdir)/'`budget/budgetproposal.cpp
+
+budget/libbitcoin_wallet_a-budgetproposal.obj: budget/budgetproposal.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetproposal.obj -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Tpo -c -o budget/libbitcoin_wallet_a-budgetproposal.obj `if test -f 'budget/budgetproposal.cpp'; then $(CYGPATH_W) 'budget/budgetproposal.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetproposal.cpp'; fi`
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Po
+#	$(AM_V_CXX)source='budget/budgetproposal.cpp' object='budget/libbitcoin_wallet_a-budgetproposal.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetproposal.obj `if test -f 'budget/budgetproposal.cpp'; then $(CYGPATH_W) 'budget/budgetproposal.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetproposal.cpp'; fi`
+
+budget/libbitcoin_wallet_a-budgetvote.o: budget/budgetvote.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetvote.o -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Tpo -c -o budget/libbitcoin_wallet_a-budgetvote.o `test -f 'budget/budgetvote.cpp' || echo '$(srcdir)/'`budget/budgetvote.cpp
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Po
+#	$(AM_V_CXX)source='budget/budgetvote.cpp' object='budget/libbitcoin_wallet_a-budgetvote.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetvote.o `test -f 'budget/budgetvote.cpp' || echo '$(srcdir)/'`budget/budgetvote.cpp
+
+budget/libbitcoin_wallet_a-budgetvote.obj: budget/budgetvote.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-budgetvote.obj -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Tpo -c -o budget/libbitcoin_wallet_a-budgetvote.obj `if test -f 'budget/budgetvote.cpp'; then $(CYGPATH_W) 'budget/budgetvote.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetvote.cpp'; fi`
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Po
+#	$(AM_V_CXX)source='budget/budgetvote.cpp' object='budget/libbitcoin_wallet_a-budgetvote.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-budgetvote.obj `if test -f 'budget/budgetvote.cpp'; then $(CYGPATH_W) 'budget/budgetvote.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/budgetvote.cpp'; fi`
+
+budget/libbitcoin_wallet_a-finalizedbudget.o: budget/finalizedbudget.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-finalizedbudget.o -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Tpo -c -o budget/libbitcoin_wallet_a-finalizedbudget.o `test -f 'budget/finalizedbudget.cpp' || echo '$(srcdir)/'`budget/finalizedbudget.cpp
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Po
+#	$(AM_V_CXX)source='budget/finalizedbudget.cpp' object='budget/libbitcoin_wallet_a-finalizedbudget.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-finalizedbudget.o `test -f 'budget/finalizedbudget.cpp' || echo '$(srcdir)/'`budget/finalizedbudget.cpp
+
+budget/libbitcoin_wallet_a-finalizedbudget.obj: budget/finalizedbudget.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-finalizedbudget.obj -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Tpo -c -o budget/libbitcoin_wallet_a-finalizedbudget.obj `if test -f 'budget/finalizedbudget.cpp'; then $(CYGPATH_W) 'budget/finalizedbudget.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/finalizedbudget.cpp'; fi`
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Po
+#	$(AM_V_CXX)source='budget/finalizedbudget.cpp' object='budget/libbitcoin_wallet_a-finalizedbudget.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-finalizedbudget.obj `if test -f 'budget/finalizedbudget.cpp'; then $(CYGPATH_W) 'budget/finalizedbudget.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/finalizedbudget.cpp'; fi`
+
+budget/libbitcoin_wallet_a-finalizedbudgetvote.o: budget/finalizedbudgetvote.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-finalizedbudgetvote.o -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Tpo -c -o budget/libbitcoin_wallet_a-finalizedbudgetvote.o `test -f 'budget/finalizedbudgetvote.cpp' || echo '$(srcdir)/'`budget/finalizedbudgetvote.cpp
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Po
+#	$(AM_V_CXX)source='budget/finalizedbudgetvote.cpp' object='budget/libbitcoin_wallet_a-finalizedbudgetvote.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-finalizedbudgetvote.o `test -f 'budget/finalizedbudgetvote.cpp' || echo '$(srcdir)/'`budget/finalizedbudgetvote.cpp
+
+budget/libbitcoin_wallet_a-finalizedbudgetvote.obj: budget/finalizedbudgetvote.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT budget/libbitcoin_wallet_a-finalizedbudgetvote.obj -MD -MP -MF budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Tpo -c -o budget/libbitcoin_wallet_a-finalizedbudgetvote.obj `if test -f 'budget/finalizedbudgetvote.cpp'; then $(CYGPATH_W) 'budget/finalizedbudgetvote.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/finalizedbudgetvote.cpp'; fi`
+	$(AM_V_at)$(am__mv) budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Tpo budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Po
+#	$(AM_V_CXX)source='budget/finalizedbudgetvote.cpp' object='budget/libbitcoin_wallet_a-finalizedbudgetvote.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o budget/libbitcoin_wallet_a-finalizedbudgetvote.obj `if test -f 'budget/finalizedbudgetvote.cpp'; then $(CYGPATH_W) 'budget/finalizedbudgetvote.cpp'; else $(CYGPATH_W) '$(srcdir)/budget/finalizedbudgetvote.cpp'; fi`
 
 libbitcoin_wallet_a-masternode.o: masternode.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_wallet_a-masternode.o -MD -MP -MF $(DEPDIR)/libbitcoin_wallet_a-masternode.Tpo -c -o libbitcoin_wallet_a-masternode.o `test -f 'masternode.cpp' || echo '$(srcdir)/'`masternode.cpp
@@ -5777,20 +5890,6 @@ libbitcoin_wallet_a-masternode.obj: masternode.cpp
 #	$(AM_V_CXX)source='masternode.cpp' object='libbitcoin_wallet_a-masternode.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_wallet_a-masternode.obj `if test -f 'masternode.cpp'; then $(CYGPATH_W) 'masternode.cpp'; else $(CYGPATH_W) '$(srcdir)/masternode.cpp'; fi`
-
-libbitcoin_wallet_a-masternode-budget.o: masternode-budget.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_wallet_a-masternode-budget.o -MD -MP -MF $(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Tpo -c -o libbitcoin_wallet_a-masternode-budget.o `test -f 'masternode-budget.cpp' || echo '$(srcdir)/'`masternode-budget.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Tpo $(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Po
-#	$(AM_V_CXX)source='masternode-budget.cpp' object='libbitcoin_wallet_a-masternode-budget.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_wallet_a-masternode-budget.o `test -f 'masternode-budget.cpp' || echo '$(srcdir)/'`masternode-budget.cpp
-
-libbitcoin_wallet_a-masternode-budget.obj: masternode-budget.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_wallet_a-masternode-budget.obj -MD -MP -MF $(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Tpo -c -o libbitcoin_wallet_a-masternode-budget.obj `if test -f 'masternode-budget.cpp'; then $(CYGPATH_W) 'masternode-budget.cpp'; else $(CYGPATH_W) '$(srcdir)/masternode-budget.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Tpo $(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Po
-#	$(AM_V_CXX)source='masternode-budget.cpp' object='libbitcoin_wallet_a-masternode-budget.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_wallet_a-masternode-budget.obj `if test -f 'masternode-budget.cpp'; then $(CYGPATH_W) 'masternode-budget.cpp'; else $(CYGPATH_W) '$(srcdir)/masternode-budget.cpp'; fi`
 
 libbitcoin_wallet_a-masternode-payments.o: masternode-payments.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_wallet_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_wallet_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_wallet_a-masternode-payments.o -MD -MP -MF $(DEPDIR)/libbitcoin_wallet_a-masternode-payments.Tpo -c -o libbitcoin_wallet_a-masternode-payments.o `test -f 'masternode-payments.cpp' || echo '$(srcdir)/'`masternode-payments.cpp
@@ -8117,6 +8216,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f bench/$(DEPDIR)/$(am__dirstamp)
 	-rm -f bench/$(am__dirstamp)
+	-rm -f budget/$(DEPDIR)/$(am__dirstamp)
+	-rm -f budget/$(am__dirstamp)
 	-rm -f compat/$(DEPDIR)/$(am__dirstamp)
 	-rm -f compat/$(am__dirstamp)
 	-rm -f consensus/$(DEPDIR)/$(am__dirstamp)
@@ -8231,7 +8332,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-utilstrencodings.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-utiltime.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-activemasternode.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode-payments.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode-sync.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode.Po
@@ -8239,7 +8339,6 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternodeman.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosure.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosuredb.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po
 	-rm -f ./$(DEPDIR)/libzcash_script_la-hash.Plo
@@ -8260,6 +8359,12 @@ distclean: distclean-recursive
 	-rm -f bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po
 	-rm -f bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po
 	-rm -f bench/$(DEPDIR)/bench_bitcoin-verification.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po
@@ -8572,7 +8677,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-utilstrencodings.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_util_a-utiltime.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-activemasternode.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode-budget.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode-payments.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode-sync.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternode.Po
@@ -8580,7 +8684,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-masternodeman.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosure.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-paymentdisclosuredb.Po
-	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-swifttx.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-utiltest.Po
 	-rm -f ./$(DEPDIR)/libbitcoin_wallet_a-zcbenchmarks.Po
 	-rm -f ./$(DEPDIR)/libzcash_script_la-hash.Plo
@@ -8601,6 +8704,12 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f bench/$(DEPDIR)/bench_bitcoin-prevector_destructor.Po
 	-rm -f bench/$(DEPDIR)/bench_bitcoin-rollingbloom.Po
 	-rm -f bench/$(DEPDIR)/bench_bitcoin-verification.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetdb.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetmanager.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetproposal.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-budgetvote.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudget.Po
+	-rm -f budget/$(DEPDIR)/libbitcoin_wallet_a-finalizedbudgetvote.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_compat.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibc_sanity.Po
 	-rm -f compat/$(DEPDIR)/libbitcoin_util_a-glibcxx_sanity.Po

@@ -161,9 +161,14 @@ BITCOIN_CORE_H = \
   limitedmap.h \
   main.h \
   memusage.h \
+  budget/budgetdb.h \
+  budget/budgetmanager.h \
+  budget/budgetproposal.h \
+  budget/budgetvote.h \
+  budget/finalizedbudget.h \
+  budget/finalizedbudgetvote.h \
   masternode.h \
   masternode-payments.h \
-  masternode-budget.h \
   masternode-sync.h \
   masternodeman.h \
   masternodeconfig.h \
@@ -326,9 +331,13 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/asyncrpcoperation_shieldcoinbase.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
-  swifttx.cpp \
+  budget/budgetdb.cpp \
+  budget/budgetmanager.cpp \
+  budget/budgetproposal.cpp \
+  budget/budgetvote.cpp \
+  budget/finalizedbudget.cpp \
+  budget/finalizedbudgetvote.cpp \
   masternode.cpp \
-  masternode-budget.cpp \
   masternode-payments.cpp \
   masternode-sync.cpp \
   masternodeconfig.cpp \

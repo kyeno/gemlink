@@ -88,6 +88,8 @@ public:
         consensus.nMasternodePaymentsStartBlock = 193200;
         consensus.nMasternodePaymentsIncreasePeriod = 43200; // 1 month
         consensus.nProposalEstablishmentTime = 60 * 60 * 24; // must be at least a day old to make it into a budget
+        consensus.nBudgetCycleBlocks = 43200;
+        consensus.nMaxProposalPayments = 6;
 
         assert(maxUint / UintToArith256(consensus.powLimit) >= consensus.nPowAveragingWindow);
         consensus.nPowMaxAdjustDown = 32;       // 32% adjustment down
@@ -363,6 +365,8 @@ public:
         consensus.nMasternodePaymentsIncreasePeriod = 200;
         consensus.nZawyLWMA3AveragingWindow = 60;
         consensus.nProposalEstablishmentTime = 60 * 5; // at least 5 min old to make it into a budget
+        consensus.nBudgetCycleBlocks = 144;
+        consensus.nMaxProposalPayments = 20;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000000000000000000000000d");

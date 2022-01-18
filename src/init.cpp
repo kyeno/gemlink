@@ -10,6 +10,8 @@
 #include "activemasternode.h"
 #include "addrman.h"
 #include "amount.h"
+#include "budget/budgetdb.h"
+#include "budget/budgetmanager.h"
 #include "checkpoints.h"
 #include "compat/sanity.h"
 #include "consensus/upgrades.h"
@@ -23,7 +25,6 @@
 #include "key_io.h"
 #endif
 #include "main.h"
-#include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternodeconfig.h"
 #include "masternodeman.h"
@@ -61,7 +62,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/function.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
@@ -222,7 +223,7 @@ void Shutdown()
     StopNode();
     StopTorControl();
     DumpMasternodes();
-    DumpBudgets();
+    DumpBudgets(g_budgetman);
     DumpMasternodePayments();
     UnregisterNodeSignals(GetNodeSignals());
 
@@ -1886,9 +1887,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     CBudgetDB budgetdb;
     int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););
     const bool fDryRun = (nChainHeight <= 0);
-    CBudgetDB::ReadResult readResult2 = budgetdb.Read(budget, fDryRun);
+    CBudgetDB::ReadResult readResult2 = budgetdb.Read(g_budgetman, fDryRun);
     if (nChainHeight > 0)
-        budget.SetBestHeight(nChainHeight);
+        g_budgetman.SetBestHeight(nChainHeight);
 
     if (readResult2 == CBudgetDB::FileError)
         LogPrintf("Missing budget cache - budget.dat, will try to recreate\n");
@@ -1901,8 +1902,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     // flag our cached items so we send them to our peers
-    budget.ResetSync();
-    budget.ClearSeen();
+    g_budgetman.ResetSync();
+    g_budgetman.ClearSeen();
 
 
     uiInterface.InitMessage(_("Loading masternode payment cache..."));

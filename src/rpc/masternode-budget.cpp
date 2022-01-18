@@ -4,8 +4,9 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "masternode-budget.h"
 #include "activemasternode.h"
+#include "budget/budgetdb.h"
+#include "budget/budgetmanager.h"
 #include "db.h"
 #include "init.h"
 #include "key_io.h"
@@ -213,11 +214,13 @@ UniValue preparebudget(const UniValue& params, bool fHelp)
     //*************************************************************************
 
     // create transaction 15 minutes into the future, to allow for confirmation time
-    CBudgetProposalBroadcast budgetProposalBroadcast(strProposalName, strURL, nPaymentCount, scriptPubKey, nAmount, nBlockStart, uint256());
+    // CBudgetProposalBroadcast budgetProposalBroadcast(strProposalName, strURL, nPaymentCount, scriptPubKey, nAmount, nBlockStart, uint256());
+    CBudgetProposal proposal(strProposalName, strURL, nPaymentCount, scriptPubKey, nAmount, nBlockStart, uint256());
+    const uint256& nHash = proposal.GetHash();
 
     int nChainHeight = chainActive.Height();
-    if (!budgetProposalBroadcast.UpdateValid(nChainHeight, false))
-        throw runtime_error("Proposal is not valid - " + budgetProposalBroadcast.GetHash().ToString() + " - " + budgetProposalBroadcast.IsInvalidReason());
+    if (!proposal.IsWellFormed(g_budgetman.GetTotalBudget(proposal.GetBlockStart())))
+        throw std::runtime_error("Proposal is not valid " + proposal.IsInvalidReason());
 
     bool useIX = false; // true;
     // if (params.size() > 7) {
@@ -227,15 +230,20 @@ UniValue preparebudget(const UniValue& params, bool fHelp)
     // }
 
     CWalletTx wtx;
-    if (!pwalletMain->GetBudgetSystemCollateralTX(wtx, budgetProposalBroadcast.GetHash(), useIX)) {
-        throw runtime_error("Error making collateral transaction for proposal. Please check your wallet balance.");
+    // make our change address
+    CReserveKey keyChange(pwalletMain);
+    if (!pwalletMain->GetBudgetSystemCollateralTX(wtx, nHash, useIX)) { // 50 PIV collateral for proposal
+        throw std::runtime_error("Error making collateral transaction for proposal. Please check your wallet balance.");
     }
 
     // make our change address
     CReserveKey reservekey(pwalletMain);
     // send the tx to the network
-    pwalletMain->CommitTransaction(wtx, reservekey, useIX ? "ix" : "tx");
-
+    bool result = pwalletMain->CommitTransaction(wtx, reservekey, useIX ? "ix" : "tx");
+    if (!result) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Could not commit budget transaction");
+    }
+    pwalletMain->mapWallet[wtx.GetHash()].SetComment("Proposal: " + strProposalName);
     return wtx.GetHash().ToString();
 }
 
@@ -308,12 +316,10 @@ UniValue submitbudget(const UniValue& params, bool fHelp)
     uint256 hash = ParseHashV(params[6], "parameter 1");
 
     // create the proposal incase we're the first to make it
-    CBudgetProposalBroadcast budgetProposalBroadcast(strProposalName, strURL, nPaymentCount, scriptPubKey, nAmount, nBlockStart, hash);
-
-    std::string strError = "";
-    int nConf = 0;
-    if (!IsBudgetCollateralValid(hash, budgetProposalBroadcast.GetHash(), strError, budgetProposalBroadcast.nTime, nConf)) {
-        throw runtime_error("Proposal FeeTX is not valid - " + hash.ToString() + " - " + strError);
+    CBudgetProposal proposal(strProposalName, strURL, nPaymentCount, scriptPubKey, nAmount, nBlockStart, hash);
+    if (!g_budgetman.AddProposal(proposal)) {
+        std::string strError = strprintf("invalid budget proposal - %s", proposal.IsInvalidReason());
+        throw std::runtime_error(strError);
     }
 
     if (!masternodeSync.IsBlockchainSynced()) {
@@ -324,11 +330,7 @@ UniValue submitbudget(const UniValue& params, bool fHelp)
     //     return "Proposal is not valid - " + budgetProposalBroadcast.GetHash().ToString() + " - " + strError;
     // }
 
-    budget.AddSeenProposal(budgetProposalBroadcast);
-    budgetProposalBroadcast.Relay();
-    if (budget.AddProposal(budgetProposalBroadcast)) {
-        return budgetProposalBroadcast.GetHash().ToString();
-    }
+    proposal.Relay();
     throw runtime_error("Invalid proposal, see debug.log for details.");
 }
 
@@ -435,7 +437,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             }
 
             std::string strError = "";
-            if (budget.AddAndRelayProposalVote(vote, strError)) {
+            if (g_budgetman.AddAndRelayProposalVote(vote, strError)) {
                 success++;
                 statusObj.push_back(Pair("node", "local"));
                 statusObj.push_back(Pair("result", "success"));
@@ -500,7 +502,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             }
 
             std::string strError = "";
-            if (budget.AddAndRelayProposalVote(vote, strError)) {
+            if (g_budgetman.AddAndRelayProposalVote(vote, strError)) {
                 success++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "success"));
@@ -572,7 +574,7 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
             }
 
             std::string strError = "";
-            if (budget.AddAndRelayProposalVote(vote, strError)) {
+            if (g_budgetman.AddAndRelayProposalVote(vote, strError)) {
                 success++;
                 statusObj.push_back(Pair("node", mne.getAlias()));
                 statusObj.push_back(Pair("result", "success"));
@@ -625,7 +627,7 @@ UniValue getbudgetvotes(const UniValue& params, bool fHelp)
 
     UniValue ret(UniValue::VARR);
 
-    const CBudgetProposal* pbudgetProposal = budget.FindProposalByName(strProposalName);
+    const CBudgetProposal* pbudgetProposal = g_budgetman.FindProposalByName(strProposalName);
 
     if (pbudgetProposal == NULL)
         throw runtime_error("Unknown proposal name");
@@ -694,7 +696,7 @@ UniValue getbudgetprojection(const UniValue& params, bool fHelp)
     UniValue resultObj(UniValue::VOBJ);
     CAmount nTotalAllotted = 0;
 
-    std::vector<CBudgetProposal*> winningProps = budget.GetBudget();
+    std::vector<CBudgetProposal*> winningProps = g_budgetman.GetBudget();
     for (CBudgetProposal* pbudgetProposal : winningProps) {
         nTotalAllotted += pbudgetProposal->GetAllotted();
 
@@ -702,7 +704,7 @@ UniValue getbudgetprojection(const UniValue& params, bool fHelp)
         ExtractDestination(pbudgetProposal->GetPayee(), address1);
 
         UniValue bObj(UniValue::VOBJ);
-        budgetToJSON(pbudgetProposal, bObj, budget.GetBestHeight());
+        budgetToJSON(pbudgetProposal, bObj, g_budgetman.GetBestHeight());
         bObj.push_back(Pair("Alloted", ValueFromAmount(pbudgetProposal->GetAllotted())));
         bObj.push_back(Pair("TotalBudgetAlloted", ValueFromAmount(nTotalAllotted)));
 
@@ -751,12 +753,12 @@ UniValue getbudgetinfo(const UniValue& params, bool fHelp)
             HelpExampleCli("getbudgetprojection", "") + HelpExampleRpc("getbudgetprojection", ""));
 
     UniValue ret(UniValue::VARR);
-    int nCurrentHeight = budget.GetBestHeight();
+    int nCurrentHeight = g_budgetman.GetBestHeight();
 
     std::string strShow = "valid";
     if (params.size() == 1) {
         std::string strProposalName = SanitizeString(params[0].get_str());
-        const CBudgetProposal* pbudgetProposal = budget.FindProposalByName(strProposalName);
+        const CBudgetProposal* pbudgetProposal = g_budgetman.FindProposalByName(strProposalName);
         if (pbudgetProposal == NULL)
             throw runtime_error("Unknown proposal name");
         UniValue bObj(UniValue::VOBJ);
@@ -765,7 +767,7 @@ UniValue getbudgetinfo(const UniValue& params, bool fHelp)
         return ret;
     }
 
-    std::vector<CBudgetProposal*> winningProps = budget.GetAllProposals();
+    std::vector<CBudgetProposal*> winningProps = g_budgetman.GetAllProposals();
     for (CBudgetProposal* pbudgetProposal : winningProps) {
         if (strShow == "valid" && !pbudgetProposal->IsValid())
             continue;
@@ -835,7 +837,7 @@ UniValue mnbudgetrawvote(const UniValue& params, bool fHelp)
         return "Failure to verify signature: " + strError;
     }
 
-    if (budget.AddAndRelayProposalVote(vote, strError)) {
+    if (g_budgetman.AddAndRelayProposalVote(vote, strError)) {
         return "Voted successfully";
     } else {
         return "Error voting : " + strError;
@@ -917,8 +919,8 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
             }
 
             std::string strError = "";
-            if (budget.UpdateFinalizedBudget(vote, NULL, strError)) {
-                budget.AddSeenFinalizedBudgetVote(vote);
+            if (g_budgetman.UpdateFinalizedBudget(vote, NULL, strError)) {
+                g_budgetman.AddSeenFinalizedBudgetVote(vote);
                 vote.Relay();
                 success++;
                 statusObj.push_back(Pair("result", "success"));
@@ -963,8 +965,8 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
         }
 
         std::string strError = "";
-        if (budget.UpdateFinalizedBudget(vote, NULL, strError)) {
-            budget.AddSeenFinalizedBudgetVote(vote);
+        if (g_budgetman.UpdateFinalizedBudget(vote, NULL, strError)) {
+            g_budgetman.AddSeenFinalizedBudgetVote(vote);
             vote.Relay();
             return "success";
         } else {
@@ -975,7 +977,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
     if (strCommand == "show") {
         UniValue resultObj(UniValue::VOBJ);
 
-        std::vector<CFinalizedBudget*> winningFbs = budget.GetFinalizedBudgets();
+        std::vector<CFinalizedBudget*> winningFbs = g_budgetman.GetFinalizedBudgets();
         for (CFinalizedBudget* finalizedBudget : winningFbs) {
             UniValue bObj(UniValue::VOBJ);
             bObj.push_back(Pair("FeeTX", finalizedBudget->GetFeeTXHash().ToString()));
@@ -1006,7 +1008,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
         UniValue obj(UniValue::VOBJ);
 
-        CFinalizedBudget* pfinalBudget = budget.FindFinalizedBudget(hash);
+        CFinalizedBudget* pfinalBudget = g_budgetman.FindFinalizedBudget(hash);
 
         if (pfinalBudget == NULL)
             return "Unknown budget hash";
@@ -1017,7 +1019,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
             std::string strHash = params[1].get_str();
             uint256 hash(uint256S(strHash));
-            CFinalizedBudget* pfinalBudget = budget.FindFinalizedBudget(hash);
+            CFinalizedBudget* pfinalBudget = g_budgetman.FindFinalizedBudget(hash);
             if (pfinalBudget == NULL)
                 return "Unknown budget hash";
             return pfinalBudget->GetVotesObject();
@@ -1038,7 +1040,7 @@ UniValue checkbudgets(const UniValue& params, bool fHelp)
             "\nExamples:\n" +
             HelpExampleCli("checkbudgets", "") + HelpExampleRpc("checkbudgets", ""));
 
-    budget.CheckAndRemove();
+    g_budgetman.CheckAndRemove();
 
     return NullUniValue;
 }

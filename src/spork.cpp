@@ -5,10 +5,11 @@
 
 #include "spork.h"
 #include "base58.h"
+#include "budget/budgetdb.h"
+#include "budget/budgetmanager.h"
 #include "consensus/validation.h"
 #include "key.h"
 #include "main.h"
-#include "masternode-budget.h"
 #include "net.h"
 #include "protocol.h"
 #include "sporkdb.h"

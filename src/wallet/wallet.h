@@ -103,7 +103,7 @@ enum WalletFeature {
 
 enum AvailableCoinsType {
     ALL_COINS = 1,
-    ONLY_10000 = 5                        // find masternode outputs including locked ones (use with caution)
+    ONLY_10000 = 5 // find masternode outputs including locked ones (use with caution)
 };
 
 /** A key pool entry */
@@ -622,6 +622,13 @@ public:
     void SetSproutNoteData(mapSproutNoteData_t& noteData);
     void SetSaplingNoteData(mapSaplingNoteData_t& noteData);
 
+    //! Store a comment
+    void SetComment(const std::string& comment) { mapValue["comment"] = comment; }
+    std::string GetComment() const
+    {
+        const auto& it = mapValue.find("comment");
+        return it != mapValue.end() ? it->second : "";
+    }
     //! filter decides which addresses will count towards the debit
     CAmount GetDebit(const isminefilter& filter) const;
     CAmount GetCredit(const isminefilter& filter) const;
@@ -925,7 +932,7 @@ protected:
 private:
     template <class T>
     void SyncMetaData(std::pair<typename TxSpendMap<T>::iterator, typename TxSpendMap<T>::iterator>);
-    void ChainTipAdded(const CBlockIndex *pindex, const CBlock *pblock, SproutMerkleTree sproutTree, SaplingMerkleTree saplingTree);
+    void ChainTipAdded(const CBlockIndex* pindex, const CBlock* pblock, SproutMerkleTree sproutTree, SaplingMerkleTree saplingTree);
 
 protected:
     bool UpdatedNoteData(const CWalletTx& wtxIn, CWalletTx& wtx);
@@ -1205,7 +1212,7 @@ public:
     CAmount GetLockedCoins() const;
     CAmount GetUnlockedCoins() const;
     double GetAverageAnonymizedRounds() const;
-    /** 
+    /**
      * Increment the next transaction order id
      * @return next transaction order id
      */

@@ -159,7 +159,8 @@ struct Params {
     EHparameters eh_epoch_2 = eh144_5;
     unsigned int eh_epoch_1_endtime = 0;   // it's time, not height
     unsigned int eh_epoch_2_starttime = 0; // it's time, not height
-
+    int nBudgetCycleBlocks = 0;
+    int nMaxProposalPayments = 0;
     int64_t AveragingWindowTimespan() const { return nPowAveragingWindow * nPowTargetSpacing; }
     int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp)) / 100; }
     int64_t MaxActualTimespan() const { return (AveragingWindowTimespan() * (100 + nPowMaxAdjustDown)) / 100; }

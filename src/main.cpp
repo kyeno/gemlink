@@ -12,6 +12,8 @@
 #include "addrman.h"
 #include "alert.h"
 #include "arith_uint256.h"
+#include "budget/budgetdb.h"
+#include "budget/budgetmanager.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
@@ -19,7 +21,6 @@
 #include "consensus/validation.h"
 #include "deprecation.h"
 #include "init.h"
-#include "masternode-budget.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
 #include "masternodeman.h"
@@ -4580,7 +4581,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, C
         if (masternodeSync.RequestedMasternodeAssets > MASTERNODE_SYNC_LIST) {
             const int height = GetHeight();
             masternodePayments.ProcessBlock(height + 10);
-            budget.NewBlock(height);
+            g_budgetman.NewBlock(height);
         }
     }
 
@@ -5694,25 +5695,25 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         }
         return false;
     case MSG_BUDGET_VOTE:
-        if (budget.HaveSeenProposalVote(inv.hash)) {
+        if (g_budgetman.HaveSeenProposalVote(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_PROPOSAL:
-        if (budget.HaveSeenProposal(inv.hash)) {
+        if (g_budgetman.HaveProposal(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_FINALIZED_VOTE:
-        if (budget.HaveSeenFinalizedBudgetVote(inv.hash)) {
+        if (g_budgetman.HaveSeenFinalizedBudgetVote(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
         return false;
     case MSG_BUDGET_FINALIZED:
-        if (budget.HaveSeenFinalizedBudget(inv.hash)) {
+        if (g_budgetman.HaveFinalizedBudget(inv.hash)) {
             masternodeSync.AddedBudgetItem(inv.hash);
             return true;
         }
@@ -5878,40 +5879,40 @@ void static ProcessGetData(const Consensus::Params& consensusParams, CNode* pfro
                         }
                     }
                     if (!pushed && inv.type == MSG_BUDGET_VOTE) {
-                        if (budget.HaveSeenProposalVote(inv.hash)) {
+                        if (g_budgetman.HaveSeenProposalVote(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.GetProposalVoteSerialized(inv.hash);
+                            ss << g_budgetman.GetProposalVoteSerialized(inv.hash);
                             pfrom->PushMessage("mvote", ss);
                             pushed = true;
                         }
                     }
 
                     if (!pushed && inv.type == MSG_BUDGET_PROPOSAL) {
-                        if (budget.HaveSeenProposal(inv.hash)) {
+                        if (g_budgetman.HaveProposal(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.GetProposalSerialized(inv.hash);
+                            ss << g_budgetman.GetProposalSerialized(inv.hash);
                             pfrom->PushMessage("mprop", ss);
                             pushed = true;
                         }
                     }
 
                     if (!pushed && inv.type == MSG_BUDGET_FINALIZED_VOTE) {
-                        if (budget.HaveSeenFinalizedBudgetVote(inv.hash)) {
+                        if (g_budgetman.HaveSeenFinalizedBudgetVote(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.GetFinalizedBudgetVoteSerialized(inv.hash);
+                            ss << g_budgetman.GetFinalizedBudgetVoteSerialized(inv.hash);
                             pfrom->PushMessage("fbvote", ss);
                             pushed = true;
                         }
                     }
 
                     if (!pushed && inv.type == MSG_BUDGET_FINALIZED) {
-                        if (budget.HaveSeenFinalizedBudget(inv.hash)) {
+                        if (g_budgetman.HaveFinalizedBudget(inv.hash)) {
                             CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                             ss.reserve(1000);
-                            ss << budget.GetFinalizedBudgetSerialized(inv.hash);
+                            ss << g_budgetman.GetFinalizedBudgetSerialized(inv.hash);
                             pfrom->PushMessage("fbs", ss);
                             pushed = true;
                         }
@@ -6815,7 +6816,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
     } else {
         // probably one the extensions
         mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
-        budget.ProcessMessage(pfrom, strCommand, vRecv);
+        g_budgetman.ProcessMessage(pfrom, strCommand, vRecv);
         masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
         ProcessMessageSwiftTX(pfrom, strCommand, vRecv);
         sporkManager.ProcessSpork(pfrom, strCommand, vRecv);

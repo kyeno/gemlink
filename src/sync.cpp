@@ -174,4 +174,38 @@ void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine,
     abort();
 }
 
+void AssertLockNotHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs)
+{
+    for (const std::pair<void*, CLockLocation>& i : g_lockstack) {
+        if (i.first == cs) {
+            tfm::format(std::cerr, "Assertion failed: lock %s held in %s:%i; locks held:\n%s", pszName, pszFile, nLine, LocksHeld());
+            abort();
+        }
+    }
+}
+
+void DeleteLock(void* cs)
+{
+    LockData& lockdata = GetLockData();
+    if (!lockdata.available) {
+        // We're already shutting down.
+        return;
+    }
+    std::lock_guard<std::mutex> lock(lockdata.dd_mutex);
+    std::pair<void*, void*> item = std::make_pair(cs, nullptr);
+    LockOrders::iterator it = lockdata.lockorders.lower_bound(item);
+    while (it != lockdata.lockorders.end() && it->first.first == cs) {
+        std::pair<void*, void*> invitem = std::make_pair(it->first.second, it->first.first);
+        lockdata.invlockorders.erase(invitem);
+        lockdata.lockorders.erase(it++);
+    }
+    InvLockOrders::iterator invit = lockdata.invlockorders.lower_bound(item);
+    while (invit != lockdata.invlockorders.end() && invit->first == cs) {
+        std::pair<void*, void*> invinvitem = std::make_pair(invit->second, invit->first);
+        lockdata.lockorders.erase(invinvitem);
+        lockdata.invlockorders.erase(invit++);
+    }
+}
+
+
 #endif /* DEBUG_LOCKORDER */

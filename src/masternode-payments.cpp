@@ -6,7 +6,8 @@
 
 #include "masternode-payments.h"
 #include "addrman.h"
-#include "masternode-budget.h"
+#include "budget/budgetdb.h"
+#include "budget/budgetmanager.h"
 #include "masternode-sync.h"
 #include "masternodeman.h"
 #include "spork.h"
