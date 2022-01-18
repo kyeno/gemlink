@@ -1101,6 +1101,28 @@ bool ContextualCheckTransaction(
     return true;
 }
 
+
+int GetInputAge(CTxIn& vin)
+{
+    CCoinsView viewDummy;
+    CCoinsViewCache view(&viewDummy);
+    {
+        LOCK(mempool.cs);
+        CCoinsViewMemPool viewMempool(pcoinsTip, mempool);
+        view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
+
+        const CCoins* coins = view.AccessCoins(vin.prevout.hash);
+
+        if (coins) {
+            if (coins->nHeight < 0)
+                return 0;
+            return (chainActive.Tip()->nHeight + 1) - coins->nHeight;
+        } else
+            return -1;
+    }
+}
+
+
 int GetIXConfirmations(uint256 nTXHash)
 {
     int sigs = 0;

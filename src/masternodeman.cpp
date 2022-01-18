@@ -523,7 +523,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
             continue;
 
         // make sure it has as many confirmations as there are masternodes
-        if (pcoinsTip->GetCoinDepthAtHeight(mn.vin.prevout, nBlockHeight) < nMnCount)
+        if (GetInputAge(mn.vin) < nMnCount)
             continue;
 
         vecMasternodeLastPaid.push_back(make_pair(mn.SecondsSincePayment(), mn.vin));

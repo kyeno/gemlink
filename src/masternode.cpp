@@ -666,7 +666,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
 
     LogPrint("masternode", "mnb - Accepted Masternode entry\n");
 
-    if (pcoinsTip->GetCoinDepthAtHeight(vin.prevout, nChainHeight) < MASTERNODE_MIN_CONFIRMATIONS) {
+    if (GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS) {
         LogPrint("masternode", "mnb - Input must have at least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
         // maybe we miss few blocks, let this mnb to be checked again later
         mnodeman.mapSeenMasternodeBroadcast.erase(GetHash());

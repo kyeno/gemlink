@@ -223,7 +223,7 @@ int64_t CreateNewLock(CTransaction tx)
     int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););
     int64_t nTxAge = 0;
     BOOST_REVERSE_FOREACH (CTxIn i, tx.vin) {
-        nTxAge = pcoinsTip->GetCoinDepthAtHeight(i.prevout, nChainHeight);
+        nTxAge = GetInputAge(i);
         if (nTxAge < 5) // 1 less than the "send IX" gui requires, incase of a block propagating the network at the time
         {
             LogPrintf("CreateNewLock - Transaction not found / too new: %d / %s\n", nTxAge, tx.GetHash().ToString().c_str());
