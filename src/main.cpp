@@ -2066,12 +2066,16 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     }
 
     assert(nHeight > consensusParams.SubsidySlowStartShift());
+
+
+    // Subsidy is cut in half every 60 * 24 * 365 * 4 blocks which will occur approximately every 4 years.
     int halvings = (nHeight - consensusParams.SubsidySlowStartShift()) / consensusParams.nSubsidyHalvingInterval;
+    if (consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
+        halvings = (nHeight - consensusParams.SubsidySlowStartShift() - consensusParams.nDelayHalvingBlocks) / consensusParams.nSubsidyHalvingInterval;
+    }
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64)
         return 0;
-
-    // Subsidy is cut in half every 60 * 24 * 365 * 4 blocks which will occur approximately every 4 years.
     nSubsidy >>= halvings;
     return nSubsidy;
 }
@@ -2100,6 +2104,13 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
         if (nHeight >= nMNPaymentDIFA)
             ret = 925 * COIN / 100;
     }
+    return ret;
+}
+
+int64_t GetDevelopersPayment(int nHeight, int64_t blockValue)
+{
+    int64_t ret = blockValue * 20 / 100;
+
     return ret;
 }
 
@@ -3115,7 +3126,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs - 1), nTimeConnect * 0.000001);
 
     CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
-    if (!IsBlockValueValid(block, blockReward))
+    if (!IsBlockValueValid(pindex->nHeight, block, blockReward))
         return state.DoS(100,
                          error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0].GetValueOut(), blockReward),
@@ -4406,7 +4417,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const CC
                         found = true;
                         break;
                     }
-                } else {
+                } else if (!chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
                     if (output.nValue == (GetBlockSubsidy(nHeight, chainparams.GetConsensus()) * 10 / 100)) {
                         found = true;
                         break;
@@ -4417,6 +4428,23 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const CC
 
         if (!found) {
             return state.Invalid(error("%s: treasury reward missing", __func__), REJECT_INVALID, "cb-no-treasury-reward");
+        }
+    }
+
+    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG) && (nHeight <= chainparams.GetConsensus().GetLastTreasuryRewardBlockHeight())) {
+        bool found = false;
+
+        for (const CTxOut& output : block.vtx[0].vout) {
+            if (output.scriptPubKey == Params().GetDevelopersRewardScriptAtHeight(nHeight)) {
+                if (output.nValue == GetDevelopersPayment(nHeight, GetBlockSubsidy(nHeight, chainparams.GetConsensus()))) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found) {
+            return state.Invalid(error("%s: developers reward missing", __func__), REJECT_INVALID, "cb-no-developers-reward");
         }
     }
 

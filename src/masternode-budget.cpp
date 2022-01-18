@@ -477,7 +477,7 @@ void CBudgetManager::CheckAndRemove()
     LogPrint("mnbudget", "%s: PASSED\n", __func__);
 }
 
-void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
+void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew)
 {
     LOCK(cs);
 
@@ -488,52 +488,49 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
     int nHighestCount = 0;
     CScript payee;
     CAmount nAmount = 0;
-
+    const int height = pindexPrev->nHeight;
     // ------- Grab The Highest Count
 
     std::map<uint256, CFinalizedBudget>::iterator it = mapFinalizedBudgets.begin();
     while (it != mapFinalizedBudgets.end()) {
         CFinalizedBudget* pfinalizedBudget = &((*it).second);
         if (pfinalizedBudget->GetVoteCount() > nHighestCount &&
-            pindexPrev->nHeight + 1 >= pfinalizedBudget->GetBlockStart() &&
-            pindexPrev->nHeight + 1 <= pfinalizedBudget->GetBlockEnd() &&
-            pfinalizedBudget->GetPayeeAndAmount(pindexPrev->nHeight + 1, payee, nAmount)) {
+            height + 1 >= pfinalizedBudget->GetBlockStart() &&
+            height + 1 <= pfinalizedBudget->GetBlockEnd() &&
+            pfinalizedBudget->GetPayeeAndAmount(height + 1, payee, nAmount)) {
             nHighestCount = pfinalizedBudget->GetVoteCount();
         }
 
         ++it;
     }
 
-    CAmount blockValue = GetBlockSubsidy(pindexPrev->nHeight + 1, Params().GetConsensus());
+    CAmount blockValue = GetBlockSubsidy(height + 1, Params().GetConsensus());
 
     // miners get the full amount on these blocks
     txNew.vout[0].nValue = blockValue;
 
-    if ((pindexPrev->nHeight + 1 > 0) && (pindexPrev->nHeight + 1 <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
+    if ((height + 1 > 0) && (height + 1 <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
         CAmount vFoundersReward = 0;
 
-        if (pindexPrev->nHeight + 1 < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
+        if (height + 1 < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
             vFoundersReward = txNew.vout[0].nValue / 20;
-        } else if (pindexPrev->nHeight + 1 < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+        } else if (height + 1 < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
             vFoundersReward = txNew.vout[0].nValue * 7.5 / 100;
         } else {
             vFoundersReward = txNew.vout[0].nValue * 15 / 100;
         }
 
         // And give it to the founders
-        txNew.vout.push_back(CTxOut(vFoundersReward, Params().GetFoundersRewardScriptAtHeight(pindexPrev->nHeight + 1)));
+        txNew.vout.push_back(CTxOut(vFoundersReward, Params().GetFoundersRewardScriptAtHeight(height + 1)));
 
         // Take some reward away from us
         txNew.vout[0].nValue -= vFoundersReward;
-
-        // And give it to the founders
-        txNew.vout.push_back(CTxOut(vFoundersReward, Params().GetFoundersRewardScriptAtHeight(pindexPrev->nHeight + 1)));
     }
 
-    if ((pindexPrev->nHeight + 1 > 0) && (pindexPrev->nHeight + 1 <= Params().GetConsensus().GetLastTreasuryRewardBlockHeight())) {
+    if ((height + 1 > 0) && (height + 1 <= Params().GetConsensus().GetLastTreasuryRewardBlockHeight())) {
         CAmount vTreasuryReward = 0;
-        if (pindexPrev->nHeight + 1 >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight &&
-            !NetworkUpgradeActive(pindexPrev->nHeight + 1, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+        if (height + 1 >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight &&
+            !NetworkUpgradeActive(height + 1, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
             vTreasuryReward = txNew.vout[0].nValue * 5 / 100;
         } else {
             vTreasuryReward = txNew.vout[0].nValue * 10 / 100;
@@ -543,14 +540,23 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
         txNew.vout[0].nValue -= vTreasuryReward;
 
         // And give it to the founders
-        if (pindexPrev->nHeight + 1 >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
-            txNew.vout.push_back(CTxOut(vTreasuryReward, Params().GetTreasuryRewardScriptAtHeight(pindexPrev->nHeight + 1)));
+        if (height + 1 >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+            txNew.vout.push_back(CTxOut(vTreasuryReward, Params().GetTreasuryRewardScriptAtHeight(height + 1)));
         }
     }
 
-    if (nHighestCount > 0) {
-        txNew.vout[0].nValue -= nAmount;
+    if (Params().GetConsensus().NetworkUpgradeActive(height + 1, Consensus::UPGRADE_MORAG) &&
+        height + 1 <= Params().GetConsensus().GetLastDevelopersRewardBlockHeight()) {
+        const CAmount vDevelopersReward = GetDevelopersPayment(height + 1, blockValue);
 
+        // And give it to the founders
+        txNew.vout.push_back(CTxOut(vDevelopersReward, Params().GetDevelopersRewardScriptAtHeight(height + 1)));
+
+        // Take some reward away from us
+        txNew.vout[0].nValue -= vDevelopersReward;
+    }
+
+    if (nHighestCount > 0) {
         txNew.vout.push_back(CTxOut(nAmount, payee));
 
         CTxDestination address1;

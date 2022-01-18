@@ -117,15 +117,21 @@ struct Params {
      */
     int SubsidySlowStartShift() const { return nSubsidySlowStartInterval / 2; }
     int nSubsidyHalvingInterval;
+    int nDelayHalvingBlocks;
     int GetLastFoundersRewardBlockHeight() const
     {
         return nSubsidyHalvingInterval + SubsidySlowStartShift() - 1;
         // return 99999999;
     }
 
-    int GetLastTreasuryRewardBlockHeight() const
+    int GetLastDevelopersRewardBlockHeight() const
     {
         return 99999999;
+    }
+
+    int GetLastTreasuryRewardBlockHeight() const
+    {
+        return vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight - 1;
     }
 
     int GetFoundersRewardRepeatInterval() const

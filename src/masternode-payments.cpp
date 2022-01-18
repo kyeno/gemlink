@@ -270,25 +270,8 @@ void DumpMasternodePayments()
     LogPrint("masternode", "Budget dump finished  %dms\n", GetTimeMillis() - nStart);
 }
 
-bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue)
+bool IsBlockValueValid(int nHeight, const CBlock& block, CAmount nExpectedValue)
 {
-    CBlockIndex* pindexPrev = chainActive.Tip();
-    if (pindexPrev == NULL)
-        return true;
-
-    int nHeight = 0;
-    if (pindexPrev->GetBlockHash() == block.hashPrevBlock) {
-        nHeight = pindexPrev->nHeight + 1;
-    } else { // out of order
-        BlockMap::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
-        if (mi != mapBlockIndex.end() && (*mi).second)
-            nHeight = (*mi).second->nHeight + 1;
-    }
-
-    if (nHeight == 0) {
-        LogPrint("masternode", "IsBlockValueValid() : WARNING: Couldn't find previous block\n");
-    }
-
     if (!masternodeSync.IsSynced()) { // there is no budget data to use to check anything
         // super blocks will always be on these blocks, max 100 per budgeting
         if (nHeight % GetBudgetPaymentCycleBlocks() < 100) {
@@ -308,13 +291,10 @@ bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue)
         if (budget.IsBudgetPaymentBlock(nHeight)) {
             // the value of the block is evaluated in CheckBlock
             return true;
-        } else {
-            if (block.vtx[0].GetValueOut() > nExpectedValue)
-                return false;
         }
     }
 
-    return true;
+    return block.vtx[0].GetValueOut() <= nExpectedValue;
 }
 
 bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int nBlockHeight)
@@ -366,7 +346,7 @@ void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
         return;
 
     if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(pindexPrev->nHeight + 1)) {
-        budget.FillBlockPayee(txNew, nFees);
+        budget.FillBlockPayee(txNew);
     } else {
         masternodePayments.FillBlockPayee(txNew, nFees);
     }
@@ -406,27 +386,6 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     CAmount blockValue = GetBlockSubsidy(nHeight, Params().GetConsensus());
     CAmount minerValue = blockValue;
 
-    // Founders reward
-    CAmount vFoundersReward = 0;
-    if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
-        vFoundersReward = blockValue / 20;
-    } else if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
-        vFoundersReward = blockValue * 7.5 / 100;
-    } else {
-        vFoundersReward = blockValue * 15 / 100;
-    }
-
-    // Treasury reward
-    CAmount vTreasuryReward = 0;
-
-
-    if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight &&
-        !NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
-        vTreasuryReward = blockValue * 5 / 100;
-    } else {
-        vTreasuryReward = blockValue * 10 / 100;
-    }
-
     CAmount masternodePayment = GetMasternodePayment(nHeight, blockValue);
     if (hasPayment) {
         minerValue -= masternodePayment;
@@ -435,6 +394,16 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     txNew.vout[0].nValue = minerValue + nFees;
 
     if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
+        // Founders reward
+        CAmount vFoundersReward = 0;
+        if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
+            vFoundersReward = blockValue / 20;
+        } else if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+            vFoundersReward = blockValue * 7.5 / 100;
+        } else if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+            vFoundersReward = blockValue * 15 / 100;
+        }
+
         // Take some reward away from us
         txNew.vout[0].nValue -= vFoundersReward;
 
@@ -443,10 +412,31 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     }
 
     if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastTreasuryRewardBlockHeight())) {
+        // Treasury reward
+        CAmount vTreasuryReward = 0;
+
+        if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight &&
+            !NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+            vTreasuryReward = blockValue * 5 / 100;
+        } else if (!NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+            vTreasuryReward = blockValue * 10 / 100;
+        }
+
         if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
             txNew.vout[0].nValue -= vTreasuryReward;
             txNew.vout.push_back(CTxOut(vTreasuryReward, Params().GetTreasuryRewardScriptAtHeight(nHeight)));
         }
+    }
+
+    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG) &&
+        nHeight <= Params().GetConsensus().GetLastDevelopersRewardBlockHeight()) {
+        const CAmount vDevelopersReward = GetDevelopersPayment(nHeight, blockValue);
+
+        // And give it to the developers
+        txNew.vout.push_back(CTxOut(vDevelopersReward, Params().GetDevelopersRewardScriptAtHeight(nHeight)));
+
+        // Take some reward away from us
+        txNew.vout[0].nValue -= vDevelopersReward;
     }
 
     //@TODO masternode

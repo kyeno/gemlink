@@ -30,7 +30,7 @@ extern CMasternodePayments masternodePayments;
 void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int nBlockHeight);
 std::string GetRequiredPaymentsString(int nBlockHeight);
-bool IsBlockValueValid(const CBlock& block, CAmount nExpectedValue);
+bool IsBlockValueValid(int nHeight, const CBlock& block, CAmount nExpectedValue);
 void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees);
 
 void DumpMasternodePayments();

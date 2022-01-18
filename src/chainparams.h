@@ -113,6 +113,10 @@ public:
     CScript GetTreasuryRewardScriptAtHeight(int height) const;
     std::string GetTreasuryRewardAddressAtIndex(int i) const;
 
+    std::string GetDevelopersRewardAddressAtHeight(int height) const;
+    CScript GetDevelopersRewardScriptAtHeight(int height) const;
+    std::string GetDevelopersRewardAddressAtIndex(int i) const;
+
     /** Enforce coinbase consensus rule in regtest mode */
     void SetRegTestCoinbaseMustBeProtected() { consensus.fCoinbaseMustBeProtected = true; }
     bool GetCoinbaseProtected(int height) const;
@@ -156,6 +160,7 @@ protected:
     std::vector<std::string> vFoundersRewardAddress;
     std::vector<std::string> vFoundersRewardAddress2;
     std::vector<std::string> vTreasuryRewardAddress;
+    std::vector<std::string> vDevelopersRewardAddress;
     int newTimeRule;
     int masternodeProtectionBlock;
     int masternodeCollateral;

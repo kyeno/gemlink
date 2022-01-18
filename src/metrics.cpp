@@ -331,17 +331,30 @@ int printMetrics(size_t cols, bool mining)
                 if (mapBlockIndex.count(hash) > 0 &&
                     chainActive.Contains(mapBlockIndex[hash])) {
                     int height = mapBlockIndex[hash]->nHeight;
-                    CAmount subsidy = GetBlockSubsidy(height, consensusParams);
+                    CAmount blockReward = GetBlockSubsidy(height, consensusParams);
+                    CAmount subsidy = blockReward;
                     if ((height > 0) && (height < consensusParams.GetLastFoundersRewardBlockHeight())) {
                         if (height < consensusParams.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
-                            subsidy -= subsidy / 20;
+                            subsidy -= blockReward / 20;
                         } else if (height < consensusParams.vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
-                            subsidy -= subsidy * 7.5 / 100;
+                            subsidy -= blockReward * 7.5 / 100;
                         } else {
-                            subsidy -= subsidy * 15 / 100; // founders reward
-                            subsidy -= subsidy * 5 / 100;  // treasury reward
+                            subsidy -= blockReward * 15 / 100; // founders reward
                         }
                     }
+
+                    if ((height > 0) && (height <= Params().GetConsensus().GetLastTreasuryRewardBlockHeight())) {
+                        if (!NetworkUpgradeActive(height, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+                            subsidy -= blockReward * 5 / 100;
+                        } else if (!NetworkUpgradeActive(height, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+                            subsidy -= blockReward * 10 / 100;
+                        }
+                    }
+
+                    if (NetworkUpgradeActive(height, Params().GetConsensus(), Consensus::UPGRADE_MORAG) && (height <= Params().GetConsensus().GetLastDevelopersRewardBlockHeight())) {
+                        subsidy -= blockReward * 20 / 100;
+                    }
+
                     if (std::max(0, COINBASE_MATURITY - (tipHeight - height)) > 0) {
                         immature += subsidy;
                     } else {

@@ -78,6 +78,7 @@ public:
         consensus.fCoinbaseMustBeProtected = true;
         consensus.nSubsidySlowStartInterval = 8000;
         consensus.nSubsidyHalvingInterval = 60 * 24 * 365 * 4;
+        consensus.nDelayHalvingBlocks = 655200;
         consensus.nMajorityEnforceBlockUpgrade = 750;
         consensus.nMajorityRejectBlockOutdated = 950;
         consensus.nMajorityWindow = 4000;
@@ -114,7 +115,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_WAKANDA].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nActivationHeight = 1760000; // 2021, May 10th
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
-        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2760000; // 2021, May 10th
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 2167200; // 2022, Feb 14
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170011;
 
         consensus.nZawyLWMA3AveragingWindow = 60;
@@ -274,6 +275,30 @@ public:
             "s3ZGMfXNrYRLEy58bGGacyc7CzsXt6C8brn", /* main-index: 18*/
             "s3S7Z17UfNmRkxoNkRaLuyXpckMv9DEr4cz", /* main-index: 19*/
         };
+
+        vDevelopersRewardAddress = {
+            "s3STyRjwtffPWcfQzawkHEcDVVeYCCZvKAw", /* main-index: 0*/
+            "s3QiJcoCmWewixcVVAnt3LoxY3BSNNx8YhM", /* main-index: 1*/
+            "s3b65JSBYsikDESqv1MqgWhn51adyMd2fzY", /* main-index: 2*/
+            "s3fRjrKkH6yVj5rPTU2N8X7pMKnuyWS46Qb", /* main-index: 3*/
+            "s3XYB7NcXsZWb6MX8jsCwefdAU8BnTQvg7x", /* main-index: 4*/
+            "s3dcca3UyRyH56osUEWMRGTS7h9YwXj6Kqq", /* main-index: 5*/
+            "s3c5hmNVHNn5Gb4JzqdUH7iDubSjUSfUD9i", /* main-index: 6*/
+            "s3b3EPcrRvkcgcTVVqEhz8HtF3KrKGu5m3h", /* main-index: 7*/
+            "s3chG3hQjiorgYRACd42S7p4zzWoGaYyVfN", /* main-index: 8*/
+            "s3aVCqrd3qt6EASt9KpGnLtKRQkjAPbu5qC", /* main-index: 9*/
+            "s3jPRn5CmFGVfKENbjbE3U4NwfXaBN4oH2C", /* main-index: 10*/
+            "s3gUK3Vv9gF1hT4XoGfZju1DFmvoGvhEuVH", /* main-index: 11*/
+            "s3b2SGjybAV8vhZeKuXz1vFURpP3CVxyrnq", /* main-index: 12*/
+            "s3inM3mAzVwseCPJzMDgwmNyXDTRA9Pjn5h", /* main-index: 13*/
+            "s3PiBVbSkPeV6VNXJf1HD2hbsyXRGXDN1q5", /* main-index: 14*/
+            "s3aejhtm6xYdB5wEdSyJUsJ79CqqGmeC7Y6", /* main-index: 15*/
+            "s3TTYpvWazeMSbvMHvmTfxsJakWz7cEhcET", /* main-index: 16*/
+            "s3f4F2nsXzgJt1K2drpcGnDiVZedvfMY6H1", /* main-index: 17*/
+            "s3ZGMfXNrYRLEy58bGGacyc7CzsXt6C8brn", /* main-index: 18*/
+            "s3S7Z17UfNmRkxoNkRaLuyXpckMv9DEr4cz", /* main-index: 19*/
+        };
+
         nPoolMaxTransactions = 3;
         strSporkKey = "045da9271f5d9df405d9e83c7c7e62e9c831cc85c51ffaa6b515c4f9c845dec4bf256460003f26ba9d394a17cb57e6759fe231eca75b801c20bccd19cbe4b7942d";
 
@@ -420,6 +445,10 @@ public:
 
         vTreasuryRewardAddress = {
             "t2Vck95daFLBrvcgfxCT43uBsicECsn6wqe"};
+
+        vDevelopersRewardAddress = {
+            "t2Vck95daFLBrvcgfxCT43uBsicECsn6wqe"};
+
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
 
         nStartMasternodePayments = 1520121600; // 2018-03-04
@@ -527,6 +556,8 @@ public:
         vFoundersRewardAddress = {"t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
         vFoundersRewardAddress2 = {"t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
         vTreasuryRewardAddress = {"t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
+        vDevelopersRewardAddress = {
+            "t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 
@@ -662,6 +693,37 @@ std::string CChainParams::GetTreasuryRewardAddressAtIndex(int i) const
 {
     assert(i >= 0 && i < vTreasuryRewardAddress.size());
     return vTreasuryRewardAddress[i];
+}
+
+
+// Block height must be >0
+// Index variable i ranges from 0 - (vFoundersRewardAddress.size()-1)
+std::string CChainParams::GetDevelopersRewardAddressAtHeight(int nHeight) const
+{
+    int maxHeight = consensus.GetFoundersRewardRepeatInterval();
+    // assert(nHeight > 0 && nHeight <= maxHeight);
+
+    size_t addressChangeInterval = (maxHeight + vDevelopersRewardAddress.size()) / vDevelopersRewardAddress.size();
+    size_t i = (nHeight / addressChangeInterval) % vDevelopersRewardAddress.size();
+    return vDevelopersRewardAddress[i];
+}
+
+// Block height must be >0
+// The developers reward address is expected to be a multisig (P2SH) address
+CScript CChainParams::GetDevelopersRewardScriptAtHeight(int nHeight) const
+{
+    CTxDestination address = DecodeDestination(GetDevelopersRewardAddressAtHeight(nHeight).c_str());
+    assert(IsValidDestination(address));
+    assert(boost::get<CScriptID>(&address) != nullptr);
+    CScriptID scriptID = boost::get<CScriptID>(address); // address is a boost variant
+    CScript script = CScript() << OP_HASH160 << ToByteVector(scriptID) << OP_EQUAL;
+    return script;
+}
+
+std::string CChainParams::GetDevelopersRewardAddressAtIndex(int i) const
+{
+    assert(i >= 0 && i < vDevelopersRewardAddress.size());
+    return vDevelopersRewardAddress[i];
 }
 
 bool CChainParams::GetCoinbaseProtected(int height) const

@@ -198,7 +198,7 @@ UniValue generate(const UniValue& params, bool fHelp)
     UniValue blockHashes(UniValue::VARR);
 
 
-    Consensus::EHparameters ehparams[Consensus::MAX_EH_PARAM_LIST_LEN]; //allocate on-stack space for parameters list
+    Consensus::EHparameters ehparams[Consensus::MAX_EH_PARAM_LIST_LEN]; // allocate on-stack space for parameters list
     const CChainParams& chainparams = Params();
 
     while (nHeight < nHeightEnd) {
@@ -744,8 +744,9 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
 
     int64_t nHeight = pindexPrev->nHeight + 1;
     CAmount nReward = GetBlockSubsidy(nHeight, Params().GetConsensus());
-    CAmount nFoundersReward = 0;
+
     if (nHeight < Params().GetConsensus().GetLastFoundersRewardBlockHeight()) {
+        CAmount nFoundersReward = 0;
         if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
             nFoundersReward = nReward / 20;
         } else if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
@@ -753,22 +754,34 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         } else {
             nFoundersReward = nReward * 15 / 100;
         }
+
+        result.push_back(Pair("founderReward", (int64_t)nFoundersReward));
+        result.push_back(Pair("founderAddress", Params().GetFoundersRewardAddressAtHeight(nHeight)));
     }
 
-    CAmount nTreasuryReward = 0;
-    if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
-        if (!NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
-            nTreasuryReward = nReward * 5 / 100;
-        } else {
-            nTreasuryReward = nReward * 10 / 100;
+    if (nHeight > 0 && nHeight <= Params().GetConsensus().GetLastTreasuryRewardBlockHeight()) {
+        CAmount nTreasuryReward = 0;
+        if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+            if (!NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+                nTreasuryReward = nReward * 5 / 100;
+            } else if (!NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+                nTreasuryReward = nReward * 10 / 100;
+            }
+        }
+        if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+            result.push_back(Pair("treasuryReward", (int64_t)nTreasuryReward));
+            result.push_back(Pair("treasuryAddress", Params().GetTreasuryRewardAddressAtHeight(nHeight)));
         }
     }
-    result.push_back(Pair("founderReward", (int64_t)nFoundersReward));
-    result.push_back(Pair("founderAddress", Params().GetFoundersRewardAddressAtHeight(nHeight)));
-    if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
-        result.push_back(Pair("treasuryReward", (int64_t)nTreasuryReward));
-        result.push_back(Pair("treasuryAddress", Params().GetTreasuryRewardAddressAtHeight(nHeight)));
+
+    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG) &&
+        nHeight <= Params().GetConsensus().GetLastDevelopersRewardBlockHeight()) {
+        const CAmount vDevelopersReward = GetDevelopersPayment(nHeight, nReward);
+
+        result.push_back(Pair("founderReward", (int64_t)vDevelopersReward));
+        result.push_back(Pair("founderAddress", Params().GetDevelopersRewardAddressAtHeight(nHeight)));
     }
+
     return result;
 }
 
@@ -948,12 +961,17 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
     }
 
     CAmount nTreasuryReward = 0;
-    if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_KNOWHERE) && !Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         if (!NetworkUpgradeActive(nHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
             nTreasuryReward = nReward * 5 / 100;
         } else {
             nTreasuryReward = nReward * 10 / 100;
         }
+    }
+
+    CAmount nDeveloperReward = 0;
+    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
+        nDeveloperReward = GetDevelopersPayment(nHeight, nReward);
     }
 
     CAmount nMasternodeReward = GetMasternodePayment(nHeight, nReward);
@@ -962,9 +980,14 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
     nReward -= nFoundersReward;
     nReward -= nTreasuryReward;
     result.push_back(Pair("miner", ValueFromAmount(nReward)));
-    result.push_back(Pair("founders", ValueFromAmount(nFoundersReward)));
-    result.push_back(Pair("founderAddress", Params().GetFoundersRewardAddressAtHeight(nHeight)));
-    if (nHeight >= Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+    if (!Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
+        result.push_back(Pair("founders", ValueFromAmount(nFoundersReward)));
+        result.push_back(Pair("founderAddress", Params().GetFoundersRewardAddressAtHeight(nHeight)));
+    } else {
+        result.push_back(Pair("founders", ValueFromAmount(nDeveloperReward)));
+        result.push_back(Pair("founderAddress", Params().GetDevelopersRewardAddressAtHeight(nHeight)));
+    }
+    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_KNOWHERE) && !Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         result.push_back(Pair("treasury", ValueFromAmount(nTreasuryReward)));
         result.push_back(Pair("treasuryAddress", Params().GetTreasuryRewardAddressAtHeight(nHeight)));
     }
