@@ -467,6 +467,17 @@ CMasternode* CMasternodeMan::Find(const CTxIn& vin)
     return NULL;
 }
 
+CMasternode* CMasternodeMan::Find(const COutPoint& collateralOut)
+{
+    LOCK(cs);
+    for (CMasternode& mn : vMasternodes) {
+        if (mn.pubKeyMasternode == pubKeyMasternode)
+            return &mn;
+    }
+
+    auto it = mapMasternodes.find(collateralOut);
+    return it != mapMasternodes.end() ? it->second.get() : nullptr;
+}
 
 CMasternode* CMasternodeMan::Find(const CPubKey& pubKeyMasternode)
 {
@@ -638,39 +649,48 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
     return -1;
 }
 
-std::vector<pair<int, CMasternode>> CMasternodeMan::GetMasternodeRanks(int64_t nBlockHeight, int minProtocol)
+uint256 CMasternodeMan::GetHashAtHeight(int nHeight) const
 {
-    std::vector<pair<int64_t, CMasternode>> vecMasternodeScores;
-    std::vector<pair<int, CMasternode>> vecMasternodeRanks;
+    // return zero if outside bounds
+    if (nHeight < 0) {
+        LogPrint("masternode", "%s: Negative height. Returning 0\n", __func__);
+        return uint256();
+    }
+    int nCurrentHeight = GetBestHeight();
+    if (nHeight > nCurrentHeight) {
+        LogPrint("masternode", "%s: height %d over current height %d. Returning 0\n",
+                 __func__, nHeight, nCurrentHeight);
+        return uint256();
+    }
 
 
-    // scan for winner
-    for (CMasternode& mn : vMasternodes) {
-        mn.Check();
+    LOCK(cs_main);
+    return chainActive[nHeight]->GetBlockHash();
+}
 
-        if (mn.protocolVersion < minProtocol)
-            continue;
+std::vector<std::pair<int64_t, MasternodeRef>> CMasternodeMan::GetMasternodeRanks(int64_t nBlockHeight, int minProtocol)
+{
+    std::vector<std::pair<int64_t, MasternodeRef>> vecMasternodeScores;
+    const uint256& hash = GetHashAtHeight(nBlockHeight - 1);
+    // height outside range
+    if (!hash)
+        return vecMasternodeScores;
+    {
+        LOCK(cs);
+        // scan for winner
+        for (const auto& it : mapMasternodes) {
+            const MasternodeRef& mn = it.second;
+            if (!mn->IsEnabled()) {
+                vecMasternodeScores.emplace_back(9999, mn);
+                continue;
+            }
 
-        if (!mn.IsEnabled()) {
-            vecMasternodeScores.push_back(make_pair(9999, mn));
-            continue;
+            int64_t n2 = mn->CalculateScore(hash).GetCompact(false);
+            vecMasternodeScores.emplace_back(n2, mn);
         }
-
-        arith_uint256 n = mn.CalculateScore(nBlockHeight);
-        int64_t n2 = n.GetCompact(false);
-
-        vecMasternodeScores.push_back(make_pair(n2, mn));
     }
-
     sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreMN());
-
-    int rank = 0;
-    for (PAIRTYPE(int64_t, CMasternode) & s : vecMasternodeScores) {
-        rank++;
-        vecMasternodeRanks.push_back(make_pair(rank, s.second));
-    }
-
-    return vecMasternodeRanks;
+    return vecMasternodeScores;
 }
 
 void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
@@ -785,14 +805,15 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         int nInvCount = 0;
 
-        for (CMasternode& mn : vMasternodes) {
-            if (mn.addr.IsRFC1918())
+        for (auto& it : mapMasternodes) {
+            MasternodeRef& mn = it.second;
+            if (mn->addr.IsRFC1918())
                 continue; // local network
 
-            if (mn.IsEnabled()) {
-                LogPrint("masternode", "dseg - Sending Masternode entry - %s \n", mn.vin.prevout.hash.ToString());
-                if (vin == CTxIn() || vin == mn.vin) {
-                    CMasternodeBroadcast mnb = CMasternodeBroadcast(mn);
+            if (mn->IsEnabled()) {
+                LogPrint("masternode", "dseg - Sending Masternode entry - %s \n", mn->vin.prevout.hash.ToString());
+                if (vin == CTxIn() || vin == mn->vin) {
+                    CMasternodeBroadcast mnb = CMasternodeBroadcast(*mn);
                     uint256 hash = mnb.GetHash();
                     pfrom->PushInventory(CInv(MSG_MASTERNODE_ANNOUNCE, hash));
                     nInvCount++;
@@ -800,7 +821,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                     if (!mapSeenMasternodeBroadcast.count(hash))
                         mapSeenMasternodeBroadcast.insert(make_pair(hash, mnb));
 
-                    if (vin == mn.vin) {
+                    if (vin == mn->vin) {
                         LogPrint("masternode", "dseg - Sent 1 Masternode entry to peer %i\n", pfrom->GetId());
                         return;
                     }
@@ -815,18 +836,12 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
     }
 }
 
-void CMasternodeMan::Remove(CTxIn vin)
+void CMasternodeMan::Remove(const COutPoint& collateralOut)
 {
     LOCK(cs);
-
-    vector<CMasternode>::iterator it = vMasternodes.begin();
-    while (it != vMasternodes.end()) {
-        if ((*it).vin == vin) {
-            LogPrint("masternode", "CMasternodeMan: Removing Masternode %s - %i now\n", (*it).vin.prevout.hash.ToString(), size() - 1);
-            vMasternodes.erase(it);
-            break;
-        }
-        ++it;
+    const auto it = mapMasternodes.find(collateralOut);
+    if (it != mapMasternodes.end()) {
+        mapMasternodes.erase(it);
     }
 }
 
@@ -851,7 +866,7 @@ std::string CMasternodeMan::ToString() const
 {
     std::ostringstream info;
 
-    info << "Masternodes: " << (int)vMasternodes.size() << ", peers who asked us for Masternode list: " << (int)mAskedUsForMasternodeList.size() << ", peers we asked for Masternode list: " << (int)mWeAskedForMasternodeList.size() << ", entries in Masternode list we asked for: " << (int)mWeAskedForMasternodeListEntry.size() << ", nDsqCount: " << (int)nDsqCount;
+    info << "Masternodes: " << (int)mapMasternodes.size() << ", peers who asked us for Masternode list: " << (int)mAskedUsForMasternodeList.size() << ", peers we asked for Masternode list: " << (int)mWeAskedForMasternodeList.size() << ", entries in Masternode list we asked for: " << (int)mWeAskedForMasternodeListEntry.size() << ", nDsqCount: " << (int)nDsqCount;
 
     return info.str();
 }

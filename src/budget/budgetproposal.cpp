@@ -84,7 +84,6 @@ CDataStream CBudgetProposal::GetBroadcast() const
 
 void CBudgetProposal::SyncVotes(CNode* pfrom, bool fPartial, int& nInvCount) const
 {
-    LOCK(cs);
     for (const auto& it : mapVotes) {
         const CBudgetVote& vote = it.second;
         if (vote.IsValid() && (!fPartial || !vote.IsSynced())) {
@@ -185,7 +184,7 @@ bool CBudgetProposal::IsExpired(int nCurrentHeight)
     return false;
 }
 
-bool CBudgetProposal::UpdateValid(int nCurrentHeight, bool fCheckCollateral)
+bool CBudgetProposal::UpdateValid(int nCurrentHeight)
 {
     fValid = false;
 
@@ -235,8 +234,6 @@ bool CBudgetProposal::IsPassing(int nBlockStartBudget, int nBlockEndBudget, int 
 bool CBudgetProposal::AddOrUpdateVote(const CBudgetVote& vote, std::string& strError)
 {
     std::string strAction = "New vote inserted:";
-    LOCK(cs);
-
     const uint256& hash = vote.GetVin().prevout.GetHash();
     const int64_t voteTime = vote.GetTime();
 
@@ -269,7 +266,6 @@ bool CBudgetProposal::AddOrUpdateVote(const CBudgetVote& vote, std::string& strE
 
 UniValue CBudgetProposal::GetVotesArray() const
 {
-    LOCK(cs);
     UniValue ret(UniValue::VARR);
     for (const auto& it : mapVotes) {
         ret.push_back(it.second.ToJSON());
@@ -279,7 +275,6 @@ UniValue CBudgetProposal::GetVotesArray() const
 
 void CBudgetProposal::SetSynced(bool synced)
 {
-    LOCK(cs);
     for (auto& it : mapVotes) {
         CBudgetVote& vote = it.second;
         if (synced) {
@@ -297,7 +292,7 @@ void CBudgetProposal::CleanAndRemove()
     std::map<uint256, CBudgetVote>::iterator it = mapVotes.begin();
 
     while (it != mapVotes.end()) {
-        CMasternode* pmn = mnodeman.Find((*it).second.GetVin());
+        CMasternode* pmn = mnodeman.Find(it->second.GetVin().prevout);
         (*it).second.SetValid(pmn != nullptr);
         ++it;
     }
@@ -316,7 +311,6 @@ double CBudgetProposal::GetRatio() const
 
 int CBudgetProposal::GetVoteCount(CBudgetVote::VoteDirection vd) const
 {
-    LOCK(cs);
     int ret = 0;
     for (const auto& it : mapVotes) {
         const CBudgetVote& vote = it.second;
@@ -324,6 +318,15 @@ int CBudgetProposal::GetVoteCount(CBudgetVote::VoteDirection vd) const
             ret++;
     }
     return ret;
+}
+
+std::vector<uint256> CBudgetProposal::GetVotesHashes() const
+{
+    std::vector<uint256> vRet;
+    for (const auto& it: mapVotes) {
+        vRet.push_back(it.first);
+    }
+    return vRet;
 }
 
 int CBudgetProposal::GetBlockStartCycle() const

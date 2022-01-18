@@ -37,12 +37,19 @@ private:
     bool fValid;
     std::string strInvalid;
 
+    // Functions used inside IsWellFormed/UpdateValid - setting strInvalid
+    bool IsExpired(int nCurrentHeight);
+    bool CheckStartEnd();
+    bool CheckAmount(const CAmount& nTotalBudget);
+    bool CheckName();
+
 protected:
+    std::map<uint256, CFinalizedBudgetVote> mapVotes;
     std::string strBudgetName;
     int nBlockStart;
     std::vector<CTxBudgetPayment> vecBudgetPayments;
-    std::map<uint256, CFinalizedBudgetVote> mapVotes;
     uint256 nFeeTXHash;
+    std::string strProposals;
 
 public:
     int64_t nTime;
@@ -59,30 +66,36 @@ public:
     void SyncVotes(CNode* pfrom, bool fPartial, int& nInvCount) const;
 
     // sets fValid and strInvalid, returns fValid
-    bool UpdateValid(int nHeight, bool fCheckCollateral = true);
-    bool IsValid() const { return fValid; }
+    bool UpdateValid(int nHeight);
+    // Static checks that should be done only once - sets strInvalid
+    bool IsWellFormed(const CAmount& nTotalBudget);
+    bool IsValid() const  { return fValid; }
+    void SetStrInvalid(const std::string& _strInvalid) { strInvalid = _strInvalid; }
     std::string IsInvalidReason() const { return strInvalid; }
+    std::string IsInvalidLogStr() const { return strprintf("[%s (%s)]: %s", GetName(), GetProposalsStr(), IsInvalidReason()); }
+
+    bool IsAutoChecked() const { return fAutoChecked; }
+    void SetAutoChecked(bool _fAutoChecked) { fAutoChecked = _fAutoChecked; }
+
+    void SetProposalsStr(const std::string _strProposals) { strProposals = _strProposals; }
 
     std::string GetName() const { return strBudgetName; }
-    std::string GetProposals();
+    std::string GetProposalsStr() const { return strProposals; }
+    std::vector<uint256> GetProposalsHashes() const;
     int GetBlockStart() const { return nBlockStart; }
     int GetBlockEnd() const { return nBlockStart + (int)(vecBudgetPayments.size() - 1); }
     const uint256& GetFeeTXHash() const { return nFeeTXHash; }
     int GetVoteCount() const { return (int)mapVotes.size(); }
-    bool IsPaidAlready(uint256 nProposalHash, int nBlockHeight) const;
-    TrxValidationStatus IsTransactionValid(const CTransaction& txNew, int nBlockHeight) const;
+    std::vector<uint256> GetVotesHashes() const;
+    bool IsPaidAlready(const uint256& nProposalHash, const uint256& nBlockHash, int nBlockHeight) const;
+    TrxValidationStatus IsTransactionValid(const CTransaction& txNew, const uint256& nBlockHash, int nBlockHeight) const;
     bool GetBudgetPaymentByBlock(int64_t nBlockHeight, CTxBudgetPayment& payment) const;
     bool GetPayeeAndAmount(int64_t nBlockHeight, CScript& payee, CAmount& nAmount) const;
 
-    // Verify and vote on finalized budget
-    void CheckAndVote();
-    // total pivx paid out by this budget
+    // Check finalized budget proposals. Masternodes only (when voting on finalized budgets)
+    bool CheckProposals(const std::map<uint256, CBudgetProposal>& mapWinningProposals) const;
+    // Total amount paid out by this budget
     CAmount GetTotalPayout() const;
-    // vote on this finalized budget as a masternode
-    void SubmitVote();
-
-    // checks the hashes to make sure we know about them
-    std::string GetStatus() const;
 
     uint256 GetHash() const
     {
@@ -107,7 +120,13 @@ public:
         READWRITE(fAutoChecked);
 
         READWRITE(mapVotes);
+        READWRITE(strProposals);
     }
+
+    // Serialization for network messages.
+    bool ParseBroadcast(CDataStream& broadcast);
+    CDataStream GetBroadcast() const;
+    void Relay();
 };
 
 class CTxBudgetPayment
