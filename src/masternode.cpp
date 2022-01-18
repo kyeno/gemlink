@@ -26,27 +26,25 @@ std::map<int64_t, uint256> mapCacheBlockHashes;
 // Get the last hash that matches the modulus given. Processed in reverse order
 bool GetBlockHash(uint256& hash, int nBlockHeight)
 {
-    if (chainActive.Tip() == NULL)
+    const CBlockIndex* tipIndex = GetChainTip();
+    if (!tipIndex || !tipIndex->nHeight)
         return false;
 
     if (nBlockHeight == 0)
-        nBlockHeight = chainActive.Tip()->nHeight;
+        nBlockHeight = tipIndex->nHeight;
 
     if (mapCacheBlockHashes.count(nBlockHeight)) {
         hash = mapCacheBlockHashes[nBlockHeight];
         return true;
     }
 
-    const CBlockIndex* BlockLastSolved = chainActive.Tip();
-    const CBlockIndex* BlockReading = chainActive.Tip();
-
-    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || chainActive.Tip()->nHeight + 1 < nBlockHeight)
-        return false;
-
     int nBlocksAgo = 0;
     if (nBlockHeight > 0)
-        nBlocksAgo = (chainActive.Tip()->nHeight + 1) - nBlockHeight;
-    assert(nBlocksAgo >= 0);
+        nBlocksAgo = (tipIndex->nHeight + 1) - nBlockHeight;
+    if (nBlocksAgo < 0)
+        return false;
+
+    const CBlockIndex* BlockReading = tipIndex;
 
     int n = 0;
     for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
@@ -76,8 +74,6 @@ CMasternode::CMasternode() : CSignedMessage()
     pubKeyMasternode = CPubKey();
     sigTime = GetAdjustedTime();
     lastPing = CMasternodePing();
-    cacheInputAge = 0;
-    cacheInputAgeBlock = 0;
     unitTest = false;
     allowFreeTx = true;
     nActiveState = MASTERNODE_ENABLED,
@@ -106,8 +102,6 @@ CMasternode::CMasternode(const CMasternode& other) : CSignedMessage(other)
     activeState = other.activeState;
     sigTime = other.sigTime;
     lastPing = other.lastPing;
-    cacheInputAge = other.cacheInputAge;
-    cacheInputAgeBlock = other.cacheInputAgeBlock;
     unitTest = other.unitTest;
     allowFreeTx = other.allowFreeTx;
     protocolVersion = other.protocolVersion;
@@ -154,7 +148,7 @@ bool CMasternode::UpdateFromNewBroadcast(CMasternodeBroadcast& mnb)
         addr = mnb.addr;
         lastTimeChecked = 0;
         int nDoS = 0;
-        if (mnb.lastPing == CMasternodePing() || (mnb.lastPing != CMasternodePing() && mnb.lastPing.CheckAndUpdate(nDoS, false))) {
+        if (mnb.lastPing.IsNull() || (!mnb.lastPing.IsNull() && mnb.lastPing.CheckAndUpdate(nDoS, false))) {
             lastPing = mnb.lastPing;
             mnodeman.mapSeenMasternodePing.insert(make_pair(lastPing.GetHash(), lastPing));
         }
@@ -170,8 +164,11 @@ bool CMasternode::UpdateFromNewBroadcast(CMasternodeBroadcast& mnb)
 //
 arith_uint256 CMasternode::CalculateScore(int64_t nBlockHeight)
 {
-    if (chainActive.Tip() == NULL)
-        return arith_uint256();
+    {
+        LOCK(cs_main);
+        if (chainActive.Tip() == NULL)
+            return arith_uint256();
+    }
 
     uint256 hash;
     if (!GetBlockHash(hash, nBlockHeight)) {
@@ -264,8 +261,8 @@ int64_t CMasternode::SecondsSincePayment()
 
 int64_t CMasternode::GetLastPaid()
 {
-    CBlockIndex* pindexPrev = chainActive.Tip();
-    if (pindexPrev == NULL)
+    const CBlockIndex* BlockReading = GetChainTip();
+    if (BlockReading == nullptr)
         return false;
 
     CScript mnpayee;
@@ -278,11 +275,6 @@ int64_t CMasternode::GetLastPaid()
 
     // use a deterministic offset to break a tie -- 2.5 minutes
     int64_t nOffset = (UintToArith256(hash)).GetCompact(false) % 150;
-
-    if (chainActive.Tip() == NULL)
-        return false;
-
-    const CBlockIndex* BlockReading = chainActive.Tip();
 
     int nMnCount = mnodeman.CountEnabled() * 1.25;
     int n = 0;
@@ -539,7 +531,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     }
 
     // incorrect ping or its sigTime
-    if (lastPing == CMasternodePing() || !lastPing.CheckAndUpdate(nDos, false, true))
+    if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true))
         return false;
 
     if (protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
@@ -627,7 +619,7 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
         return true;
 
     // incorrect ping or its sigTime
-    if (lastPing == CMasternodePing() || !lastPing.CheckAndUpdate(nDoS, false, true))
+    if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDoS, false, true))
         return false;
 
     // search existing Masternode list
@@ -642,6 +634,15 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
             mnodeman.Remove(pmn->vin);
     }
 
+    CValidationState state;
+    CMutableTransaction tx = CMutableTransaction();
+    CScript dummyScript;
+    dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
+    CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
+    tx.vin.push_back(vin);
+    tx.vout.push_back(vout);
+
+    int nChainHeight = 0;
     {
         TRY_LOCK(cs_main, lockMain);
         if (!lockMain) {
@@ -659,11 +660,13 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
             LogPrint("masternode", "CMasternodeBroadcast::CheckInputsAndAdd -- Failed to find Masternode UTXO, masternode=%s\n", vin.prevout.ToStringShort());
             return false;
         }
+
+        nChainHeight = chainActive.Height();
     }
 
     LogPrint("masternode", "mnb - Accepted Masternode entry\n");
 
-    if (GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS) {
+    if (pcoinsTip->GetCoinDepthAtHeight(vin.prevout, nChainHeight) < MASTERNODE_MIN_CONFIRMATIONS) {
         LogPrint("masternode", "mnb - Input must have at least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
         // maybe we miss few blocks, let this mnb to be checked again later
         mnodeman.mapSeenMasternodeBroadcast.erase(GetHash());

@@ -580,6 +580,17 @@ void UnregisterNodeSignals(CNodeSignals& nodeSignals)
     nodeSignals.FinalizeNode.disconnect(&FinalizeNode);
 }
 
+CBlockIndex* GetChainTip()
+{
+    LOCK(cs_main);
+    CBlockIndex* p = chainActive.Tip();
+    if (!p)
+        return nullptr;
+    // Do not pass in the chain active tip, because it can change.
+    // Instead pass the blockindex directly from mapblockindex, which is const
+    return mapBlockIndex.at(p->GetBlockHash());
+}
+
 CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& locator)
 {
     // Find the first block the caller has in the main chain
@@ -1088,46 +1099,6 @@ bool ContextualCheckTransaction(
         librustzcash_sapling_verification_ctx_free(ctx);
     }
     return true;
-}
-
-int GetInputAge(CTxIn& vin)
-{
-    CCoinsView viewDummy;
-    CCoinsViewCache view(&viewDummy);
-    {
-        LOCK(mempool.cs);
-        CCoinsViewMemPool viewMempool(pcoinsTip, mempool);
-        view.SetBackend(viewMempool); // temporarily switch cache backend to db+mempool view
-
-        const CCoins* coins = view.AccessCoins(vin.prevout.hash);
-
-        if (coins) {
-            if (coins->nHeight < 0)
-                return 0;
-            return (chainActive.Tip()->nHeight + 1) - coins->nHeight;
-        } else
-            return -1;
-    }
-}
-
-int GetInputAgeIX(uint256 nTXHash, CTxIn& vin)
-{
-    int sigs = 0;
-    int nResult = GetInputAge(vin);
-    if (nResult < 0)
-        nResult = 0;
-
-    if (nResult < 6) {
-        std::map<uint256, CTransactionLock>::iterator i = mapTxLocks.find(nTXHash);
-        if (i != mapTxLocks.end()) {
-            sigs = (*i).second.CountSignatures();
-        }
-        if (sigs >= SWIFTTX_SIGNATURES_REQUIRED) {
-            return nSwiftTXDepth + nResult;
-        }
-    }
-
-    return -1;
 }
 
 int GetIXConfirmations(uint256 nTXHash)

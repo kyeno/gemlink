@@ -8,8 +8,8 @@
 #include "base58.h"
 #include "consensus/validation.h"
 #include "key.h"
-#include "masternodeman.h"
 #include "masternode-sync.h"
+#include "masternodeman.h"
 #include "net.h"
 #include "protocol.h"
 #include "spork.h"
@@ -117,7 +117,7 @@ void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& v
                     if (!CheckForConflictingLocks(tx)) {
                         LogPrintf("ProcessMessageSwiftTX::ix - Found Existing Complete IX Lock\n");
 
-                        //reprocess the last 15 blocks
+                        // reprocess the last 15 blocks
                         ReprocessBlocks(chainparams, 15);
                         mapTxLockReq.insert(make_pair(tx.GetHash(), tx));
                     }
@@ -220,9 +220,10 @@ bool IsIXTXValid(const CTransaction& txCollateral)
 
 int64_t CreateNewLock(CTransaction tx)
 {
+    int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););
     int64_t nTxAge = 0;
     BOOST_REVERSE_FOREACH (CTxIn i, tx.vin) {
-        nTxAge = GetInputAge(i);
+        nTxAge = pcoinsTip->GetCoinDepthAtHeight(i.prevout, nChainHeight);
         if (nTxAge < 5) // 1 less than the "send IX" gui requires, incase of a block propagating the network at the time
         {
             LogPrintf("CreateNewLock - Transaction not found / too new: %d / %s\n", nTxAge, tx.GetHash().ToString().c_str());

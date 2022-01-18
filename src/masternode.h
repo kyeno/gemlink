@@ -71,6 +71,8 @@ public:
     uint256 GetSignatureHash() const override { return GetHash(); }
     std::string GetStrMessage() const override;
     const CTxIn GetVin() const override { return vin; };
+
+    bool IsNull() { return blockHash.IsNull() || vin.prevout.IsNull(); }
     bool CheckAndUpdate(int& nDos, bool fRequireEnabled = true, bool fCheckSigTimeOnly = false);
     void Relay();
     // TODO gemlink can remove after morag fork
@@ -135,12 +137,8 @@ public:
     CService addr;
     CPubKey pubKeyCollateralAddress;
     CPubKey pubKeyMasternode;
-    CPubKey pubKeyCollateralAddress1;
-    CPubKey pubKeyMasternode1;
     int activeState;
     int64_t sigTime; // mnb message time
-    int cacheInputAge;
-    int cacheInputAgeBlock;
     bool unitTest;
     bool allowFreeTx;
     int protocolVersion;
@@ -177,8 +175,6 @@ public:
         swap(first.activeState, second.activeState);
         swap(first.sigTime, second.sigTime);
         swap(first.lastPing, second.lastPing);
-        swap(first.cacheInputAge, second.cacheInputAge);
-        swap(first.cacheInputAgeBlock, second.cacheInputAgeBlock);
         swap(first.unitTest, second.unitTest);
         swap(first.allowFreeTx, second.allowFreeTx);
         swap(first.protocolVersion, second.protocolVersion);
@@ -220,8 +216,6 @@ public:
         READWRITE(protocolVersion);
         READWRITE(activeState);
         READWRITE(lastPing);
-        READWRITE(cacheInputAge);
-        READWRITE(cacheInputAgeBlock);
         READWRITE(unitTest);
         READWRITE(allowFreeTx);
         READWRITE(nLastDsq);
@@ -232,13 +226,6 @@ public:
     int64_t SecondsSincePayment();
 
     bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
-
-    inline uint64_t SliceHash(uint256& hash, int slice)
-    {
-        uint64_t n = 0;
-        memcpy(&n, &hash + slice * 64, 64);
-        return n;
-    }
 
     void Check(bool forceCheck = false);
 
@@ -251,31 +238,19 @@ public:
     {
         now == -1 ? now = GetAdjustedTime() : now;
 
-        return (lastPing == CMasternodePing()) ? false : now - lastPing.sigTime < seconds;
+        return lastPing.IsNull() ? false : now - lastPing.sigTime < seconds;
     }
 
     void Disable()
     {
+        LOCK(cs);
         sigTime = 0;
         lastPing = CMasternodePing();
     }
 
     bool IsEnabled()
     {
-        return activeState == MASTERNODE_ENABLED;
-    }
-
-    int GetMasternodeInputAge()
-    {
-        if (chainActive.Tip() == NULL)
-            return 0;
-
-        if (cacheInputAge == 0) {
-            cacheInputAge = GetInputAge(vin);
-            cacheInputAgeBlock = chainActive.Tip()->nHeight;
-        }
-
-        return cacheInputAge + (chainActive.Tip()->nHeight - cacheInputAgeBlock);
+        return WITH_LOCK(cs, return activeState == MASTERNODE_ENABLED);
     }
 
     std::string GetStatus();
@@ -284,6 +259,7 @@ public:
     {
         std::string strStatus = "ACTIVE";
 
+        LOCK(cs);
         if (activeState == CMasternode::MASTERNODE_ENABLED)
             strStatus = "ENABLED";
         if (activeState == CMasternode::MASTERNODE_EXPIRED)

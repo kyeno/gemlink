@@ -545,6 +545,9 @@ public:
     //! Return priority of tx at height nHeight
     double GetPriority(const CTransaction& tx, int nHeight) const;
 
+    int GetCoinDepthAtHeight(const COutPoint& output, int nHeight) const;
+
+
     const CTxOut& GetOutputFor(const CTxIn& input) const;
 
     friend class CCoinsModifier;

@@ -230,17 +230,15 @@ public:
 class CMasternodePayments
 {
 private:
-    int nSyncedFromPeer;
     int nLastBlockHeight;
 
 public:
     std::map<uint256, CMasternodePaymentWinner> mapMasternodePayeeVotes;
     std::map<int, CMasternodeBlockPayees> mapMasternodeBlocks;
-    std::map<COutPoint, int> mapMasternodesLastVote; //prevout.hash + prevout.n, nBlockHeight
+    std::map<COutPoint, int> mapMasternodesLastVote; // prevout.hash + prevout.n, nBlockHeight
 
     CMasternodePayments()
     {
-        nSyncedFromPeer = 0;
         nLastBlockHeight = 0;
     }
 
@@ -256,13 +254,12 @@ public:
 
     void Sync(CNode* node, int nCountNeeded);
     void CleanPaymentList();
-    int LastPayment(CMasternode& mn);
 
     bool GetBlockPayee(int nBlockHeight, CScript& payee);
     bool IsTransactionValid(const CChainParams& chainparams, const CTransaction& txNew, int nBlockHeight);
     bool IsScheduled(CMasternode& mn, int nNotBlockHeight);
 
-    bool CanVote(COutPoint outMasternode, int nBlockHeight)
+    bool CanVote(const COutPoint outMasternode, int nBlockHeight)
     {
         LOCK(cs_mapMasternodePayeeVotes);
 
@@ -272,7 +269,7 @@ public:
             }
         }
 
-        //record this masternode voted
+        // record this masternode voted
         mapMasternodesLastVote[outMasternode] = nBlockHeight;
         return true;
     }
@@ -282,9 +279,6 @@ public:
     std::string GetRequiredPaymentsString(int nBlockHeight);
     void FillBlockPayee(CMutableTransaction& txNew, int64_t nFees);
     std::string ToString() const;
-    int GetOldestBlock();
-    int GetNewestBlock();
-
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>

@@ -647,6 +647,15 @@ double CCoinsViewCache::GetPriority(const CTransaction& tx, int nHeight) const
     return tx.ComputePriority(dResult);
 }
 
+int CCoinsViewCache::GetCoinDepthAtHeight(const COutPoint& output, int nHeight) const
+{
+    const CCoins* coin = AccessCoins(output.GetHash());
+    if (coin && !coin->IsPruned())
+        return nHeight - coin->nHeight + 1;
+    return -1;
+}
+
+
 CCoinsModifier::CCoinsModifier(CCoinsViewCache& cache_, CCoinsMap::iterator it_, size_t usage) : cache(cache_), it(it_), cachedCoinUsage(usage)
 {
     assert(!cache.hasModifier);

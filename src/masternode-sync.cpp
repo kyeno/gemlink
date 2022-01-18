@@ -105,7 +105,7 @@ void CMasternodeSync::Reset()
     nAssetSyncStarted = GetTime();
 }
 
-void CMasternodeSync::AddedMasternodeList(uint256 hash)
+void CMasternodeSync::AddedMasternodeList(const uint256& hash)
 {
     if (mnodeman.mapSeenMasternodeBroadcast.count(hash)) {
         if (mapSeenSyncMNB[hash] < MASTERNODE_SYNC_THRESHOLD) {
@@ -118,7 +118,7 @@ void CMasternodeSync::AddedMasternodeList(uint256 hash)
     }
 }
 
-void CMasternodeSync::AddedMasternodeWinner(uint256 hash)
+void CMasternodeSync::AddedMasternodeWinner(const uint256& hash)
 {
     if (masternodePayments.mapMasternodePayeeVotes.count(hash)) {
         if (mapSeenSyncMNW[hash] < MASTERNODE_SYNC_THRESHOLD) {
@@ -131,7 +131,7 @@ void CMasternodeSync::AddedMasternodeWinner(uint256 hash)
     }
 }
 
-void CMasternodeSync::AddedBudgetItem(uint256 hash)
+void CMasternodeSync::AddedBudgetItem(const uint256& hash)
 {
     if (budget.HaveSeenProposal(hash) ||
         budget.HaveSeenProposalVote(hash) ||
@@ -253,10 +253,6 @@ void CMasternodeSync::ProcessMessage(CNode* pfrom, std::string& strCommand, CDat
 
 void CMasternodeSync::ClearFulfilledRequest()
 {
-    TRY_LOCK(cs_vNodes, lockRecv);
-    if (!lockRecv)
-        return;
-
     for (CNode* pnode : vNodes) {
         pnode->ClearFulfilledRequest("getspork");
         pnode->ClearFulfilledRequest("mnsync");

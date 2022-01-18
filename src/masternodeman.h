@@ -98,7 +98,6 @@ public:
     }
 
     CMasternodeMan();
-    CMasternodeMan(CMasternodeMan& other);
 
     /// Add an entry
     bool Add(CMasternode& mn);
@@ -141,7 +140,6 @@ public:
 
     std::vector<pair<int, CMasternode>> GetMasternodeRanks(int64_t nBlockHeight, int minProtocol = 0);
     int GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, int minProtocol = 0, bool fOnlyActive = true);
-    CMasternode* GetMasternodeByRank(int nRank, int64_t nBlockHeight, int minProtocol = 0, bool fOnlyActive = true);
 
 
     void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
@@ -156,7 +154,6 @@ public:
 
     void Remove(CTxIn vin);
 
-    int GetEstimatedMasternodes(int nBlock);
     /// Update masternode list and maps using provided CMasternodeBroadcast
     void UpdateMasternodeList(CMasternodeBroadcast mnb);
 };

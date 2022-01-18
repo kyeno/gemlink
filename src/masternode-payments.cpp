@@ -484,6 +484,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
 
         if (NetworkIdFromCommandLine() == CBaseChainParams::MAIN) {
             if (pfrom->HasFulfilledRequest("mnget")) {
+                LOCK(cs_main);
                 LogPrint("masternode", "mnget - peer already asked me for the list\n");
                 Misbehaving(pfrom->GetId(), 20);
                 return;
@@ -536,6 +537,7 @@ void CMasternodePayments::ProcessMessageMasternodePayments(CNode* pfrom, std::st
         if (!winner.CheckSignature()) {
             LogPrint("masternode", "mnw - invalid signature\n");
             if (masternodeSync.IsSynced()) {
+                LOCK(cs_main);
                 Misbehaving(pfrom->GetId(), 20);
             }
             // it could just be a non-synced masternode
@@ -868,40 +870,4 @@ std::string CMasternodePayments::ToString() const
     info << "Votes: " << (int)mapMasternodePayeeVotes.size() << ", Blocks: " << (int)mapMasternodeBlocks.size();
 
     return info.str();
-}
-
-
-int CMasternodePayments::GetOldestBlock()
-{
-    LOCK(cs_mapMasternodeBlocks);
-
-    int nOldestBlock = std::numeric_limits<int>::max();
-
-    std::map<int, CMasternodeBlockPayees>::iterator it = mapMasternodeBlocks.begin();
-    while (it != mapMasternodeBlocks.end()) {
-        if ((*it).first < nOldestBlock) {
-            nOldestBlock = (*it).first;
-        }
-        it++;
-    }
-
-    return nOldestBlock;
-}
-
-
-int CMasternodePayments::GetNewestBlock()
-{
-    LOCK(cs_mapMasternodeBlocks);
-
-    int nNewestBlock = 0;
-
-    std::map<int, CMasternodeBlockPayees>::iterator it = mapMasternodeBlocks.begin();
-    while (it != mapMasternodeBlocks.end()) {
-        if ((*it).first > nNewestBlock) {
-            nNewestBlock = (*it).first;
-        }
-        it++;
-    }
-
-    return nNewestBlock;
 }

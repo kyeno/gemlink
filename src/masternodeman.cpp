@@ -523,7 +523,7 @@ CMasternode* CMasternodeMan::GetNextMasternodeInQueueForPayment(int nBlockHeight
             continue;
 
         // make sure it has as many confirmations as there are masternodes
-        if (mn.GetMasternodeInputAge() < nMnCount)
+        if (pcoinsTip->GetCoinDepthAtHeight(mn.vin.prevout, nBlockHeight) < nMnCount)
             continue;
 
         vecMasternodeLastPaid.push_back(make_pair(mn.SecondsSincePayment(), mn.vin));
@@ -673,39 +673,6 @@ std::vector<pair<int, CMasternode>> CMasternodeMan::GetMasternodeRanks(int64_t n
     return vecMasternodeRanks;
 }
 
-CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight, int minProtocol, bool fOnlyActive)
-{
-    std::vector<pair<int64_t, CTxIn>> vecMasternodeScores;
-
-    // scan for winner
-    for (CMasternode& mn : vMasternodes) {
-        if (mn.protocolVersion < minProtocol)
-            continue;
-        if (fOnlyActive) {
-            mn.Check();
-            if (!mn.IsEnabled())
-                continue;
-        }
-
-        arith_uint256 n = mn.CalculateScore(nBlockHeight);
-        int64_t n2 = n.GetCompact(false);
-
-        vecMasternodeScores.push_back(make_pair(n2, mn.vin));
-    }
-
-    sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareScoreTxIn());
-
-    int rank = 0;
-    for (PAIRTYPE(int64_t, CTxIn) & s : vecMasternodeScores) {
-        rank++;
-        if (rank == nRank) {
-            return Find(s.second);
-        }
-    }
-
-    return NULL;
-}
-
 void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
     if (fLiteMode)
@@ -728,6 +695,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         int nDoS = 0;
         if (!mnb.CheckAndUpdate(nDoS)) {
             if (nDoS > 0) {
+                LOCK(cs_main);
                 Misbehaving(pfrom->GetId(), nDoS);
             }
 
@@ -739,6 +707,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         //  - this is expensive, so it's only done once per Masternode
         if (!mnb.IsInputAssociatedWithPubkey()) {
             LogPrint("masternode", "mnb - Got mismatched pubkey and vin\n");
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 33);
             return;
         }
@@ -753,6 +722,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             LogPrint("masternode", "mnb - Rejected Masternode entry %s\n", mnb.vin.prevout.hash.ToString());
 
             if (nDoS > 0) {
+                LOCK(cs_main);
                 Misbehaving(pfrom->GetId(), nDoS);
             }
         }
@@ -774,6 +744,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if (nDoS > 0) {
             // if anything significant failed, mark that node
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), nDoS);
         } else {
             // if nothing significant failed, search existing Masternode list
@@ -800,6 +771,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 if (i != mAskedUsForMasternodeList.end()) {
                     int64_t t = (*i).second;
                     if (GetTime() < t) {
+                        LOCK(cs_main);
                         Misbehaving(pfrom->GetId(), 34);
                         LogPrint("masternode", "dseg - peer already asked me for the list\n");
                         return;
@@ -895,25 +867,33 @@ void ThreadCheckMasternodes()
 
     unsigned int c = 0;
 
-    while (true) {
-        MilliSleep(1000);
+    try {
+        while (true) {
+            if (ShutdownRequested()) {
+                break;
+            }
 
-        // try to sync from all available nodes, one step at a time
-        masternodeSync.Process();
+            MilliSleep(1000);
+            boost::this_thread::interruption_point();
+            // try to sync from all available nodes, one step at a time
+            masternodeSync.Process();
 
-        if (masternodeSync.IsBlockchainSynced()) {
-            c++;
+            if (masternodeSync.IsBlockchainSynced()) {
+                c++;
 
-            // check if we should activate or ping every few minutes,
-            // start right after sync is considered to be done
-            if (c % MASTERNODE_PING_SECONDS == 1)
-                activeMasternode.ManageStatus();
+                // check if we should activate or ping every few minutes,
+                // start right after sync is considered to be done
+                if (c % MASTERNODE_PING_SECONDS == 1)
+                    activeMasternode.ManageStatus();
 
-            if (c % 60 == 0) {
-                mnodeman.CheckAndRemove();
-                masternodePayments.CleanPaymentList();
-                CleanTransactionLocksList();
+                if (c % 60 == 0) {
+                    mnodeman.CheckAndRemove();
+                    masternodePayments.CleanPaymentList();
+                    CleanTransactionLocksList();
+                }
             }
         }
+    } catch (boost::thread_interrupted&) {
+        // nothing, thread interrupted.
     }
 }
