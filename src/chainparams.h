@@ -122,7 +122,7 @@ public:
     bool GetCoinbaseProtected(int height) const;
     int GetNewTimeRule() const { return newTimeRule; }
     int GetMasternodeProtectionBlock() const { return masternodeProtectionBlock; }
-    int GetMasternodeCollateral() const { return masternodeCollateral; }
+    int GetMasternodeCollateral(int height) const;
 
 protected:
     CChainParams() {}
@@ -164,6 +164,7 @@ protected:
     int newTimeRule;
     int masternodeProtectionBlock;
     int masternodeCollateral;
+    int masternodeCollateralNew;
 };
 
 /**

@@ -928,6 +928,7 @@ bool ContextualCheckTransaction(
     bool overwinterActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_OVERWINTER);
     bool saplingActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_SAPLING);
     bool atlantisActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS);
+    bool moragActive = chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG);
     bool isSprout = !overwinterActive;
 
     // If Sprout rules apply, reject transactions which are intended for Overwinter and beyond
@@ -983,7 +984,7 @@ bool ContextualCheckTransaction(
         }
     }
 
-    if (atlantisActive) {
+    if (atlantisActive && !moragActive) {
         bool atlantisAllowVoutPriv = !chainparams.GetConsensus().NetworkUpgradeActive(nHeight - chainparams.GetConsensus().nTimeshiftPriv, Consensus::UPGRADE_ATLANTIS);
         if (atlantisAllowVoutPriv) {
             if (tx.vShieldedSpend.size() == 0 && tx.vShieldedOutput.size() > 0) {
@@ -2064,7 +2065,8 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     // Subsidy is cut in half every 60 * 24 * 365 * 4 blocks which will occur approximately every 4 years.
     int halvings = (nHeight - consensusParams.SubsidySlowStartShift()) / consensusParams.nSubsidyHalvingInterval;
     if (consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
-        halvings = (nHeight - consensusParams.SubsidySlowStartShift() - consensusParams.nDelayHalvingBlocks) / consensusParams.nSubsidyHalvingInterval;
+        nSubsidy = 30 * COIN;
+        halvings = std::max(0, nHeight - consensusParams.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) / consensusParams.nSubsidyHalvingInterval;
     }
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64)

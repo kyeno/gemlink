@@ -307,6 +307,7 @@ public:
         nBudget_Fee_Confirmations = 6;         // Number of confirmations for the finalization fee
         masternodeProtectionBlock = 590000;
         masternodeCollateral = 10000;
+        masternodeCollateralNew = 20000;
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 };
@@ -454,6 +455,7 @@ public:
         nStartMasternodePayments = 1520121600; // 2018-03-04
         masternodeProtectionBlock = 7900;
         masternodeCollateral = 10;
+        masternodeCollateralNew = 20;
     }
 };
 static CTestNetParams testNetParams;
@@ -732,6 +734,15 @@ bool CChainParams::GetCoinbaseProtected(int height) const
         return true;
     } else {
         return false;
+    }
+}
+
+int CChainParams::GetMasternodeCollateral(int height) const
+{
+    if (!consensus.NetworkUpgradeActive(height, Consensus::UPGRADE_MORAG)) {
+        return masternodeCollateral;
+    } else {
+        return masternodeCollateralNew;
     }
 }
 

@@ -342,7 +342,7 @@ bool CMasternode::IsInputAssociatedWithPubkey() const
     uint256 hash;
     if (GetTransaction(vin.prevout.hash, txVin, Params().GetConsensus(), hash, true)) {
         for (CTxOut out : txVin.vout) {
-            if (out.nValue == 10000 * COIN && out.scriptPubKey == payee)
+            if (out.nValue == Params().GetMasternodeCollateral(chainActive.Height()) * COIN && out.scriptPubKey == payee)
                 return true;
         }
     }

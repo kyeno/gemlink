@@ -3268,7 +3268,9 @@ UniValue z_getnewaddress(const UniValue& params, bool fHelp)
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     int nextBlockHeight = chainActive.Height() + 1;
-    if (NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+    const auto consensus = Params().GetConsensus();
+    if (consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_ATLANTIS) &&
+        !consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_MORAG)) {
         throw JSONRPCError(RPC_TRANSACTION_REJECTED, std::string("z_getnewaddress is deprecated"));
     }
 
@@ -3762,8 +3764,9 @@ UniValue z_sendmany(const UniValue& params, bool fHelp)
             // invalid
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid from address, should be a taddr or zaddr.");
         }
-
-        if (NetworkUpgradeActive(nextBlockHeight - Params().GetConsensus().nTimeshiftPriv, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+        const auto consensus = Params().GetConsensus();
+        if (consensus.NetworkUpgradeActive(nextBlockHeight - consensus.nTimeshiftPriv, Consensus::UPGRADE_ATLANTIS) &&
+            !consensus.NetworkUpgradeActive(nextBlockHeight - consensus.nTimeshiftPriv, Consensus::UPGRADE_MORAG)) {
             throw JSONRPCError(RPC_TRANSACTION_REJECTED, std::string("Send from private address is not allowed ") + fromaddress);
         }
 
@@ -3812,7 +3815,9 @@ UniValue z_sendmany(const UniValue& params, bool fHelp)
         bool isZaddr = false;
         CTxDestination taddr = DecodeDestination(address);
         if (!IsValidDestination(taddr)) {
-            if (NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+            const auto consensus = Params().GetConsensus();
+            if (consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_ATLANTIS) &&
+                !consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_MORAG)) {
                 throw JSONRPCError(RPC_TRANSACTION_REJECTED, std::string("Send to private address is not allowed ") + fromaddress);
             }
 
@@ -4057,7 +4062,9 @@ UniValue z_shieldcoinbase(const UniValue& params, bool fHelp)
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     int nextBlockHeight = chainActive.Height() + 1;
-    if (NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+    const auto consensus = Params().GetConsensus();
+    if (consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_ATLANTIS) &&
+        !consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_MORAG)) {
         throw JSONRPCError(RPC_TRANSACTION_REJECTED, std::string("z_shieldcoinbase is deprecated"));
     }
 
@@ -4310,7 +4317,9 @@ UniValue z_mergetoaddress(const UniValue& params, bool fHelp)
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     int nextBlockHeight = chainActive.Height() + 1;
-    if (NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+    const auto consensus = Params().GetConsensus();
+    if (consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_ATLANTIS) &&
+        !consensus.NetworkUpgradeActive(nextBlockHeight, Consensus::UPGRADE_MORAG)) {
         throw JSONRPCError(RPC_TRANSACTION_REJECTED, std::string("z_mergetoaddress is deprecated"));
     }
 
