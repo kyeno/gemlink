@@ -1,5 +1,5 @@
-Release Process
-====================
+# Release Process
+
 Meta: There should always be a single release engineer to disambiguate responsibility.
 
 If this is a hotfix release, please see `./hotfix-process.md` before proceeding.
@@ -16,11 +16,11 @@ is a common reason.)
 
 Check that dependencies are properly hosted by looking at the `check-depends` builder:
 
-  https://ci.snowgem.org/#/builders/1
+https://ci.gemlink.org/#/builders/1
 
 Check that there are no surprising performance regressions:
 
-  https://speed.snowgem.org
+https://speed.gemlink.org
 
 Ensure that new performance metrics appear on that site.
 
@@ -75,7 +75,7 @@ Review the automated changes in git:
 
 Push the resulting branch to github:
 
-    $ git push 'git@github.com:$YOUR_GITHUB_NAME/snowgem' $(git rev-parse --abbrev-ref HEAD)
+    $ git push 'git@github.com:$YOUR_GITHUB_NAME/gemlink' $(git rev-parse --abbrev-ref HEAD)
 
 Then create the PR on github. Complete the standard review process,
 then merge, then wait for CI to complete.
@@ -103,14 +103,14 @@ signed. **CAUTION:** Remember the `v` at the beginning here:
 
 ## Make and deploy deterministic builds
 
-- Run the [Gitian deterministic build environment](https://github.com/snowgem/snowgem-gitian)
-- Compare the uploaded [build manifests on gitian.sigs](https://github.com/snowgem/gitian.sigs)
+- Run the [Gitian deterministic build environment](https://github.com/gemlink/gemlink-gitian)
+- Compare the uploaded [build manifests on gitian.sigs](https://github.com/gemlink/gitian.sigs)
 - If all is well, the DevOps engineer will build the Debian packages and update the
-  [apt.snowgem.org package repository](https://apt.snowgem.org).
+  [apt.gemlink.org package repository](https://apt.gemlink.org).
 
 ## Add release notes to GitHub
 
-- Go to the [GitHub tags page](https://github.com/snowgem/snowgem/tags).
+- Go to the [GitHub tags page](https://github.com/gemlink/gemlink/tags).
 - Click "Add release notes" beside the tag for this release.
 - Copy the release blog post into the release description, and edit to suit
   publication on GitHub. See previous release notes for examples.
@@ -128,21 +128,21 @@ the marking to see what GitHub wants to be done.
 
 ### Deploy testnet
 
-Notify the Snowgem DevOps engineer/sysadmin that the release has been tagged. They update some variables in the company's automation code and then run an Ansible playbook, which:
+Notify the Gemlink DevOps engineer/sysadmin that the release has been tagged. They update some variables in the company's automation code and then run an Ansible playbook, which:
 
-* builds Snowgem based on the specified branch
-* deploys it as a public service (e.g. betatestnet.snowgem.org, mainnet.snowgem.org)
-* often the same server can be re-used, and the role idempotently handles upgrades, but if not then they also need to update DNS records
-* possible manual steps: blowing away the `testnet3` dir, deleting old parameters, restarting DNS seeder
+- builds Gemlink based on the specified branch
+- deploys it as a public service (e.g. betatestnet.gemlink.org, mainnet.gemlink.org)
+- often the same server can be re-used, and the role idempotently handles upgrades, but if not then they also need to update DNS records
+- possible manual steps: blowing away the `testnet3` dir, deleting old parameters, restarting DNS seeder
 
-Then, verify that nodes can connect to the testnet server, and update the guide on the wiki to ensure the correct hostname is listed in the recommended snowgem.conf.
+Then, verify that nodes can connect to the testnet server, and update the guide on the wiki to ensure the correct hostname is listed in the recommended gemlink.conf.
 
 ### Update the 1.0 User Guide
 
-This also means updating [the translations](https://github.com/snowgem/snowgem-docs).
+This also means updating [the translations](https://github.com/gemlink/gemlink-docs).
 Coordinate with the translation team for now. Suggestions for improving this
 part of the process should be added to #2596.
 
-### Publish the release announcement (blog, github, snowgem-dev, slack)
+### Publish the release announcement (blog, github, gemlink-dev, slack)
 
 ## Celebrate

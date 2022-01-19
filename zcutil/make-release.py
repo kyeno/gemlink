@@ -15,7 +15,7 @@ from functools import wraps
 
 def main(args=sys.argv[1:]):
     """
-    Perform the final TENT release process up to the git tag.
+    Perform the final GEM release process up to the git tag.
     """
     opts = parse_args(args)
     chdir_to_repo(opts.REPO)
@@ -129,7 +129,7 @@ def verify_dependencies(dependencies):
 @phase('Checking dependency updates.')
 def verify_dependency_updates():
     try:
-        sh_log('./qa/snowgem/updatecheck.py')
+        sh_log('./qa/gemlink/updatecheck.py')
     except SystemExit:
         raise SystemExit("Dependency update check found updates that have not been correctly postponed.")
 
@@ -343,10 +343,10 @@ def chdir_to_repo(repo):
 def patch_README(release, releaseprev):
     with PathPatcher('README.md') as (inf, outf):
         firstline = inf.readline()
-        assert firstline == 'TENT {}\n'.format(releaseprev.novtext), \
+        assert firstline == 'GEM {}\n'.format(releaseprev.novtext), \
             repr(firstline)
 
-        outf.write('TENT {}\n'.format(release.novtext))
+        outf.write('GEM {}\n'.format(release.novtext))
         outf.write(inf.read())
 
 

@@ -5,19 +5,19 @@
 *.srctrldb
 *.srctrlprj
 src/bitcoin
-src/snowgemd
-src/snowgem-cli
-src/snowgem-gtest
-src/snowgem-tx
+src/gemlinkd
+src/gemlink-cli
+src/gemlink-gtest
+src/gemlink-tx
 src/test/test_bitcoin
 src/Makefile
 
-# Snowgem utilities
-src/snowgem/GenerateParams
-src/snowgem/CreateJoinSplit
+# Gemlink utilities
+src/gemlink/GenerateParams
+src/gemlink/CreateJoinSplit
 
-*snowgemTest.pk
-*snowgemTest.vk
+*gemlinkTest.pk
+*gemlinkTest.vk
 
 # autoreconf
 Makefile.in
@@ -60,7 +60,7 @@ src/univalue/gen
 *.pyc
 *.o
 *.o-*
-.snowgem
+.gemlink
 *.a
 *.pb.cc
 *.pb.h
@@ -102,7 +102,7 @@ build
 *.gcda
 /*.info
 test_bitcoin.coverage/
-snowgem-gtest.coverage/
+gemlink-gtest.coverage/
 total.coverage/
 coverage_percent.txt
 

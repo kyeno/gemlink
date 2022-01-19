@@ -1,5 +1,5 @@
 /*
-Snowgem uses SHA256Compress as a PRF for various components
+Gemlink uses SHA256Compress as a PRF for various components
 within the zkSNARK circuit.
 */
 

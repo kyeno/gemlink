@@ -36,7 +36,7 @@ typedef JSOutPoint PaymentDisclosureKey;
 
 struct PaymentDisclosureInfo {
     uint8_t version;          // 0 = experimental, 1 = first production version, etc.
-    uint256 esk;              // snowgem/NoteEncryption.cpp
+    uint256 esk;              // gemlink/NoteEncryption.cpp
     uint256 joinSplitPrivKey; // primitives/transaction.h
     // ed25519 - not tied to implementation e.g. libsodium, see ed25519 rfc
 
@@ -76,11 +76,11 @@ struct PaymentDisclosureInfo {
 struct PaymentDisclosurePayload {
     int32_t marker = PAYMENT_DISCLOSURE_PAYLOAD_MAGIC_BYTES; // to be disjoint from transaction encoding
     uint8_t version;                                         // 0 = experimental, 1 = first production version, etc.
-    uint256 esk;                                             // snowgem/NoteEncryption.cpp
+    uint256 esk;                                             // gemlink/NoteEncryption.cpp
     uint256 txid;                                            // primitives/transaction.h
     uint64_t js;
     uint8_t n;                            // Index into JSDescription fields of length ZC_NUM_JS_OUTPUTS
-    libzcash::SproutPaymentAddress zaddr; // snowgem/Address.hpp
+    libzcash::SproutPaymentAddress zaddr; // gemlink/Address.hpp
     std::string message;                  // parameter to RPC call
 
     ADD_SERIALIZE_METHODS;

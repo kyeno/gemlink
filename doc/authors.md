@@ -1,5 +1,4 @@
-TENT Contributors
-==================
+# GEM Contributors
 
 Jack Grigg (438)
 Simon Liu (268)

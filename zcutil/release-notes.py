@@ -39,7 +39,7 @@ author_aliases = {
     'paveljanik': 'Pavel Janík',
     'PitTxid': 'Tinh Pham',
     'Simon': 'Simon Liu',
-    'Snowgem': 'Tinh Pham',
+    'Gemlink': 'Tinh Pham',
     'str4d': 'Jack Grigg',
     'TENTOfficial': 'Tinh Pham',
     'therealyingtong': 'Ying Tong Lai',
@@ -90,14 +90,14 @@ def authors_in_release_notes(filename):
                     authors[apply_author_aliases(name)] = commits
         return authors
 
-## Sums commits made by contributors in each TENT release note in ./doc/release-notes and writes to authors.md
+## Sums commits made by contributors in each GEM release note in ./doc/release-notes and writes to authors.md
 
 
 def document_authors():
     print("Writing contributors documented in release-notes directory to authors.md.")
     authors_file = os.path.join(doc_dir, 'authors.md')
     with open(authors_file, mode='w', encoding="utf-8", errors="replace") as f:
-        f.write('TENT Contributors\n==================\n\n')
+        f.write('GEM Contributors\n==================\n\n')
         total_contrib = {}
         for notes in os.listdir(os.path.join(doc_dir, 'release-notes')):
             # Commits are duplicated across beta, RC and final release notes,

@@ -6,26 +6,26 @@ DATADIR=./benchmark-datadir
 SHA256CMD="$(command -v sha256sum || echo shasum)"
 SHA256ARGS="$(command -v sha256sum >/dev/null || echo '-a 256')"
 
-function snowgem_rpc {
-    ./src/snowgem-cli -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 "$@"
+function gemlink_rpc {
+    ./src/gemlink-cli -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 "$@"
 }
 
-function snowgem_rpc_slow {
+function gemlink_rpc_slow {
     # Timeout of 1 hour
-    snowgem_rpc -rpcclienttimeout=3600 "$@"
+    gemlink_rpc -rpcclienttimeout=3600 "$@"
 }
 
-function snowgem_rpc_veryslow {
+function gemlink_rpc_veryslow {
     # Timeout of 2.5 hours
-    snowgem_rpc -rpcclienttimeout=9000 "$@"
+    gemlink_rpc -rpcclienttimeout=9000 "$@"
 }
 
-function snowgem_rpc_wait_for_start {
-    snowgem_rpc -rpcwait getinfo > /dev/null
+function gemlink_rpc_wait_for_start {
+    gemlink_rpc -rpcwait getinfo > /dev/null
 }
 
-function snowgemd_generate {
-    snowgem_rpc generate 101 > /dev/null
+function gemlinkd_generate {
+    gemlink_rpc generate 101 > /dev/null
 }
 
 function extract_benchmark_datadir {
@@ -40,7 +40,7 @@ EOF
         ARCHIVE_RESULT=1
     fi
     if [ $ARCHIVE_RESULT -ne 0 ]; then
-        snowgemd_stop
+        gemlinkd_stop
         echo
         echo "Please download it and place it in the base directory of the repository."
         exit 1
@@ -54,7 +54,7 @@ function use_200k_benchmark {
     DATADIR="./benchmark-200k-UTXOs/node$1"
 }
 
-function snowgemd_start {
+function gemlinkd_start {
     case "$1" in
         sendtoaddress|loadwallet|listunspent)
             case "$2" in
@@ -65,26 +65,26 @@ function snowgemd_start {
                     use_200k_benchmark 1
                     ;;
                 *)
-                    echo "Bad arguments to snowgemd_start."
+                    echo "Bad arguments to gemlinkd_start."
                     exit 1
             esac
             ;;
         *)
             rm -rf "$DATADIR"
             mkdir -p "$DATADIR/regtest"
-            touch "$DATADIR/snowgem.conf"
+            touch "$DATADIR/gemlink.conf"
     esac
-    ./src/snowgemd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
+    ./src/gemlinkd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
     SNOWGEMD_PID=$!
-    snowgem_rpc_wait_for_start
+    gemlink_rpc_wait_for_start
 }
 
-function snowgemd_stop {
-    snowgem_rpc stop > /dev/null
+function gemlinkd_stop {
+    gemlink_rpc stop > /dev/null
     wait $SNOWGEMD_PID
 }
 
-function snowgemd_massif_start {
+function gemlinkd_massif_start {
     case "$1" in
         sendtoaddress|loadwallet|listunspent)
             case "$2" in
@@ -95,39 +95,39 @@ function snowgemd_massif_start {
                     use_200k_benchmark 1
                     ;;
                 *)
-                    echo "Bad arguments to snowgemd_massif_start."
+                    echo "Bad arguments to gemlinkd_massif_start."
                     exit 1
             esac
             ;;
         *)
             rm -rf "$DATADIR"
             mkdir -p "$DATADIR/regtest"
-            touch "$DATADIR/snowgem.conf"
+            touch "$DATADIR/gemlink.conf"
     esac
     rm -f massif.out
-    valgrind --tool=massif --time-unit=ms --massif-out-file=massif.out ./src/snowgemd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
+    valgrind --tool=massif --time-unit=ms --massif-out-file=massif.out ./src/gemlinkd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
     SNOWGEMD_PID=$!
-    snowgem_rpc_wait_for_start
+    gemlink_rpc_wait_for_start
 }
 
-function snowgemd_massif_stop {
-    snowgem_rpc stop > /dev/null
+function gemlinkd_massif_stop {
+    gemlink_rpc stop > /dev/null
     wait $SNOWGEMD_PID
     ms_print massif.out
 }
 
-function snowgemd_valgrind_start {
+function gemlinkd_valgrind_start {
     rm -rf "$DATADIR"
     mkdir -p "$DATADIR/regtest"
-    touch "$DATADIR/snowgem.conf"
+    touch "$DATADIR/gemlink.conf"
     rm -f valgrind.out
-    valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/snowgemd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
+    valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/gemlinkd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
     SNOWGEMD_PID=$!
-    snowgem_rpc_wait_for_start
+    gemlink_rpc_wait_for_start
 }
 
-function snowgemd_valgrind_stop {
-    snowgem_rpc stop > /dev/null
+function gemlinkd_valgrind_stop {
+    gemlink_rpc stop > /dev/null
     wait $SNOWGEMD_PID
     cat valgrind.out
 }
@@ -144,9 +144,9 @@ EOF
         ARCHIVE_RESULT=1
     fi
     if [ $ARCHIVE_RESULT -ne 0 ]; then
-        snowgemd_stop
+        gemlinkd_stop
         echo
-        echo "Please generate it using qa/snowgem/create_benchmark_archive.py"
+        echo "Please generate it using qa/gemlink/create_benchmark_archive.py"
         echo "and place it in the base directory of the repository."
         echo "Usage details are inside the Python script."
         exit 1
@@ -166,158 +166,158 @@ case "$1" in
     *)
         case "$2" in
             verifyjoinsplit)
-                snowgemd_start "${@:2}"
-                RAWJOINSPLIT=$(snowgem_rpc zcsamplejoinsplit)
-                snowgemd_stop
+                gemlinkd_start "${@:2}"
+                RAWJOINSPLIT=$(gemlink_rpc zcsamplejoinsplit)
+                gemlinkd_stop
         esac
 esac
 
 case "$1" in
     time)
-        snowgemd_start "${@:2}"
+        gemlinkd_start "${@:2}"
         case "$2" in
             sleep)
-                snowgem_rpc zcbenchmark sleep 10
+                gemlink_rpc zcbenchmark sleep 10
                 ;;
             parameterloading)
-                snowgem_rpc zcbenchmark parameterloading 10
+                gemlink_rpc zcbenchmark parameterloading 10
                 ;;
             createjoinsplit)
-                snowgem_rpc zcbenchmark createjoinsplit 10 "${@:3}"
+                gemlink_rpc zcbenchmark createjoinsplit 10 "${@:3}"
                 ;;
             verifyjoinsplit)
-                snowgem_rpc zcbenchmark verifyjoinsplit 1000 "\"$RAWJOINSPLIT\""
+                gemlink_rpc zcbenchmark verifyjoinsplit 1000 "\"$RAWJOINSPLIT\""
                 ;;
             solveequihash)
-                snowgem_rpc_slow zcbenchmark solveequihash 50 "${@:3}"
+                gemlink_rpc_slow zcbenchmark solveequihash 50 "${@:3}"
                 ;;
             verifyequihash)
-                snowgem_rpc zcbenchmark verifyequihash 1000
+                gemlink_rpc zcbenchmark verifyequihash 1000
                 ;;
             validatelargetx)
-                snowgem_rpc zcbenchmark validatelargetx 5
+                gemlink_rpc zcbenchmark validatelargetx 5
                 ;;
             trydecryptnotes)
-                snowgem_rpc zcbenchmark trydecryptnotes 1000 "${@:3}"
+                gemlink_rpc zcbenchmark trydecryptnotes 1000 "${@:3}"
                 ;;
             incnotewitnesses)
-                snowgem_rpc zcbenchmark incnotewitnesses 100 "${@:3}"
+                gemlink_rpc zcbenchmark incnotewitnesses 100 "${@:3}"
                 ;;
             connectblockslow)
                 extract_benchmark_data
-                snowgem_rpc zcbenchmark connectblockslow 10
+                gemlink_rpc zcbenchmark connectblockslow 10
                 ;;
             sendtoaddress)
-                snowgem_rpc zcbenchmark sendtoaddress 10 "${@:4}"
+                gemlink_rpc zcbenchmark sendtoaddress 10 "${@:4}"
                 ;;
             loadwallet)
-                snowgem_rpc zcbenchmark loadwallet 10 
+                gemlink_rpc zcbenchmark loadwallet 10 
                 ;;
             listunspent)
-                snowgem_rpc zcbenchmark listunspent 10
+                gemlink_rpc zcbenchmark listunspent 10
                 ;;
             *)
-                snowgemd_stop
+                gemlinkd_stop
                 echo "Bad arguments to time."
                 exit 1
         esac
-        snowgemd_stop
+        gemlinkd_stop
         ;;
     memory)
-        snowgemd_massif_start "${@:2}"
+        gemlinkd_massif_start "${@:2}"
         case "$2" in
             sleep)
-                snowgem_rpc zcbenchmark sleep 1
+                gemlink_rpc zcbenchmark sleep 1
                 ;;
             parameterloading)
-                snowgem_rpc zcbenchmark parameterloading 1
+                gemlink_rpc zcbenchmark parameterloading 1
                 ;;
             createjoinsplit)
-                snowgem_rpc_slow zcbenchmark createjoinsplit 1 "${@:3}"
+                gemlink_rpc_slow zcbenchmark createjoinsplit 1 "${@:3}"
                 ;;
             verifyjoinsplit)
-                snowgem_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
+                gemlink_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
                 ;;
             solveequihash)
-                snowgem_rpc_slow zcbenchmark solveequihash 1 "${@:3}"
+                gemlink_rpc_slow zcbenchmark solveequihash 1 "${@:3}"
                 ;;
             verifyequihash)
-                snowgem_rpc zcbenchmark verifyequihash 1
+                gemlink_rpc zcbenchmark verifyequihash 1
                 ;;
             validatelargetx)
-                snowgem_rpc zcbenchmark validatelargetx 1
+                gemlink_rpc zcbenchmark validatelargetx 1
                 ;;
             trydecryptnotes)
-                snowgem_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
+                gemlink_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
                 ;;
             incnotewitnesses)
-                snowgem_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
+                gemlink_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
                 ;;
             connectblockslow)
                 extract_benchmark_data
-                snowgem_rpc zcbenchmark connectblockslow 1
+                gemlink_rpc zcbenchmark connectblockslow 1
                 ;;
             sendtoaddress)
-                snowgem_rpc zcbenchmark sendtoaddress 1 "${@:4}"
+                gemlink_rpc zcbenchmark sendtoaddress 1 "${@:4}"
                 ;;
             loadwallet)
                 # The initial load is sufficient for measurement
                 ;;
             listunspent)
-                snowgem_rpc zcbenchmark listunspent 1
+                gemlink_rpc zcbenchmark listunspent 1
                 ;;
             *)
-                snowgemd_massif_stop
+                gemlinkd_massif_stop
                 echo "Bad arguments to memory."
                 exit 1
         esac
-        snowgemd_massif_stop
+        gemlinkd_massif_stop
         rm -f massif.out
         ;;
     valgrind)
-        snowgemd_valgrind_start
+        gemlinkd_valgrind_start
         case "$2" in
             sleep)
-                snowgem_rpc zcbenchmark sleep 1
+                gemlink_rpc zcbenchmark sleep 1
                 ;;
             parameterloading)
-                snowgem_rpc zcbenchmark parameterloading 1
+                gemlink_rpc zcbenchmark parameterloading 1
                 ;;
             createjoinsplit)
-                snowgem_rpc_veryslow zcbenchmark createjoinsplit 1 "${@:3}"
+                gemlink_rpc_veryslow zcbenchmark createjoinsplit 1 "${@:3}"
                 ;;
             verifyjoinsplit)
-                snowgem_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
+                gemlink_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
                 ;;
             solveequihash)
-                snowgem_rpc_veryslow zcbenchmark solveequihash 1 "${@:3}"
+                gemlink_rpc_veryslow zcbenchmark solveequihash 1 "${@:3}"
                 ;;
             verifyequihash)
-                snowgem_rpc zcbenchmark verifyequihash 1
+                gemlink_rpc zcbenchmark verifyequihash 1
                 ;;
             trydecryptnotes)
-                snowgem_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
+                gemlink_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
                 ;;
             incnotewitnesses)
-                snowgem_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
+                gemlink_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
                 ;;
             connectblockslow)
                 extract_benchmark_data
-                snowgem_rpc zcbenchmark connectblockslow 1
+                gemlink_rpc zcbenchmark connectblockslow 1
                 ;;
             *)
-                snowgemd_valgrind_stop
+                gemlinkd_valgrind_stop
                 echo "Bad arguments to valgrind."
                 exit 1
         esac
-        snowgemd_valgrind_stop
+        gemlinkd_valgrind_stop
         rm -f valgrind.out
         ;;
     valgrind-tests)
         case "$2" in
             gtest)
                 rm -f valgrind.out
-                valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/snowgem-gtest
+                valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/gemlink-gtest
                 cat valgrind.out
                 rm -f valgrind.out
                 ;;

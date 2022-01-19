@@ -10,7 +10,7 @@ Miners, Mining pools, Online wallets
 
 ## Background
 
-The current Snowgem protocol includes a consensus rule that coinbase rewards must be sent to a shielded address.
+The current Gemlink protocol includes a consensus rule that coinbase rewards must be sent to a shielded address.
 
 ## User Experience Challenges
 
@@ -24,33 +24,33 @@ The z_shieldcoinbase call makes it easy to sweep up coinbase rewards from multip
 
     z_shieldcoinbase fromaddress toaddress (fee) (limit)
 
-The default fee is 0.0010000 TENT and the default limit on the maximum number of UTXOs to shield is 50.
+The default fee is 0.0010000 GEM and the default limit on the maximum number of UTXOs to shield is 50.
 
 ## Examples
 
 Sweep up coinbase UTXOs from a transparent address you use for mining:
 
-    snowgem-cli z_shieldcoinbase tMyMiningAddress zMyPrivateAddress
+    gemlink-cli z_shieldcoinbase tMyMiningAddress zMyPrivateAddress
 
 Sweep up coinbase UTXOs from multiple transparent addresses to a shielded address:
 
-    snowgem-cli z_shieldcoinbase "*" zMyPrivateAddress
+    gemlink-cli z_shieldcoinbase "*" zMyPrivateAddress
 
-Sweep up with a fee of 1.23 TENT:
+Sweep up with a fee of 1.23 GEM:
 
-    snowgem-cli z_shieldcoinbase tMyMiningAddress zMyPrivateAddress 1.23
+    gemlink-cli z_shieldcoinbase tMyMiningAddress zMyPrivateAddress 1.23
 
-Sweep up with a fee of 0.1 TENT and set limit on the maximum number of UTXOs to shield at 25:
+Sweep up with a fee of 0.1 GEM and set limit on the maximum number of UTXOs to shield at 25:
 
-    snowgem-cli z_shieldcoinbase "*" zMyPrivateAddress 0.1 25
+    gemlink-cli z_shieldcoinbase "*" zMyPrivateAddress 0.1 25
 
 ### Asynchronous Call
 
-The `z_shieldcoinbase` RPC call is an asynchronous call, so you can queue up multiple operations. 
+The `z_shieldcoinbase` RPC call is an asynchronous call, so you can queue up multiple operations.
 
 When you invoke
 
-    snowgem-cli z_shieldcoinbase tMyMiningAddress zMyPrivateAddress
+    gemlink-cli z_shieldcoinbase tMyMiningAddress zMyPrivateAddress
 
 JSON will be returned immediately, with the following data fields populated:
 
@@ -62,25 +62,25 @@ JSON will be returned immediately, with the following data fields populated:
 
 ### Locking UTXOs
 
-The `z_shieldcoinbase` call will lock any selected UTXOs. This prevents the selected UTXOs which are already queued up from being selected for any other send operation.  If the `z_shieldcoinbase` call fails, any locked UTXOs are unlocked.
+The `z_shieldcoinbase` call will lock any selected UTXOs. This prevents the selected UTXOs which are already queued up from being selected for any other send operation. If the `z_shieldcoinbase` call fails, any locked UTXOs are unlocked.
 
-You can use the RPC call `lockunspent` to see which UTXOs have been locked.  You can also use this call to unlock any UTXOs in the event of an unexpected system failure which leaves UTXOs in a locked state.
+You can use the RPC call `lockunspent` to see which UTXOs have been locked. You can also use this call to unlock any UTXOs in the event of an unexpected system failure which leaves UTXOs in a locked state.
 
 ### Limits, Performance and Transaction Confirmation
 
 The number of coinbase UTXOs selected for shielding can be adjusted by setting the limit parameter. The default value is 50.
 
-If the limit parameter is set to zero, the snowgemd `mempooltxinputlimit` option will be used instead, where the default value for `mempooltxinputlimit` is zero, which means no limit.
+If the limit parameter is set to zero, the gemlinkd `mempooltxinputlimit` option will be used instead, where the default value for `mempooltxinputlimit` is zero, which means no limit.
 
 Any limit is constrained by a hard limit due to the consensus rule defining a maximum transaction size of 100,000 bytes.
 
-In general, the more UTXOs that are selected, the longer it takes for the transaction to be verified.  Due to the quadratic hashing problem, some miners use the `mempooltxinputlimit` option to reject transactions with a large number of UTXO inputs.
+In general, the more UTXOs that are selected, the longer it takes for the transaction to be verified. Due to the quadratic hashing problem, some miners use the `mempooltxinputlimit` option to reject transactions with a large number of UTXO inputs.
 
 Currently, as of November 2017, there is no commonly agreed upon limit, but as a rule of thumb (a form of emergent consensus) if a transaction has less than 100 UTXO inputs, the transaction will be mined promptly by the majority of mining pools, but if it has many more UTXO inputs, such as 500, it might take several days to be mined by a miner who has higher or no limits.
 
 ### Anatomy of a z_shieldcoinbase transaction
 
-The transaction created is a shielded transaction.  It consists of a single joinsplit, which consumes coinbase UTXOs as input, and deposits value at a shielded address, minus any fee.
+The transaction created is a shielded transaction. It consists of a single joinsplit, which consumes coinbase UTXOs as input, and deposits value at a shielded address, minus any fee.
 
 The number of coinbase UTXOs is determined by a user configured limit.
 
@@ -94,8 +94,6 @@ As a result, the maximum number of inputs that can be selected is:
 Here is an example of using `z_shieldcoinbase` on testnet to shield multi-sig coinbase UTXOs.
 
 - Block 141042 is almost ~2 MB in size (the maximum size for a block) and contains 1 coinbase reward transaction and 20 transactions, each indivually created by a call to z_shieldcoinbase.
-  - https://explorer.testnet.snowgem.org/block/0050552a78e97c89f666713c8448d49ad1d7263274422272696187dedf6c0d03
+  - https://explorer.testnet.gemlink.org/block/0050552a78e97c89f666713c8448d49ad1d7263274422272696187dedf6c0d03
 - Drilling down into a transaction, you can see there is one joinsplit, with 244 inputs (vin) and 0 outputs (vout).
-  - https://explorer.testnet.snowgem.org/tx/cf4f3da2e434f68b6e361303403344e22a9ff9a8fda9abc180d9520d0ca6527d
-
-
+  - https://explorer.testnet.gemlink.org/tx/cf4f3da2e434f68b6e361303403344e22a9ff9a8fda9abc180d9520d0ca6527d

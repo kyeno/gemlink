@@ -12,13 +12,13 @@ body size, race, ethnicity, age, religion, or nationality.
 
 Examples of unacceptable behavior by participants include:
 
-* The use of sexualized language or imagery
-* Personal attacks
-* Trolling or insulting/derogatory comments
-* Public or private harassment
-* Publishing other's private information, such as physical or electronic
+- The use of sexualized language or imagery
+- Personal attacks
+- Trolling or insulting/derogatory comments
+- Public or private harassment
+- Publishing other's private information, such as physical or electronic
   addresses, without explicit permission
-* Other unethical or unprofessional conduct
+- Other unethical or unprofessional conduct
 
 Project maintainers have the right and responsibility to remove, edit, or
 reject comments, commits, code, wiki edits, issues, and other contributions
@@ -41,14 +41,13 @@ is deemed necessary and appropriate to the circumstances. Maintainers are
 obligated to maintain confidentiality with regard to the reporter of an
 incident.
 
-You may send reports to [our Conduct email](mailto:conduct@snowgem.org).
+You may send reports to [our Conduct email](mailto:conduct@gemlink.org).
 
 If you wish to contact specific maintainers directly, the following have made
 themselves available for conduct issues:
 
-- Daira Hopwood (daira at snowgem.org)
-- Sean Bowe (sean at snowgem.org)
-
+- Daira Hopwood (daira at gemlink.org)
+- Sean Bowe (sean at gemlink.org)
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage],
 version 1.3.0, available at
@@ -56,4 +55,3 @@ version 1.3.0, available at
 
 [homepage]: http://contributor-covenant.org
 [version]: http://contributor-covenant.org/version/1/3/0/
-

@@ -862,7 +862,7 @@ void ThreadCheckMasternodes()
         return; // disable all Masternode related functionality
 
     // Make this thread recognisable as the wallet flushing thread
-    util::ThreadRename("snowgem-masternodeman");
+    util::ThreadRename("gemlink-masternodeman");
     LogPrintf("Masternodes thread started\n");
 
     unsigned int c = 0;

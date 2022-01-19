@@ -1665,7 +1665,7 @@ bool CWallet::UpdateNullifierNoteMap()
                     if (GetNoteDecryptor(item.second.address, dec)) {
                         auto i = item.first.js;
                         auto hSig = wtxItem.second.vjoinsplit[i].h_sig(
-                            *psnowgemParams, wtxItem.second.joinSplitPubKey);
+                            *pgemlinkParams, wtxItem.second.joinSplitPubKey);
                         item.second.nullifier = GetSproutNoteNullifier(
                             wtxItem.second.vjoinsplit[i],
                             item.second.address,
@@ -1728,7 +1728,7 @@ void CWallet::UpdateSproutNullifierNoteMapWithTx(CWalletTx& wtx)
             if (GetNoteDecryptor(nd.address, dec)) {
                 auto i = item.first.js;
                 auto hSig = wtx.vjoinsplit[i].h_sig(
-                    *psnowgemParams, wtx.joinSplitPubKey);
+                    *pgemlinkParams, wtx.joinSplitPubKey);
                 auto optNullifier = GetSproutNoteNullifier(
                     wtx.vjoinsplit[i],
                     item.second.address,
@@ -2093,7 +2093,7 @@ mapSproutNoteData_t CWallet::FindMySproutNotes(const CTransaction& tx) const
 
     mapSproutNoteData_t noteData;
     for (size_t i = 0; i < tx.vjoinsplit.size(); i++) {
-        auto hSig = tx.vjoinsplit[i].h_sig(*psnowgemParams, tx.joinSplitPubKey);
+        auto hSig = tx.vjoinsplit[i].h_sig(*pgemlinkParams, tx.joinSplitPubKey);
         for (uint8_t j = 0; j < tx.vjoinsplit[i].ciphertexts.size(); j++) {
             for (const NoteDecryptorMap::value_type& item : mapNoteDecryptors) {
                 try {
@@ -5318,7 +5318,7 @@ void CWallet::GetFilteredNotes(
             }
 
             // determine amount of funds in the note
-            auto hSig = wtx.vjoinsplit[i].h_sig(*psnowgemParams, wtx.joinSplitPubKey);
+            auto hSig = wtx.vjoinsplit[i].h_sig(*pgemlinkParams, wtx.joinSplitPubKey);
             try {
                 SproutNotePlaintext plaintext = SproutNotePlaintext::decrypt(
                     decryptor,

@@ -1,5 +1,5 @@
-Building Snowgem
+Building Gemlink
 
-See the Snowgem github wiki (https://github.com/snowgem/snowgem/wiki) for instructions on building snowgemd,
+See the Gemlink github wiki (https://github.com/gemlink/gemlink/wiki) for instructions on building gemlinkd,
 the intended-for-services, no-graphical-interface, reference
-implementation of Snowgem.
+implementation of Gemlink.

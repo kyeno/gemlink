@@ -16,14 +16,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Snowgem"
-            VALUE "FileDescription",    "snowgem-tx (CLI Snowgem transaction editor utility)"
+            VALUE "CompanyName",        "Gemlink"
+            VALUE "FileDescription",    "gemlink-tx (CLI Gemlink transaction editor utility)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "snowgem-tx"
+            VALUE "InternalName",       "gemlink-tx"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "snowgem-tx.exe"
-            VALUE "ProductName",        "snowgem-tx"
+            VALUE "OriginalFilename",   "gemlink-tx.exe"
+            VALUE "ProductName",        "gemlink-tx"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

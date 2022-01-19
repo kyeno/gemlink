@@ -235,11 +235,11 @@ UniValue stop(const UniValue& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop Snowgem server.");
+            "\nStop Gemlink server.");
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client.
     StartShutdown();
-    return "Snowgem server stopping";
+    return "Gemlink server stopping";
 }
 
 /**
@@ -255,34 +255,34 @@ static const CRPCCommand vRPCCommands[] =
 
 
         /* MN features */
-        {"snowgem", "listmasternodes", &listmasternodes, true},
-        {"snowgem", "getmasternodecount", &getmasternodecount, true},
-        {"snowgem", "createmasternodebroadcast", &createmasternodebroadcast, true},
-        {"snowgem", "decodemasternodebroadcast", &decodemasternodebroadcast, true},
-        {"snowgem", "relaymasternodebroadcast", &relaymasternodebroadcast, true},
-        {"snowgem", "masternodeconnect", &masternodeconnect, true},
-        {"snowgem", "masternodecurrent", &masternodecurrent, true},
-        {"snowgem", "startmasternode", &startmasternode, true},
-        {"snowgem", "createmasternodekey", &createmasternodekey, true},
-        {"snowgem", "getmasternodeoutputs", &getmasternodeoutputs, true},
-        {"snowgem", "listmasternodeconf", &listmasternodeconf, true},
-        {"snowgem", "getmasternodestatus", &getmasternodestatus, true},
-        {"snowgem", "getmasternodewinners", &getmasternodewinners, true},
-        {"snowgem", "getmasternodescores", &getmasternodescores, true},
-        {"snowgem", "mnbudget", &mnbudget, true},
-        {"snowgem", "preparebudget", &preparebudget, true},
-        {"snowgem", "submitbudget", &submitbudget, true},
-        {"snowgem", "mnbudgetvote", &mnbudgetvote, true},
-        {"snowgem", "getbudgetvotes", &getbudgetvotes, true},
-        {"snowgem", "getnextsuperblock", &getnextsuperblock, true},
-        {"snowgem", "getbudgetprojection", &getbudgetprojection, true},
-        {"snowgem", "getbudgetinfo", &getbudgetinfo, true},
-        {"snowgem", "mnbudgetrawvote", &mnbudgetrawvote, true},
-        {"snowgem", "mnfinalbudget", &mnfinalbudget, true},
-        {"snowgem", "checkbudgets", &checkbudgets, true},
-        {"snowgem", "mnsync", &mnsync, true},
-        {"snowgem", "spork", &spork, true},
-        {"snowgem", "startalias", &startalias, true},
+        {"gemlink", "listmasternodes", &listmasternodes, true},
+        {"gemlink", "getmasternodecount", &getmasternodecount, true},
+        {"gemlink", "createmasternodebroadcast", &createmasternodebroadcast, true},
+        {"gemlink", "decodemasternodebroadcast", &decodemasternodebroadcast, true},
+        {"gemlink", "relaymasternodebroadcast", &relaymasternodebroadcast, true},
+        {"gemlink", "masternodeconnect", &masternodeconnect, true},
+        {"gemlink", "masternodecurrent", &masternodecurrent, true},
+        {"gemlink", "startmasternode", &startmasternode, true},
+        {"gemlink", "createmasternodekey", &createmasternodekey, true},
+        {"gemlink", "getmasternodeoutputs", &getmasternodeoutputs, true},
+        {"gemlink", "listmasternodeconf", &listmasternodeconf, true},
+        {"gemlink", "getmasternodestatus", &getmasternodestatus, true},
+        {"gemlink", "getmasternodewinners", &getmasternodewinners, true},
+        {"gemlink", "getmasternodescores", &getmasternodescores, true},
+        {"gemlink", "mnbudget", &mnbudget, true},
+        {"gemlink", "preparebudget", &preparebudget, true},
+        {"gemlink", "submitbudget", &submitbudget, true},
+        {"gemlink", "mnbudgetvote", &mnbudgetvote, true},
+        {"gemlink", "getbudgetvotes", &getbudgetvotes, true},
+        {"gemlink", "getnextsuperblock", &getnextsuperblock, true},
+        {"gemlink", "getbudgetprojection", &getbudgetprojection, true},
+        {"gemlink", "getbudgetinfo", &getbudgetinfo, true},
+        {"gemlink", "mnbudgetrawvote", &mnbudgetrawvote, true},
+        {"gemlink", "mnfinalbudget", &mnfinalbudget, true},
+        {"gemlink", "checkbudgets", &checkbudgets, true},
+        {"gemlink", "mnsync", &mnsync, true},
+        {"gemlink", "spork", &spork, true},
+        {"gemlink", "startalias", &startalias, true},
 
 };
 
@@ -476,7 +476,7 @@ UniValue CRPCTable::execute(const std::string& strMethod, const UniValue& params
 
 std::string HelpExampleCli(const std::string& methodname, const std::string& args)
 {
-    return "> snowgem-cli " + methodname + " " + args + "\n";
+    return "> gemlink-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)

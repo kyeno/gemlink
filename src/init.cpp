@@ -82,7 +82,7 @@ using namespace std;
 
 extern void ThreadSendAlert();
 
-ZCJoinSplit* psnowgemParams = NULL;
+ZCJoinSplit* pgemlinkParams = NULL;
 
 #ifdef ENABLE_WALLET
 CWallet* pwalletMain = NULL;
@@ -201,7 +201,7 @@ void Shutdown()
     /// for example if the data directory was found to be locked.
     /// Be sure that anything that writes files or flushes caches only does this if the respective
     /// module was initialized.
-    RenameThread("snowgem-shutoff");
+    RenameThread("gemlink-shutoff");
     mempool.AddTransactionsUpdated(1);
 
     StopHTTPRPC();
@@ -285,8 +285,8 @@ void Shutdown()
     delete pwalletMain;
     pwalletMain = NULL;
 #endif
-    delete psnowgemParams;
-    psnowgemParams = NULL;
+    delete pgemlinkParams;
+    pgemlinkParams = NULL;
     globalVerifyHandle.reset();
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
@@ -359,7 +359,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-blocknotify=<cmd>", _("Execute command when the best block changes (%s in cmd is replaced by block hash)"));
     strUsage += HelpMessageOpt("-checkblocks=<n>", strprintf(_("How many blocks to check at startup (default: %u, 0 = all)"), 288));
     strUsage += HelpMessageOpt("-checklevel=<n>", strprintf(_("How thorough the block verification of -checkblocks is (0-4, default: %u)"), 3));
-    strUsage += HelpMessageOpt("-conf=<file>", strprintf(_("Specify configuration file (default: %s)"), "snowgem.conf"));
+    strUsage += HelpMessageOpt("-conf=<file>", strprintf(_("Specify configuration file (default: %s)"), "gemlink.conf"));
     if (mode == HMM_BITCOIND) {
 #if !defined(WIN32)
         strUsage += HelpMessageOpt("-daemon", _("Run in the background as a daemon and accept commands"));
@@ -374,7 +374,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-par=<n>", strprintf(_("Set the number of script verification threads (%u to %d, 0 = auto, <0 = leave that many cores free, default: %d)"),
                                                      -GetNumCores(), MAX_SCRIPTCHECK_THREADS, DEFAULT_SCRIPTCHECK_THREADS));
 #ifndef WIN32
-    strUsage += HelpMessageOpt("-pid=<file>", strprintf(_("Specify pid file (default: %s)"), "snowgemd.pid"));
+    strUsage += HelpMessageOpt("-pid=<file>", strprintf(_("Specify pid file (default: %s)"), "gemlinkd.pid"));
 #endif
     strUsage += HelpMessageOpt("-prune=<n>", strprintf(_("Reduce storage requirements by pruning (deleting) old blocks. This mode disables wallet support and is incompatible with -txindex. "
                                                          "Warning: Reverting this setting requires re-downloading the entire blockchain. "
@@ -493,9 +493,9 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-logips", strprintf(_("Include IP addresses in debug output (default: %u)"), 0));
     strUsage += HelpMessageOpt("-logtimestamps", strprintf(_("Prepend debug output with timestamp (default: %u)"), 1));
     strUsage += HelpMessageGroup(_("SnowgenSemd options:"));
-    strUsage += HelpMessageOpt("-enablesnowgemsend=<n>", strprintf(_("Enable use of automated darksend for funds stored in this wallet (0-1, default: %u)"), 0));
-    strUsage += HelpMessageOpt("-snowgemsendrounds=<n>", strprintf(_("Use N separate masternodes to anonymize funds  (2-8, default: %u)"), 2));
-    strUsage += HelpMessageOpt("-anonymizesnowgemamount=<n>", strprintf(_("Keep N SNOWGEM anonymized (default: %u)"), 0));
+    strUsage += HelpMessageOpt("-enablegemlinksend=<n>", strprintf(_("Enable use of automated darksend for funds stored in this wallet (0-1, default: %u)"), 0));
+    strUsage += HelpMessageOpt("-gemlinksendrounds=<n>", strprintf(_("Use N separate masternodes to anonymize funds  (2-8, default: %u)"), 2));
+    strUsage += HelpMessageOpt("-anonymizegemlinkamount=<n>", strprintf(_("Keep N SNOWGEM anonymized (default: %u)"), 0));
     strUsage += HelpMessageOpt("-liquidityprovider=<n>", strprintf(_("Provide liquidity to Darksend by infrequently mixing coins on a continual basis (0-100, default: %u, 1=very frequent, high fees, 100=very infrequent, low fees)"), 0));
 
     strUsage += HelpMessageGroup(_("SwiftX options:"));
@@ -650,7 +650,7 @@ void CleanupBlockRevFiles()
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 {
-    RenameThread("snowgem-loadblk");
+    RenameThread("gemlink-loadblk");
     // -reindex
     if (fReindex) {
         CImportingNow imp;
@@ -747,7 +747,7 @@ static void ZC_LoadParams(
         return;
     }
 
-    psnowgemParams = ZCJoinSplit::Prepared();
+    pgemlinkParams = ZCJoinSplit::Prepared();
 
     static_assert(
         sizeof(boost::filesystem::path::value_type) == sizeof(codeunit),
@@ -880,7 +880,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     fLogIPs = GetBoolArg("-logips", false);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Snowgem version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
+    LogPrintf("Gemlink version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
 
     // when specifying an explicit binding address, you want to listen on it
     // even when -connect or -proxy is specified
@@ -1176,7 +1176,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     // Sanity check
     if (!InitSanityCheck())
-        return InitError(_("Initialization sanity check failed. Snowgem is shutting down."));
+        return InitError(_("Initialization sanity check failed. Gemlink is shutting down."));
 
     std::string strDataDir = GetDataDir().string();
 #ifdef ENABLE_WALLET
@@ -1193,9 +1193,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     try {
         static boost::interprocess::file_lock lock(pathLockFile.string().c_str());
         if (!lock.try_lock())
-            return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Snowgem is probably already running."), strDataDir));
+            return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Gemlink is probably already running."), strDataDir));
     } catch (const boost::interprocess::interprocess_exception& e) {
-        return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Snowgem is probably already running.") + " %s.", strDataDir, e.what()));
+        return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Gemlink is probably already running.") + " %s.", strDataDir, e.what()));
     }
 
 #ifndef WIN32
@@ -1669,9 +1669,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                              " or address book entries might be missing or incorrect."));
                 InitWarning(msg);
             } else if (nLoadWalletRet == DB_TOO_NEW)
-                strErrors << _("Error loading wallet.dat: Wallet requires newer version of Snowgem") << "\n";
+                strErrors << _("Error loading wallet.dat: Wallet requires newer version of Gemlink") << "\n";
             else if (nLoadWalletRet == DB_NEED_REWRITE) {
-                strErrors << _("Wallet needed to be rewritten: restart Snowgem to complete") << "\n";
+                strErrors << _("Wallet needed to be rewritten: restart Gemlink to complete") << "\n";
                 LogPrintf("%s", strErrors.str());
                 return InitError(strErrors.str());
             } else
@@ -1805,10 +1805,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #ifdef ENABLE_MINING
 #ifndef ENABLE_WALLET
     if (GetBoolArg("-minetolocalwallet", false)) {
-        return InitError(_("Snowgem was not built with wallet support. Set -minetolocalwallet=0 to use -mineraddress, or rebuild Snowgem with wallet support."));
+        return InitError(_("Gemlink was not built with wallet support. Set -minetolocalwallet=0 to use -mineraddress, or rebuild Gemlink with wallet support."));
     }
     if (GetArg("-mineraddress", "").empty() && GetBoolArg("-gen", false)) {
-        return InitError(_("Snowgem was not built with wallet support. Set -mineraddress, or rebuild Snowgem with wallet support."));
+        return InitError(_("Gemlink was not built with wallet support. Set -mineraddress, or rebuild Gemlink with wallet support."));
     }
 #endif // !ENABLE_WALLET
 
@@ -1970,13 +1970,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             pwalletMain->LockCoin(outpoint);
         }
     }
-    fEnableSnowgemSend = GetBoolArg("-enablesnowgemsend", false);
+    fEnableGemlinkSend = GetBoolArg("-enablegemlinksend", false);
 
-    nSnowgemSendRounds = GetArg("-snowgemsendrounds", 10);
-    if (nSnowgemSendRounds > 100)
-        nSnowgemSendRounds = 100;
-    if (nSnowgemSendRounds < 10)
-        nSnowgemSendRounds = 10;
+    nGemlinkSendRounds = GetArg("-gemlinksendrounds", 10);
+    if (nGemlinkSendRounds > 100)
+        nGemlinkSendRounds = 100;
+    if (nGemlinkSendRounds < 10)
+        nGemlinkSendRounds = 10;
 
     // lite mode disables all Masternode and Obfuscation related functionality
     fLiteMode = GetBoolArg("-litemode", false);
@@ -1991,8 +1991,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     LogPrintf("fLiteMode %d\n", fLiteMode);
     LogPrintf("nSwiftTXDepth %d\n", nSwiftTXDepth);
     LogPrintf("Budget Mode %s\n", strBudgetMode.c_str());
-    LogPrintf("Snowgem send rounds %d\n", nSnowgemSendRounds);
-    LogPrintf("Anonymize Snowgem Amount %d\n", nAnonymizeSnowgemAmount);
+    LogPrintf("Gemlink send rounds %d\n", nGemlinkSendRounds);
+    LogPrintf("Anonymize Gemlink Amount %d\n", nAnonymizeGemlinkAmount);
 
     // ********************************************************* Step 11: start node
 

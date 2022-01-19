@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Snowgem developers
+// Copyright (c) 2017 The Gemlink developers
 // Copyright (c) 2017-2018 The SnowGem developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -257,7 +257,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
         try {
             // Decrypt the note to get value and memo field
             JSDescription jsdesc = tx.vjoinsplit[pd.payload.js];
-            uint256 h_sig = jsdesc.h_sig(*psnowgemParams, tx.joinSplitPubKey);
+            uint256 h_sig = jsdesc.h_sig(*pgemlinkParams, tx.joinSplitPubKey);
 
             ZCPaymentDisclosureNoteDecryption decrypter;
 

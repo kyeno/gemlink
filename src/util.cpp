@@ -108,13 +108,13 @@ bool fMasterNode = false;
 string strMasterNodePrivKey = "";
 string strMasterNodeAddr = "";
 bool fLiteMode = false;
-int nSnowgemSendRounds = 10;
-int nAnonymizeSnowgemAmount = 1000;
+int nGemlinkSendRounds = 10;
+int nAnonymizeGemlinkAmount = 1000;
 int nLiquidityProvider = 0;
 /** Spork enforcement enabled time */
 int64_t enforceMasternodePaymentsTime = 4085657524;
 bool fSucessfullyLoaded = false;
-bool fEnableSnowgemSend = false;
+bool fEnableGemlinkSend = false;
 /** All denominations used by obfuscation */
 std::vector<int64_t> obfuScationDenominations;
 string strBudgetMode = "";
@@ -418,7 +418,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "Snowgem";
+    const char* pszModule = "Gemlink";
 #endif
     if (pex)
         return strprintf(
@@ -439,13 +439,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Snowgem
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Snowgem
-    // Mac: ~/Library/Application Support/Snowgem
-    // Unix: ~/.snowgem
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Gemlink
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Gemlink
+    // Mac: ~/Library/Application Support/Gemlink
+    // Unix: ~/.gemlink
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Snowgem";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "gemlink";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -457,10 +457,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "Snowgem";
+    return pathRet / "gemlink";
 #else
     // Unix
-    return pathRet / ".snowgem";
+    return pathRet / ".gemlink";
 #endif
 #endif
 }
@@ -472,13 +472,13 @@ static CCriticalSection csPathCached;
 
 static boost::filesystem::path ZC_GetBaseParamsDir()
 {
-    // Copied from GetDefaultDataDir and adapter for snowgem params.
+    // Copied from GetDefaultDataDir and adapter for gemlink params.
 
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\SnowgemParams
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\SnowgemParams
-    // Mac: ~/Library/Application Support/SnowgemParams
-    // Unix: ~/.snowgem-params
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\ZcashParams
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\ZcashParams
+    // Mac: ~/Library/Application Support/ZcashParams
+    // Unix: ~/.zcash-params
 #ifdef WIN32
     // Windows
     return GetSpecialFolderPath(CSIDL_APPDATA) / "ZcashParams";
@@ -577,7 +577,7 @@ void ClearDatadirCache()
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "snowgem.conf"));
+    boost::filesystem::path pathConfigFile(GetArg("-conf", "gemlink.conf"));
     if (!pathConfigFile.is_complete())
         pathConfigFile = GetDataDir(false) / pathConfigFile;
 
@@ -597,7 +597,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 {
     boost::filesystem::ifstream streamConfig(GetConfigFile());
     if (!streamConfig.good()) {
-        // Create empty snowgem.conf if it does not exist
+        // Create empty gemlink.conf if it does not exist
         FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
         if (configFile != NULL)
             fclose(configFile);
@@ -608,7 +608,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
     setOptions.insert("*");
 
     for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
-        // Don't overwrite existing settings so command line settings override snowgem.conf
+        // Don't overwrite existing settings so command line settings override gemlink.conf
         string strKey = string("-") + it->string_key;
         if (mapSettingsRet.count(strKey) == 0) {
             mapSettingsRet[strKey] = it->value[0];
@@ -624,7 +624,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 #ifndef WIN32
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", "snowgemd.pid"));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "gemlinkd.pid"));
     if (!pathPidFile.is_complete())
         pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
@@ -896,8 +896,8 @@ void SetThreadPriority(int nPriority)
 std::string PrivacyInfo()
 {
     return "\n" +
-           FormatParagraph(strprintf(_("In order to ensure you are adequately protecting your privacy when using Snowgem, please see <%s>."),
-                                     "https://snowgem.org/support/security/")) +
+           FormatParagraph(strprintf(_("In order to ensure you are adequately protecting your privacy when using Gemlink, please see <%s>."),
+                                     "https://gemlink.org/support/security/")) +
            "\n";
 }
 

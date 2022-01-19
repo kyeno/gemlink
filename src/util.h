@@ -38,9 +38,9 @@ extern bool fEnableSwiftTX;
 extern int nSwiftTXDepth;
 extern bool fMasterNode;
 extern bool fLiteMode;
-extern int nSnowgemSendRounds;
+extern int nGemlinkSendRounds;
 static const bool DEFAULT_LOGTIMESTAMPS = true;
-extern int nAnonymizeSnowgemAmount;
+extern int nAnonymizeGemlinkAmount;
 extern int nLiquidityProvider;
 /** Signals for translation. */
 class CTranslationInterface
@@ -51,7 +51,7 @@ public:
 };
 
 // Dash only features
-extern bool fEnableSnowgemSend;
+extern bool fEnableGemlinkSend;
 extern int64_t enforceMasternodePaymentsTime;
 extern std::string strMasterNodeAddr;
 
@@ -150,10 +150,10 @@ boost::filesystem::path GetMasternodeConfigFile();
 boost::filesystem::path GetPidFile();
 void CreatePidFile(const boost::filesystem::path& path, pid_t pid);
 #endif
-class missing_snowgem_conf : public std::runtime_error
+class missing_gemlink_conf : public std::runtime_error
 {
 public:
-    missing_snowgem_conf() : std::runtime_error("Missing snowgem.conf") {}
+    missing_gemlink_conf() : std::runtime_error("Missing gemlink.conf") {}
 };
 void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string>>& mapMultiSettingsRet);
 #ifdef WIN32
@@ -258,7 +258,7 @@ void RenameThread(const char* name);
 template <typename Callable>
 void TraceThread(const char* name, Callable func)
 {
-    std::string s = strprintf("snowgem-%s", name);
+    std::string s = strprintf("gemlink-%s", name);
     RenameThread(s.c_str());
     try {
         LogPrintf("%s thread start\n", name);

@@ -242,7 +242,7 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
             "    \"connected\" : true|false,          (boolean) If connected\n"
             "    \"addresses\" : [\n"
             "       {\n"
-            "         \"address\" : \"192.168.0.201:16113\",  (string) The Snowgem server host and port\n"
+            "         \"address\" : \"192.168.0.201:16113\",  (string) The Gemlink server host and port\n"
             "         \"connected\" : \"outbound\"           (string) connection, inbound or outbound\n"
             "       }\n"
             "       ,...\n"
@@ -498,7 +498,7 @@ UniValue setban(const UniValue& params, bool fHelp)
         if (isSubnet ? CNode::IsBanned(subNet) : CNode::IsBanned(netAddr))
             throw JSONRPCError(RPC_CLIENT_NODE_ALREADY_ADDED, "Error: IP/Subnet already banned");
 
-        int64_t banTime = 0; //use standard bantime if not specified
+        int64_t banTime = 0; // use standard bantime if not specified
         if (params.size() >= 3 && !params[2].isNull())
             banTime = params[2].get_int64();
 
@@ -508,7 +508,7 @@ UniValue setban(const UniValue& params, bool fHelp)
 
         isSubnet ? CNode::Ban(subNet, banTime, absolute) : CNode::Ban(netAddr, banTime, absolute);
 
-        //disconnect possible nodes
+        // disconnect possible nodes
         while (CNode* bannedNode = (isSubnet ? FindNode(subNet) : FindNode(netAddr)))
             bannedNode->fDisconnect = true;
     } else if (strCommand == "remove") {

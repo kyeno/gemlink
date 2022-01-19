@@ -89,11 +89,11 @@ noinst_PROGRAMS =
 TESTS =
 
 if BUILD_BITCOIND
-  bin_PROGRAMS += snowgemd
+  bin_PROGRAMS += gemlinkd
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += snowgem-cli snowgem-tx
+  bin_PROGRAMS += gemlink-cli gemlink-tx
 endif
 
 LIBZCASH_H = \
@@ -252,7 +252,7 @@ obj/build.h: FORCE
 	  $(abs_top_srcdir)
 libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
-# server: snowgemd
+# server: gemlinkd
 libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
@@ -309,7 +309,7 @@ libbitcoin_zmq_a_SOURCES = \
   zmq/zmqpublishnotifier.cpp
 endif
 
-# wallet: snowgemd, but only linked when wallet enabled
+# wallet: gemlinkd, but only linked when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
@@ -381,7 +381,7 @@ crypto_libbitcoin_crypto_a_SOURCES += \
   ${EQUIHASH_TROMP_SOURCES}
 endif
 
-# common: shared between snowgemd and non-server tools
+# common: shared between gemlinkd and non-server tools
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
@@ -446,7 +446,7 @@ if GLIBC_BACK_COMPAT
 libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
-# cli: snowgem-cli
+# cli: gemlink-cli
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
@@ -458,16 +458,16 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
-snowgemd_SOURCES = bitcoind.cpp
-snowgemd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-snowgemd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-snowgemd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+gemlinkd_SOURCES = bitcoind.cpp
+gemlinkd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+gemlinkd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+gemlinkd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-snowgemd_SOURCES += bitcoind-res.rc
+gemlinkd_SOURCES += bitcoind-res.rc
 endif
 
-snowgemd_LDADD = \
+gemlinkd_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_COMMON) \
@@ -483,7 +483,7 @@ snowgemd_LDADD = \
   $(LIBSECP256K1)
 
 
-snowgemd_LDADD += \
+gemlinkd_LDADD += \
   $(BOOST_LIBS) \
   $(BDB_LIBS) \
   $(SSL_LIBS) \
@@ -494,16 +494,16 @@ snowgemd_LDADD += \
   $(LIBZCASH_LIBS)
 
 # bitcoin-cli binary #
-snowgem_cli_SOURCES = bitcoin-cli.cpp
-snowgem_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
-snowgem_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-snowgem_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+gemlink_cli_SOURCES = bitcoin-cli.cpp
+gemlink_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+gemlink_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+gemlink_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-snowgem_cli_SOURCES += bitcoin-cli-res.rc
+gemlink_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
-snowgem_cli_LDADD = \
+gemlink_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
@@ -516,18 +516,18 @@ snowgem_cli_LDADD = \
   $(LIBZCASH_LIBS)
 #
 
-# snowgem-tx binary #
-snowgem_tx_SOURCES = bitcoin-tx.cpp
-snowgem_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-snowgem_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-snowgem_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+# gemlink-tx binary #
+gemlink_tx_SOURCES = bitcoin-tx.cpp
+gemlink_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+gemlink_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+gemlink_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-snowgem_tx_SOURCES += bitcoin-tx-res.rc
+gemlink_tx_SOURCES += bitcoin-tx-res.rc
 endif
 
-# FIXME: Is libzcash needed for snowgem_tx?
-snowgem_tx_LDADD = \
+# FIXME: Is libzcash needed for gemlink_tx?
+gemlink_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
@@ -537,10 +537,10 @@ snowgem_tx_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBZCASH_LIBS)
 
-snowgem_tx_LDADD += $(BOOST_LIBS)
+gemlink_tx_LDADD += $(BOOST_LIBS)
 #
 
-# snowgem protocol primitives #
+# gemlink protocol primitives #
 libzcash_a_SOURCES = \
   zcash/IncrementalMerkleTree.cpp \
   zcash/NoteEncryption.cpp \

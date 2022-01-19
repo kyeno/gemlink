@@ -56,7 +56,7 @@
 using namespace std;
 
 #if defined(NDEBUG)
-#error "Snowgem cannot be compiled without assertions."
+#error "Gemlink cannot be compiled without assertions."
 #endif
 
 #include "librustzcash.h"
@@ -123,7 +123,7 @@ static void CheckBlockIndex();
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Snowgem Signed Message:\n";
+const string strMessageMagic = "Gemlink Signed Message:\n";
 
 // Internal stuff
 namespace
@@ -1151,7 +1151,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state, libzcash:
     } else {
         // Ensure that zk-SNARKs verify
         for (const JSDescription& joinsplit : tx.vjoinsplit) {
-            if (!joinsplit.Verify(*psnowgemParams, verifier, tx.joinSplitPubKey)) {
+            if (!joinsplit.Verify(*pgemlinkParams, verifier, tx.joinSplitPubKey)) {
                 return state.DoS(100, error("CheckTransaction(): joinsplit does not verify"),
                                  REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
@@ -2812,7 +2812,7 @@ static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
 void ThreadScriptCheck()
 {
-    RenameThread("snowgem-scriptch");
+    RenameThread("gemlink-scriptch");
     scriptcheckqueue.Thread();
 }
 
@@ -4356,8 +4356,8 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const CC
     }
 
     // Enforce BIP 34 rule that the coinbase starts with serialized block height.
-    // In Snowgem this has been enforced since launch, except that the genesis
-    // block didn't include the height in the coinbase (see Snowgem protocol spec
+    // In Gemlink this has been enforced since launch, except that the genesis
+    // block didn't include the height in the coinbase (see Gemlink protocol spec
     // section '6.8 Bitcoin Improvement Proposals').
     if (nHeight > chainparams.EnforceBlockUpgradeMajority()) {
         CScript expect = CScript() << nHeight;

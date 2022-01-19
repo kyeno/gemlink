@@ -47,10 +47,10 @@ static int AppInitRawTx(int argc, char* argv[])
 
     if (argc < 2 || mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help")) {
         // First part of help message is specific to this utility
-        std::string strUsage = _("Snowgem snowgem-tx utility version") + " " + FormatFullVersion() + "\n\n" +
+        std::string strUsage = _("Gemlink gemlink-tx utility version") + " " + FormatFullVersion() + "\n\n" +
                                _("Usage:") + "\n" +
-                               "  snowgem-tx [options] <hex-tx> [commands]  " + _("Update hex-encoded snowgem transaction") + "\n" +
-                               "  snowgem-tx [options] -create [commands]   " + _("Create hex-encoded snowgem transaction") + "\n" +
+                               "  gemlink-tx [options] <hex-tx> [commands]  " + _("Update hex-encoded gemlink transaction") + "\n" +
+                               "  gemlink-tx [options] -create [commands]   " + _("Create hex-encoded gemlink transaction") + "\n" +
                                "\n";
 
         fprintf(stdout, "%s", strUsage.c_str());

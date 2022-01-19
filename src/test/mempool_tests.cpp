@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(RemoveWithoutBranchId)
 }
 
 // Test that nCheckFrequency is set correctly when calling setSanityCheck().
-// https://github.com/snowgem/snowgem/issues/3134
+// https://github.com/gemlink/gemlink/issues/3134
 BOOST_AUTO_TEST_CASE(SetSanityCheck)
 {
     CTxMemPool pool(CFeeRate(0));

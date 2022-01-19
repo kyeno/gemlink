@@ -466,7 +466,7 @@ static bool ProcessBlockFound(CBlock* pblock)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
-            return error("SnowgemMiner: generated block is stale");
+            return error("GemlinkMiner: generated block is stale");
     }
 
 #ifdef ENABLE_WALLET
@@ -490,7 +490,7 @@ static bool ProcessBlockFound(CBlock* pblock)
 
     // Check that the time is valid
     if (!ProcessNewBlock(state, Params(), NULL, pblock, true, NULL))
-        return error("SnowgemMiner: ProcessNewBlock, block not accepted");
+        return error("GemlinkMiner: ProcessNewBlock, block not accepted");
 
     TrackMinedBlock(pblock->GetHash());
 
@@ -503,9 +503,9 @@ void static BitcoinMiner(CWallet* pwallet, const CChainParams& chainparams)
 void static BitcoinMiner(const CChainParams& chainparams)
 #endif
 {
-    LogPrintf("SnowgemMiner started\n");
+    LogPrintf("GemlinkMiner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("snowgem-miner");
+    RenameThread("gemlink-miner");
 
 #ifdef ENABLE_WALLET
     // Each thread has its own key
@@ -578,17 +578,17 @@ void static BitcoinMiner(const CChainParams& chainparams)
 #endif
             if (!pblocktemplate.get()) {
                 if (GetArg("-mineraddress", "").empty()) {
-                    LogPrintf("Error in SnowgemMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
+                    LogPrintf("Error in GemlinkMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
                 } else {
                     // Should never reach here, because -mineraddress validity is checked in init.cpp
-                    LogPrintf("Error in SnowgemMiner: Invalid -mineraddress\n");
+                    LogPrintf("Error in GemlinkMiner: Invalid -mineraddress\n");
                 }
                 return;
             }
             CBlock* pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce, chainparams.GetConsensus());
 
-            LogPrintf("Running SnowgemMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
+            LogPrintf("Running GemlinkMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                       ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
             //
@@ -639,7 +639,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
 
                         // Found a solution
                         SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                        LogPrintf("SnowgemMiner:\n");
+                        LogPrintf("GemlinkMiner:\n");
                         LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", pblock->GetHash().GetHex(), hashTarget.GetHex());
 #ifdef ENABLE_WALLET
                         if (ProcessBlockFound(pblock, *pwallet, reservekey)) {
@@ -738,12 +738,12 @@ void static BitcoinMiner(const CChainParams& chainparams)
     } catch (const boost::thread_interrupted&) {
         miningTimer.stop();
         c.disconnect();
-        LogPrintf("SnowgemMiner terminated\n");
+        LogPrintf("GemlinkMiner terminated\n");
         throw;
     } catch (const std::runtime_error& e) {
         miningTimer.stop();
         c.disconnect();
-        LogPrintf("SnowgemMiner runtime error: %s\n", e.what());
+        LogPrintf("GemlinkMiner runtime error: %s\n", e.what());
         return;
     }
     miningTimer.stop();

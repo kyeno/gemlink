@@ -1,10 +1,10 @@
-TESTS += snowgem-gtest
-noinst_PROGRAMS += snowgem-gtest
+TESTS += gemlink-gtest
+noinst_PROGRAMS += gemlink-gtest
 
 # tool for generating our public parameters.
 # test_checktransaction.cpp MUST be before
 # any test that calls SelectParams().
-snowgem_gtest_SOURCES = \
+gemlink_gtest_SOURCES = \
 	gtest/main.cpp \
 	gtest/utils.cpp \
 	gtest/test_checktransaction.cpp \
@@ -14,10 +14,10 @@ snowgem_gtest_SOURCES = \
 # These tests are order-dependent, because they
 # depend on global state (see #1539)
 if ENABLE_WALLET
-snowgem_gtest_SOURCES += \
+gemlink_gtest_SOURCES += \
 	wallet/gtest/test_wallet_zkeys.cpp
 endif
-snowgem_gtest_SOURCES += \
+gemlink_gtest_SOURCES += \
 	gtest/test_tautology.cpp \
 	gtest/test_deprecation.cpp \
 	gtest/test_equihash.cpp \
@@ -47,14 +47,14 @@ snowgem_gtest_SOURCES += \
 	gtest/test_checkblock.cpp \
 	gtest/test_zip32.cpp
 if ENABLE_WALLET
-snowgem_gtest_SOURCES += \
+gemlink_gtest_SOURCES += \
 	wallet/gtest/test_wallet.cpp
 endif
 
-snowgem_gtest_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-snowgem_gtest_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+gemlink_gtest_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+gemlink_gtest_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
-snowgem_gtest_LDADD = \
+gemlink_gtest_LDADD = \
   -lgtest -lgmock \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_CLI) \
@@ -70,7 +70,7 @@ snowgem_gtest_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-snowgem_gtest_LDADD += \
+gemlink_gtest_LDADD += \
   $(LIBZCASH_SCRIPT) \
   $(BOOST_LIBS) \
   $(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
@@ -82,10 +82,10 @@ snowgem_gtest_LDADD += \
   $(LIBRUSTZCASH) \
   $(LIBZCASH_LIBS)
 
-snowgem_gtest_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
+gemlink_gtest_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 
-snowgem-gtest_check: snowgem-gtest FORCE
-	./snowgem-gtest
+gemlink-gtest_check: gemlink-gtest FORCE
+	./gemlink-gtest
 
-snowgem-gtest-expected-failures: snowgem-gtest FORCE
-	./snowgem-gtest --gtest_filter=*DISABLED_* --gtest_also_run_disabled_tests
+gemlink-gtest-expected-failures: gemlink-gtest FORCE
+	./gemlink-gtest --gtest_filter=*DISABLED_* --gtest_also_run_disabled_tests

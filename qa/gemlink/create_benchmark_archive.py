@@ -11,13 +11,13 @@ import sys
 import tarfile
 import time
 
-SNOWGEM_CLI = './src/snowgem-cli'
+SNOWGEM_CLI = './src/gemlink-cli'
 USAGE = """
 Requirements:
 - find
 - xz
 - %s (edit SNOWGEM_CLI in this script to alter the path)
-- A running mainnet snowgemd using the default datadir with -txindex=1
+- A running mainnet gemlinkd using the default datadir with -txindex=1
 
 Example usage:
 
@@ -26,7 +26,7 @@ virtualenv venv
 . venv/bin/activate
 pip install --global-option=build_ext --global-option="-L$(pwd)/src/leveldb/" --global-option="-I$(pwd)/src/leveldb/include/" plyvel
 pip install progressbar2
-LD_LIBRARY_PATH=src/leveldb python qa/snowgem/create_benchmark_archive.py
+LD_LIBRARY_PATH=src/leveldb python qa/gemlink/create_benchmark_archive.py
 """ % SNOWGEM_CLI
 
 def check_deps():

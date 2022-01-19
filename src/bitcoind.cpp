@@ -70,13 +70,13 @@ bool AppInit(int argc, char* argv[])
 
     // Process help and version before taking care about datadir
     if (mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help") || mapArgs.count("-version")) {
-        std::string strUsage = _("Snowgem Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n" + PrivacyInfo();
+        std::string strUsage = _("Gemlink Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n" + PrivacyInfo();
 
         if (mapArgs.count("-version")) {
             strUsage += LicenseInfo();
         } else {
             strUsage += "\n" + _("Usage:") + "\n" +
-                        "  snowgemd [options]                     " + _("Start Snowgem Daemon") + "\n";
+                        "  gemlinkd [options]                     " + _("Start Gemlink Daemon") + "\n";
 
             strUsage += "\n" + HelpMessage(HMM_BITCOIND);
         }
@@ -92,24 +92,24 @@ bool AppInit(int argc, char* argv[])
         }
         try {
             ReadConfigFile(mapArgs, mapMultiArgs);
-        } catch (const missing_snowgem_conf& e) {
+        } catch (const missing_gemlink_conf& e) {
             fprintf(stderr,
-                    (_("Before starting snowgemd, you need to create a configuration file:\n"
+                    (_("Before starting gemlinkd, you need to create a configuration file:\n"
                        "%s\n"
                        "It can be completely empty! That indicates you are happy with the default\n"
-                       "configuration of snowgemd. But requiring a configuration file to start ensures\n"
-                       "that snowgemd won't accidentally compromise your privacy if there was a default\n"
+                       "configuration of gemlinkd. But requiring a configuration file to start ensures\n"
+                       "that gemlinkd won't accidentally compromise your privacy if there was a default\n"
                        "option you needed to change.\n"
                        "\n"
                        "You can look at the example configuration file for suggestions of default\n"
                        "options that you may want to change. It should be in one of these locations,\n"
-                       "depending on how you installed Snowgem:\n") +
+                       "depending on how you installed Gemlink:\n") +
                      _("- Source code:  %s\n"
                        "- .deb package: %s\n"))
                         .c_str(),
                     GetConfigFile().string().c_str(),
-                    "contrib/debian/examples/snowgem.conf",
-                    "/usr/share/doc/snowgem/examples/snowgem.conf");
+                    "contrib/debian/examples/gemlink.conf",
+                    "/usr/share/doc/gemlink/examples/gemlink.conf");
             return false;
         } catch (const std::exception& e) {
             fprintf(stderr, "Error reading configuration file: %s\n", e.what());
@@ -131,17 +131,17 @@ bool AppInit(int argc, char* argv[])
         // Command-line RPC
         bool fCommandLine = false;
         for (int i = 1; i < argc; i++)
-            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "snowgem:"))
+            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "gemlink:"))
                 fCommandLine = true;
 
         if (fCommandLine) {
-            fprintf(stderr, "Error: There is no RPC client functionality in snowgemd. Use the snowgem-cli utility instead.\n");
+            fprintf(stderr, "Error: There is no RPC client functionality in gemlinkd. Use the gemlink-cli utility instead.\n");
             exit(EXIT_FAILURE);
         }
 #ifndef WIN32
         fDaemon = GetBoolArg("-daemon", false);
         if (fDaemon) {
-            fprintf(stdout, "Snowgem server starting\n");
+            fprintf(stdout, "Gemlink server starting\n");
 
             // Daemonize
             pid_t pid = fork();

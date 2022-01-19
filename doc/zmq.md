@@ -5,8 +5,8 @@ connections, inter-process communication, and shared-memory,
 providing various message-oriented semantics such as publish/subcribe,
 request/reply, and push/pull.
 
-The Snowgem daemon can be configured to act as a trusted "border
-router", implementing the snowgem wire protocol and relay, making
+The Gemlink daemon can be configured to act as a trusted "border
+router", implementing the gemlink wire protocol and relay, making
 consensus decisions, maintaining the local blockchain database,
 broadcasting locally generated transactions into the network, and
 providing a queryable RPC interface to interact on a polled basis for
@@ -33,20 +33,20 @@ buffering or reassembly.
 
 ## Prerequisites
 
-The ZeroMQ feature in Snowgem requires ZeroMQ API version 4.x or
+The ZeroMQ feature in Gemlink requires ZeroMQ API version 4.x or
 newer, which you will need to install if you are not using the depends
 system. Typically, it is packaged by distributions as something like
-*libzmq5-dev*. The C++ wrapper for ZeroMQ is *not* needed.
+_libzmq5-dev_. The C++ wrapper for ZeroMQ is _not_ needed.
 
 In order to run the example Python client scripts in contrib/ one must
-also install *python-zmq*, though this is not necessary for daemon
+also install _python-zmq_, though this is not necessary for daemon
 operation.
 
 ## Enabling
 
 By default, the ZeroMQ feature is automatically compiled in if the
-necessary prerequisites are found.  To disable, use --disable-zmq
-during the *configure* step of building snowgemd:
+necessary prerequisites are found. To disable, use --disable-zmq
+during the _configure_ step of building gemlinkd:
 
     $ ./configure --disable-zmq (other options)
 
@@ -67,8 +67,8 @@ address. The same address can be used in more than one notification.
 
 For instance:
 
-    $ snowgemd -zmqpubhashtx=tcp://127.0.0.1:28332 \
-               -zmqpubrawtx=ipc:///tmp/snowgemd.tx.raw
+    $ gemlinkd -zmqpubhashtx=tcp://127.0.0.1:28332 \
+               -zmqpubrawtx=ipc:///tmp/gemlinkd.tx.raw
 
 Each PUB notification has a topic and body, where the header
 corresponds to the notification type. For instance, for the
@@ -76,7 +76,7 @@ notification `-zmqpubhashtx` the topic is `hashtx` (no null
 terminator) and the body is the hexadecimal transaction hash (32
 bytes).
 
-These options can also be provided in snowgem.conf.
+These options can also be provided in gemlink.conf.
 
 ZeroMQ endpoint specifiers for TCP (and others) are documented in the
 [ZeroMQ API](http://api.zeromq.org/4-0:_start).
@@ -88,9 +88,9 @@ arriving. Please see `contrib/zmq/zmq_sub.py` for a working example.
 
 ## Remarks
 
-From the perspective of snowgemd, the ZeroMQ socket is write-only; PUB
+From the perspective of gemlinkd, the ZeroMQ socket is write-only; PUB
 sockets don't even have a read function. Thus, there is no state
-introduced into snowgemd directly. Furthermore, no information is
+introduced into gemlinkd directly. Furthermore, no information is
 broadcast that wasn't already received from the public P2P network.
 
 No authentication or authorization is done on connecting clients; it
@@ -103,5 +103,5 @@ retrieve the chain from the last known block to the new tip.
 
 There are several possibilities that ZMQ notification can get lost
 during transmission depending on the communication type your are
-using. Snowgemd appends an up-counting sequence number to each
+using. Gemlinkd appends an up-counting sequence number to each
 notification which allows listeners to detect lost notifications.

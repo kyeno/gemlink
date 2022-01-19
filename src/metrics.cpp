@@ -263,7 +263,7 @@ int printMiningStatus(bool mining)
         lines++;
     } else {
         std::cout << _("You are currently not mining.") << std::endl;
-        std::cout << _("To enable mining, add 'gen=1' to your snowgem.conf and restart.") << std::endl;
+        std::cout << _("To enable mining, add 'gen=1' to your gemlink.conf and restart.") << std::endl;
         lines += 2;
     }
     std::cout << std::endl;
@@ -462,7 +462,7 @@ bool enableVTMode()
 void ThreadShowMetricsScreen()
 {
     // Make this thread recognisable as the metrics screen thread
-    RenameThread("snowgem-metrics-screen");
+    RenameThread("gemlink-metrics-screen");
 
     // Determine whether we should render a persistent UI or rolling metrics
     bool isTTY = isatty(STDOUT_FILENO);
@@ -482,7 +482,7 @@ void ThreadShowMetricsScreen()
         std::cout << std::endl;
 
         // Thank you text
-        std::cout << _("Thank you for running a Snowgem node!") << std::endl;
+        std::cout << _("Thank you for running a Gemlink node!") << std::endl;
         std::cout << _("You're helping to strengthen the network and contributing to a social good :)") << std::endl;
 
         // Privacy notice text

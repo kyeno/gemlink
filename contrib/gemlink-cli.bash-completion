@@ -1,10 +1,10 @@
-# bash programmable completion for snowgem-cli(1)
+# bash programmable completion for gemlink-cli(1)
 # Copyright (c) 2012-2016 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-# call $snowgem-cli for RPC
-_snowgem_rpc() {
+# call $gemlink-cli for RPC
+_gemlink_rpc() {
     # determine already specified args necessary for RPC
     local rpcargs=()
     for i in ${COMP_LINE}; do
@@ -14,25 +14,25 @@ _snowgem_rpc() {
                 ;;
         esac
     done
-    $snowgem_cli "${rpcargs[@]}" "$@"
+    $gemlink_cli "${rpcargs[@]}" "$@"
 }
 
 # Add wallet accounts to COMPREPLY
-_snowgem_accounts() {
+_gemlink_accounts() {
     local accounts
-    # Accounts are deprecated in Snowgem
-    #accounts=$(_snowgem_rpc listaccounts | awk -F '"' '{ print $2 }')
+    # Accounts are deprecated in Gemlink
+    #accounts=$(_gemlink_rpc listaccounts | awk -F '"' '{ print $2 }')
     accounts="\\\"\\\""
     COMPREPLY=( "${COMPREPLY[@]}" $( compgen -W "$accounts" -- "$cur" ) )
 }
 
-_snowgem_cli() {
+_gemlink_cli() {
     local cur prev words=() cword
-    local snowgem_cli
+    local gemlink_cli
 
-    # save and use original argument to invoke snowgem-cli for -help, help and RPC
-    # as snowgem-cli might not be in $PATH
-    snowgem_cli="$1"
+    # save and use original argument to invoke gemlink-cli for -help, help and RPC
+    # as gemlink-cli might not be in $PATH
+    gemlink_cli="$1"
 
     COMPREPLY=()
     _get_comp_words_by_ref -n = cur prev words cword
@@ -62,7 +62,7 @@ _snowgem_cli() {
     if ((cword > 3)); then
         case ${words[cword-3]} in
             addmultisigaddress)
-                _snowgem_accounts
+                _gemlink_accounts
                 return 0
                 ;;
             getbalance|gettxout|importaddress|importpubkey|importprivkey|listreceivedbyaccount|listreceivedbyaddress|listsinceblock)
@@ -87,7 +87,7 @@ _snowgem_cli() {
                 return 0
                 ;;
             move|setaccount)
-                _snowgem_accounts
+                _gemlink_accounts
                 return 0
                 ;;
         esac
@@ -103,7 +103,7 @@ _snowgem_cli() {
             return 0
             ;;
         getaccountaddress|getaddressesbyaccount|getbalance|getnewaddress|getreceivedbyaccount|listtransactions|move|sendfrom|sendmany)
-            _snowgem_accounts
+            _gemlink_accounts
             return 0
             ;;
     esac
@@ -127,12 +127,12 @@ _snowgem_cli() {
 
             # only parse -help if senseful
             if [[ -z "$cur" || "$cur" =~ ^- ]]; then
-                helpopts=$($snowgem_cli -help 2>&1 | awk '$1 ~ /^-/ { sub(/=.*/, "="); print $1 }' )
+                helpopts=$($gemlink_cli -help 2>&1 | awk '$1 ~ /^-/ { sub(/=.*/, "="); print $1 }' )
             fi
 
             # only parse help if senseful
             if [[ -z "$cur" || "$cur" =~ ^[a-z] ]]; then
-                commands=$(_snowgem_rpc help 2>/dev/null | awk '$1 ~ /^[a-z]/ { print $1; }')
+                commands=$(_gemlink_rpc help 2>/dev/null | awk '$1 ~ /^[a-z]/ { print $1; }')
             fi
 
             COMPREPLY=( $( compgen -W "$helpopts $commands" -- "$cur" ) )
@@ -145,7 +145,7 @@ _snowgem_cli() {
             ;;
     esac
 } &&
-complete -F _snowgem_cli snowgem-cli
+complete -F _gemlink_cli gemlink-cli
 
 # Local variables:
 # mode: shell-script

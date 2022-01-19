@@ -3,7 +3,7 @@
 
 #include <zcash/zip32.h>
 
-// From https://github.com/snowgem-hackworks/snowgem-test-vectors/blob/master/sapling_zip32.py
+// From https://github.com/gemlink-hackworks/gemlink-test-vectors/blob/master/sapling_zip32.py
 // Sapling consistently uses little-endian encoding, but uint256S takes its input in
 // big-endian byte order, so the test vectors below are byte-reversed.
 TEST(ZIP32, TestVectors)

@@ -341,8 +341,8 @@ BOOST_AUTO_TEST_CASE(test_basic_joinsplit_verification)
     auto verifier = libzcash::ProofVerifier::Strict();
 
     {
-        JSDescription jsdesc(*psnowgemParams, joinSplitPubKey, rt, inputs, outputs, 0, 0);
-        BOOST_CHECK(jsdesc.Verify(*psnowgemParams, verifier, joinSplitPubKey));
+        JSDescription jsdesc(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 0, 0);
+        BOOST_CHECK(jsdesc.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
 
         CDataStream ss(SER_DISK, CLIENT_VERSION);
         ss << jsdesc;
@@ -351,20 +351,20 @@ BOOST_AUTO_TEST_CASE(test_basic_joinsplit_verification)
         ss >> jsdesc_deserialized;
 
         BOOST_CHECK(jsdesc_deserialized == jsdesc);
-        BOOST_CHECK(jsdesc_deserialized.Verify(*psnowgemParams, verifier, joinSplitPubKey));
+        BOOST_CHECK(jsdesc_deserialized.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
     }
 
     {
         // Ensure that the balance equation is working.
-        BOOST_CHECK_THROW(JSDescription(*psnowgemParams, joinSplitPubKey, rt, inputs, outputs, 10, 0), std::invalid_argument);
-        BOOST_CHECK_THROW(JSDescription(*psnowgemParams, joinSplitPubKey, rt, inputs, outputs, 0, 10), std::invalid_argument);
+        BOOST_CHECK_THROW(JSDescription(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 10, 0), std::invalid_argument);
+        BOOST_CHECK_THROW(JSDescription(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 0, 10), std::invalid_argument);
     }
 
     {
         // Ensure that it won't verify if the root is changed.
-        auto test = JSDescription(*psnowgemParams, joinSplitPubKey, rt, inputs, outputs, 0, 0);
+        auto test = JSDescription(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 0, 0);
         test.anchor = GetRandHash();
-        BOOST_CHECK(!test.Verify(*psnowgemParams, verifier, joinSplitPubKey));
+        BOOST_CHECK(!test.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
     }
 }
 

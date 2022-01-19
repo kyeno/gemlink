@@ -1,17 +1,17 @@
 Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?rev=174
-Upstream-Name: TENT
-Upstream-Contact: TENT Corporation SE <team@tent.app>
-Source: https://github.com/TENTOfficial/TENT
+Upstream-Name: GEM
+Upstream-Contact: GEM Corporation SE <team@tent.app>
+Source: https://github.com/gemlink/gemlink
 
 Files: *
-Copyright: 2017-2021 The TENT developers
+Copyright: 2017-2021 The GEM developers
  2016-2021, The Zcash developers
  2009-2021, Bitcoin Core developers
  2009-2021, Bitcoin Developers
 License: Expat
 Comment: The Bitcoin Core developers encompasses the current developers listed on bitcoin.org,
  as well as the numerous contributors to the project.
- The TENT developers are listed at https://tent.app/about-us#team.
+ The GEM developers are listed at https://gemlink.org/about-us#team.
  This copyright entry excludes files explicitly listed below.
 
 Files: depends/sources/libsodium-*.tar.gz

@@ -1,7 +1,7 @@
 name: "tent-3.1.4"
 name: "tent-3.1.3"
 ---
-name: "snowgem-1.0.13"
+name: "gemlink-1.0.13"
 enable_cache: true
 distro: "debian"
 suites:
@@ -27,8 +27,8 @@ packages:
 - "wget"
 - "zlib1g-dev"
 remotes:
-- "url": "https://github.com/snowgem/snowgem.git"
-  "dir": "snowgem"
+- "url": "https://github.com/gemlink/gemlink.git"
+  "dir": "gemlink"
 files: []
 script: |
   WRAP_DIR=$HOME/wrapped
@@ -83,7 +83,7 @@ script: |
   create_global_faketime_wrappers "2000-01-01 12:00:00"
   create_per-host_faketime_wrappers "2000-01-01 12:00:00"
 
-  cd snowgem
+  cd gemlink
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -98,13 +98,13 @@ script: |
   ./autogen.sh
   CONFIG_SITE=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`/share/config.site ./configure --prefix=/
   make dist
-  SOURCEDIST=`echo snowgem-*.tar.gz`
+  SOURCEDIST=`echo gemlink-*.tar.gz`
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
   # Correct tar file order
   mkdir -p temp
   pushd temp
   tar xf ../$SOURCEDIST
-  find snowgem* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
+  find gemlink* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
   popd
 
   ORIGPATH="$PATH"
