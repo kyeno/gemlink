@@ -44,7 +44,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  * database (and is in any case of zero value).
  *
  * >>> from pyblake2 import blake2s
- * >>> 'Gemlink' + blake2s(b'2018-01-01 Gemlink is born.').hexdigest()
+ * >>> 'Snowgem' + blake2s(b'2018-01-01 Snowgem is born.').hexdigest()
  */
 
 static CBlock CreateGenesisBlock(uint32_t nTime, const uint256& nNonce, const std::vector<unsigned char>& nSolution, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
