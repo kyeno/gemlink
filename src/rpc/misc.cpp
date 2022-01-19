@@ -152,27 +152,27 @@ UniValue getalldata(const UniValue& params, bool fHelp)
         }
 
         // get all z address
-        {
-            std::set<libzcash::SproutPaymentAddress> addresses;
-            pwalletMain->GetSproutPaymentAddresses(addresses);
-            for (auto addr : addresses) {
-                if (pwalletMain->HaveSproutSpendingKey(addr)) {
-                    UniValue address(UniValue::VOBJ);
-                    const string& strName = EncodePaymentAddress(addr);
-                    nBalance = getBalanceZaddr(strName, nMinDepth, false);
-                    address.push_back(Pair("amount", ValueFromAmount(nBalance)));
-                    address.push_back(Pair("ismine", true));
-                    addrlist.push_back(Pair(strName, address));
-                } else {
-                    UniValue address(UniValue::VOBJ);
-                    const string& strName = EncodePaymentAddress(addr);
-                    nBalance = getBalanceZaddr(strName, nMinDepth, false);
-                    address.push_back(Pair("amount", ValueFromAmount(nBalance)));
-                    address.push_back(Pair("ismine", false));
-                    addrlist.push_back(Pair(strName, address));
-                }
-            }
-        }
+        // {
+        //     std::set<libzcash::SproutPaymentAddress> addresses;
+        //     pwalletMain->GetSproutPaymentAddresses(addresses);
+        //     for (auto addr : addresses) {
+        //         if (pwalletMain->HaveSproutSpendingKey(addr)) {
+        //             UniValue address(UniValue::VOBJ);
+        //             const string& strName = EncodePaymentAddress(addr);
+        //             nBalance = getBalanceZaddr(strName, nMinDepth, false);
+        //             address.push_back(Pair("amount", ValueFromAmount(nBalance)));
+        //             address.push_back(Pair("ismine", true));
+        //             addrlist.push_back(Pair(strName, address));
+        //         } else {
+        //             UniValue address(UniValue::VOBJ);
+        //             const string& strName = EncodePaymentAddress(addr);
+        //             nBalance = getBalanceZaddr(strName, nMinDepth, false);
+        //             address.push_back(Pair("amount", ValueFromAmount(nBalance)));
+        //             address.push_back(Pair("ismine", false));
+        //             addrlist.push_back(Pair(strName, address));
+        //         }
+        //     }
+        // }
         {
             std::set<libzcash::SaplingPaymentAddress> addresses;
             pwalletMain->GetSaplingPaymentAddresses(addresses);
