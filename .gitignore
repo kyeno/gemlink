@@ -11,6 +11,7 @@ src/gemlink-gtest
 src/gemlink-tx
 src/test/test_bitcoin
 src/Makefile
+zcutil/bin/
 
 # Gemlink utilities
 src/gemlink/GenerateParams
