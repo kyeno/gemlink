@@ -134,7 +134,7 @@ static void SaplingOutput(benchmark::State& state)
         librustzcash_sapling_check_output(
             ctx,
             output.cv.begin(),
-            output.cmu.begin(),
+            output.cm.begin(),
             output.ephemeralKey.begin(),
             output.zkproof.begin());
     }

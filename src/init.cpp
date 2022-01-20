@@ -83,6 +83,7 @@ using namespace std;
 extern void ThreadSendAlert();
 
 ZCJoinSplit* pgemlinkParams = NULL;
+TracingHandle* pTracingHandle = nullptr;
 
 #ifdef ENABLE_WALLET
 CWallet* pwalletMain = NULL;
@@ -290,6 +291,9 @@ void Shutdown()
     globalVerifyHandle.reset();
     ECC_Stop();
     LogPrintf("%s: done\n", __func__);
+    if (pTracingHandle) {
+        tracing_free(pTracingHandle);
+    }
 }
 
 /**
@@ -339,7 +343,7 @@ void OnRPCStopped()
 void OnRPCPreCommand(const CRPCCommand& cmd)
 {
     // Observe safe mode
-    string strWarning = GetWarnings("rpc");
+    string strWarning = GetWarnings("rpc").first;
     if (strWarning != "" && !GetBoolArg("-disablesafemode", false) &&
         !cmd.okSafeMode)
         throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning);
@@ -791,6 +795,49 @@ bool AppInitServers(boost::thread_group& threadGroup)
     return true;
 }
 
+void InitLogging()
+{
+    fPrintToConsole = GetBoolArg("-printtoconsole", false);
+    fLogTimestamps = GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
+    fLogIPs = GetBoolArg("-logips", DEFAULT_LOGIPS);
+
+    // Set up the initial filtering directive from the -debug flags.
+    std::string initialFilter = LogConfigFilter();
+
+    fs::path pathDebug = GetDebugLogPath();
+    const fs::path::string_type& pathDebugStr = pathDebug.native();
+    static_assert(sizeof(fs::path::value_type) == sizeof(codeunit),
+                  "native path has unexpected code unit size");
+    const codeunit* pathDebugCStr = nullptr;
+    size_t pathDebugLen = 0;
+    if (!fPrintToConsole) {
+        pathDebugCStr = reinterpret_cast<const codeunit*>(pathDebugStr.c_str());
+        pathDebugLen = pathDebugStr.length();
+    }
+
+    pTracingHandle = tracing_init(
+        pathDebugCStr, pathDebugLen,
+        initialFilter.c_str(),
+        fLogTimestamps);
+
+    LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    LogPrintf("Zcash version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
+}
+
+[[noreturn]] static void new_handler_terminate()
+{
+    // Rather than throwing std::bad-alloc if allocation fails, terminate
+    // immediately to (try to) avoid chain corruption.
+    // Since LogPrintf may itself allocate memory, set the handler directly
+    // to terminate first.
+    std::set_new_handler(std::terminate);
+    fputs("Error: Out of memory. Terminating.\n", stderr);
+    LogPrintf("Error: Out of memory. Terminating.\n");
+
+    // The log was successful, terminate now.
+    std::terminate();
+};
+
 /** Initialize bitcoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
@@ -1014,6 +1061,9 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     fServer = GetBoolArg("-server", false);
 
+    // Set this early so that parameter interactions go to console
+    InitLogging();
+
     // block pruning; get the amount of disk space (in MB) to allot for block & undo files
     int64_t nSignedPruneTarget = GetArg("-prune", 0) * 1024 * 1024;
     if (nSignedPruneTarget < 0) {
@@ -1201,13 +1251,13 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());
 #endif
-    if (GetBoolArg("-shrinkdebugfile", !fDebug))
-        ShrinkDebugFile();
+    // if (GetBoolArg("-shrinkdebugfile", !fDebug))
+    //     ShrinkDebugFile();
 
-    if (fPrintToDebugLog)
-        OpenDebugLog();
+    // if (fPrintToDebugLog)
+    //     OpenDebugLog();
 
-        // LogPrintf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+    // LogPrintf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
 #ifdef ENABLE_WALLET
     LogPrintf("Using BerkeleyDB version %s\n", DbEnv::version(0, 0, 0));
 #endif
@@ -1215,7 +1265,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         LogPrintf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
     LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
     LogPrintf("Using data directory %s\n", strDataDir);
-    LogPrintf("Using config file %s\n", GetConfigFile().string());
+    LogPrintf("Using config file %s\n", GetConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME)).string());
     LogPrintf("Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
     std::ostringstream strErrors;
 

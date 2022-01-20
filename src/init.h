@@ -18,6 +18,7 @@ namespace boost
 class thread_group;
 } // namespace boost
 
+extern TracingHandle* pTracingHandle;
 extern CWallet* pwalletMain;
 extern ZCJoinSplit* pgemlinkParams;
 
@@ -26,6 +27,8 @@ bool ShutdownRequested();
 /** Interrupt threads */
 void Interrupt(boost::thread_group& threadGroup);
 void Shutdown();
+//! Initialize the logging infrastructure
+void InitLogging();
 bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler);
 
 /** The help message mode determines what help message to show */

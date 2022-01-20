@@ -22,6 +22,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/assign/list_of.hpp>
 
+const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
+
 static bool fCreateBlank;
 static std::map<std::string, UniValue> registers;
 static const int CONTINUE_EXECUTION = -1;

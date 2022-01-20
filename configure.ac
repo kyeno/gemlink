@@ -130,12 +130,6 @@ AC_ARG_ENABLE([mining],
   [enable_mining=$enableval],
   [enable_mining=yes])
 
-AC_ARG_ENABLE([proton],
-  [AS_HELP_STRING([--disable-proton],
-  [disable Proton (AMQP messaging)])],
-  [use_proton=$enableval],
-  [use_proton=yes])
-
 AC_ARG_ENABLE(tests,
     AS_HELP_STRING([--enable-tests],[compile tests (default is yes)]),
     [use_tests=$enableval],
@@ -445,12 +439,7 @@ case $host in
          dnl It's safe to add these paths even if the functionality is disabled by
          dnl the user (--without-wallet for example).
 
-         openssl_prefix=`$BREW --prefix openssl 2>/dev/null`
          bdb_prefix=`$BREW --prefix berkeley-db4 2>/dev/null`
-         if test x$openssl_prefix != x; then
-           PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
-           export PKG_CONFIG_PATH
-         fi
          if test x$bdb_prefix != x; then
            CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
            LIBS="$LIBS -L$bdb_prefix/lib"
@@ -630,13 +619,12 @@ if test x$use_hardening != xno; then
 
   if test x$TARGET_OS = xdarwin || test x$TARGET_OS = xwindows; then
     # Xcode's ld (at least ld64-302.3) doesn't support -z
+    # mingw-w64's ld (at least mingw-w64 4.0.4-2) also appears to not support -z
     AX_CHECK_LINK_FLAG([[-Wl,-z,relro]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,relro"],[AC_MSG_WARN(Cannot enable RELRO)])
     AX_CHECK_LINK_FLAG([[-Wl,-z,now]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,now"],[AC_MSG_WARN(Cannot enable BIND_NOW)])
   else
-    if test x$TARGET_OS != xwindows; then
-      AX_CHECK_LINK_FLAG([[-Wl,-z,relro]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,relro"],[AC_MSG_ERROR(Cannot enable RELRO)])
-      AX_CHECK_LINK_FLAG([[-Wl,-z,now]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,now"],[AC_MSG_ERROR(Cannot enable BIND_NOW)])
-    fi
+    AX_CHECK_LINK_FLAG([[-Wl,-z,relro]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,relro"],[AC_MSG_ERROR(Cannot enable RELRO)])
+    AX_CHECK_LINK_FLAG([[-Wl,-z,now]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,-z,now"],[AC_MSG_ERROR(Cannot enable BIND_NOW)])
   fi
 
   if test x$TARGET_OS != xwindows; then
@@ -728,22 +716,6 @@ if test x$enable_wallet != xno; then
     BITCOIN_FIND_BDB62
 fi
 
-if test x$use_proton = xyes; then
-  AC_CHECK_HEADERS([proton/connection.hpp],
-    [],
-    [AC_MSG_WARN([Proton headers not found, disabling Proton support])
-    use_proton=no])
- AC_CHECK_LIB([qpid-proton-cpp], [main],
-    [PROTON_LIBS="-lqpid-proton-cpp -lqpid-proton"],
-    [AC_MSG_WARN([Proton libraries not found, disabling Proton support])
-    use_proton=no])
-fi
-if test x$use_proton = xyes; then
-    AC_DEFINE(ENABLE_PROTON, 1, [Define to 1 to enable Proton functions])
-else
-    AC_DEFINE(ENABLE_PROTON, 0, [Define to 1 to enable Proton functions])
-fi
-
 if test x$build_bitcoin_utils$build_bitcoind$use_tests = xnonono; then
     use_boost=no
 else
@@ -809,7 +781,6 @@ if test x$use_pkgconfig = xyes; then
   m4_ifdef(
     [PKG_CHECK_MODULES],
     [
-      PKG_CHECK_MODULES([SSL], [libssl],, [AC_MSG_ERROR(openssl  not found.)])
       if test x$build_bitcoin_utils$build_bitcoind$bitcoin_enable_qt$use_tests != xnononono; then
         PKG_CHECK_MODULES([EVENT], [libevent],, [AC_MSG_ERROR(libevent not found.)])
         if test x$TARGET_OS != xwindows; then
@@ -829,9 +800,6 @@ if test x$use_pkgconfig = xyes; then
     ]
   )
 else
-  AC_CHECK_HEADER([openssl/crypto.h],,AC_MSG_ERROR(libcrypto headers missing))
-  AC_CHECK_HEADER([openssl/ssl.h],, AC_MSG_ERROR(libssl headers missing),)
-  AC_CHECK_LIB([ssl],         [main],SSL_LIBS=-lssl, AC_MSG_ERROR(libssl missing))
 
   if test x$build_bitcoin_utils$build_bitcoind$bitcoin_enable_qt$use_tests != xnononono; then
     AC_CHECK_HEADER([event2/event.h],, AC_MSG_ERROR(libevent headers missing),)
@@ -941,7 +909,6 @@ fi
 
 AM_CONDITIONAL([ENABLE_ZMQ], [test "x$use_zmq" = "xyes"])
 
-AM_CONDITIONAL([ENABLE_PROTON], [test "x$use_proton" = "xyes"])
 AC_MSG_CHECKING([whether to build test_bitcoin])
 if test x$use_tests = xyes; then
   AC_MSG_RESULT([yes])
@@ -1010,7 +977,6 @@ AC_SUBST(LIBTOOL_APP_LDFLAGS)
 AC_SUBST(BOOST_LIBS)
 AC_SUBST(TESTDEFS)
 AC_SUBST(LEVELDB_TARGET_FLAGS)
-AC_SUBST(SSL_LIBS)
 AC_SUBST(EVENT_LIBS)
 AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_SUBST(ZMQ_LIBS)

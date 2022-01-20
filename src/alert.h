@@ -18,6 +18,9 @@ class CAlert;
 class CNode;
 class uint256;
 
+/** Minimum alert priority for enabling safe mode. */
+static const int ALERT_PRIORITY_SAFE_MODE = 4000;
+
 extern std::map<uint256, CAlert> mapAlerts;
 extern CCriticalSection cs_mapAlerts;
 

@@ -19,6 +19,8 @@
 
 #include <univalue.h>
 
+const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
+
 static const int DEFAULT_HTTP_CLIENT_TIMEOUT = 900;
 static const int CONTINUE_EXECUTION = -1;
 
@@ -99,7 +101,7 @@ static int AppInitRPC(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     try {
-        ReadConfigFile(mapArgs, mapMultiArgs);
+        ReadConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME), mapArgs, mapMultiArgs);
     } catch (const std::exception& e) {
         fprintf(stderr, "Error reading configuration file: %s\n", e.what());
         return EXIT_FAILURE;
@@ -208,7 +210,7 @@ UniValue CallRPC(const std::string& strMethod, const UniValue& params)
             throw std::runtime_error(strprintf(
                 _("Could not locate RPC credentials. No authentication cookie could be found,\n"
                   "and no rpcpassword is set in the configuration file (%s)."),
-                GetConfigFile().string().c_str()));
+                GetConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME)).string().c_str()));
         }
     } else {
         strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];

@@ -36,6 +36,7 @@
  * Use the buttons <code>Namespaces</code>, <code>Classes</code> or <code>Files</code> at the top of the page to start navigating the code.
  */
 
+const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
 static bool fDaemon;
 
 void WaitForShutdown(boost::thread_group* threadGroup)
@@ -91,7 +92,7 @@ bool AppInit(int argc, char* argv[])
             return false;
         }
         try {
-            ReadConfigFile(mapArgs, mapMultiArgs);
+            ReadConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME), mapArgs, mapMultiArgs);
         } catch (const missing_gemlink_conf& e) {
             fprintf(stderr,
                     (_("Before starting gemlinkd, you need to create a configuration file:\n"
@@ -107,7 +108,7 @@ bool AppInit(int argc, char* argv[])
                      _("- Source code:  %s\n"
                        "- .deb package: %s\n"))
                         .c_str(),
-                    GetConfigFile().string().c_str(),
+                    GetConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME)).string().c_str(),
                     "contrib/debian/examples/gemlink.conf",
                     "/usr/share/doc/gemlink/examples/gemlink.conf");
             return false;

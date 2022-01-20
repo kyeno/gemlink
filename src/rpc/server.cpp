@@ -7,8 +7,10 @@
 
 #include "asyncrpcqueue.h"
 #include "base58.h"
+#include "fs.h"
 #include "init.h"
 #include "key_io.h"
+#include "net.h"
 #include "random.h"
 #include "sync.h"
 #include "ui_interface.h"
@@ -28,6 +30,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2/signal.hpp>
 #include <boost/thread.hpp>
+
+#include <tracing.h>
 
 using namespace RPCServer;
 using namespace std;
@@ -229,6 +233,50 @@ UniValue help(const UniValue& params, bool fHelp)
 }
 
 
+UniValue setlogfilter(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1) {
+        throw runtime_error(
+            "setlogfilter \"directives\"\n"
+            "\nSets the filter to be used for selecting events to log.\n"
+            "\nA filter is a comma-separated list of directives.\n"
+            "The syntax for each directive is:\n"
+            "\n    target[span{field=value}]=level\n"
+            "\nThe default filter, derived from the -debug=target flags, is:\n" +
+            strprintf("\n    %s", LogConfigFilter()) + "\n"
+                                                       "\nPassing a valid filter here will replace the existing filter.\n"
+                                                       "Passing an empty string will reset the filter to the default.\n"
+                                                       "\nArguments:\n"
+                                                       "1. newFilterDirectives (string, required) The new log filter.\n"
+                                                       "\nExamples:\n" +
+            HelpExampleCli("setlogfilter", "\"main=info,rpc=info\"") + HelpExampleRpc("setlogfilter", "\"main=info,rpc=info\""));
+    }
+
+    auto newFilter = params[0].getValStr();
+    if (newFilter.empty()) {
+        newFilter = LogConfigFilter();
+    }
+
+    if (pTracingHandle) {
+        TracingInfo("main", "Reloading log filter", "new_filter", newFilter.c_str());
+
+        if (!tracing_reload(pTracingHandle, newFilter.c_str())) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "Filter reload failed; check logs");
+        }
+
+        // Now that we have reloaded the filter, reload any stored spans.
+        {
+            LOCK(cs_vNodes);
+            for (CNode* pnode : vNodes) {
+                pnode->ReloadTracingSpan();
+            }
+        }
+    }
+
+    return NullUniValue;
+}
+
+
 UniValue stop(const UniValue& params, bool fHelp)
 {
     // Accept the deprecated and ignored 'detach' boolean argument
@@ -251,6 +299,7 @@ static const CRPCCommand vRPCCommands[] =
         //  --------------------- ------------------------  -----------------------  ----------
         /* Overall control/query calls */
         {"control", "help", &help, true},
+        {"control", "setlogfilter", &setlogfilter, true},
         {"control", "stop", &stop, true},
 
 

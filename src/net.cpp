@@ -2103,6 +2103,9 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     else
         LogPrint("net", "Added connection peer=%d\n", id);
 
+    ReloadTracingSpan();
+    auto spanGuard = span.Enter();
+    LogPrint("net", "Added connection");
     // Be shy and don't send version until we hear
     if (hSocket != INVALID_SOCKET && !fInbound)
         PushVersion();
@@ -2118,6 +2121,18 @@ CNode::~CNode()
         delete pfilter;
 
     GetNodeSignals().FinalizeNode(GetId());
+}
+
+void CNode::ReloadTracingSpan()
+{
+    if (fLogIPs) {
+        span = TracingSpan("info", "net", "Peer",
+                           "id", idStr.c_str(),
+                           "addr", addrName.c_str());
+    } else {
+        span = TracingSpan("info", "net", "Peer",
+                           "id", idStr.c_str());
+    }
 }
 
 void CNode::AskFor(const CInv& inv)

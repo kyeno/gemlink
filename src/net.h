@@ -7,6 +7,7 @@
 #define BITCOIN_NET_H
 
 #include "bloom.h"
+#include "chainparams.h"
 #include "compat.h"
 #include "hash.h"
 #include "limitedmap.h"
@@ -18,7 +19,6 @@
 #include "sync.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
-#include "chainparams.h"
 
 #include <deque>
 #include <stdint.h>
@@ -286,6 +286,10 @@ public:
     int nRefCount;
     NodeId id;
 
+    // Stored so we can pass a pointer to it across the Rust FFI for span.
+    std::string idStr;
+    tracing::Span span;
+
 protected:
     // Denial-of-service detection/prevention
     // Key is IP address, value is banned-until-time
@@ -345,6 +349,7 @@ private:
     void operator=(const CNode&);
 
 public:
+    void ReloadTracingSpan();
     NodeId GetId() const
     {
         return id;

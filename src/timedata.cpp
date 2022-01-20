@@ -9,6 +9,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "warnings.h"
 
 #include <boost/foreach.hpp>
 
@@ -94,7 +95,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
                 if (!fMatch) {
                     fDone = true;
                     string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Gemlink will not work properly.");
-                    strMiscWarning = strMessage;
+                    SetMiscWarning(strMessage, GetTime());
                     LogPrintf("*** %s\n", strMessage);
                     uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_WARNING);
                 }
