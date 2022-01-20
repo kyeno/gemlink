@@ -1,6 +1,6 @@
 // Copyright (c) 2013 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 //
 // Unit tests for alert system
@@ -10,22 +10,21 @@
 #include "chain.h"
 #include "chainparams.h"
 #include "clientversion.h"
-#include "data/alertTests.raw.h"
+#include "fs.h"
+#include "test/data/alertTests.raw.h"
 
-#include "main.h"
 #include "rpc/protocol.h"
 #include "rpc/server.h"
 #include "serialize.h"
 #include "streams.h"
-#include "util.h"
 #include "utilstrencodings.h"
+#include "utiltest.h"
+#include "warnings.h"
 
 #include "test/test_bitcoin.h"
 
 #include <fstream>
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include "alertkeys.h"
@@ -168,6 +167,14 @@ void GenerateAlertTests()
     alert.strStatusBar = "Alert 1 for MagicBean 0.1.0, 0.2.0";
     SignAndSerialize(alert, sBuffer);
 
+    alert.setSubVer.insert(std::string("/MagicBean:0.2.1(foo)/"));
+    alert.strStatusBar = "Alert 1 for MagicBean 0.1.0, 0.2.0, 0.2.1(foo)";
+    SignAndSerialize(alert, sBuffer);
+
+    alert.setSubVer.insert(std::string("/MagicBean:0.2.1/"));
+    alert.strStatusBar = "Alert 1 for MagicBean 0.1.0, 0.2.0, 0.2.1(foo), 0.2.1";
+    SignAndSerialize(alert, sBuffer);
+
     alert.setSubVer.clear();
     ++alert.nID;
     alert.nCancel = 1;
@@ -254,7 +261,7 @@ struct ReadAlerts : public TestingSetup {
     }
     ~ReadAlerts() {}
 
-    static std::vector<std::string> read_lines(boost::filesystem::path filepath)
+    static std::vector<std::string> read_lines(fs::path filepath)
     {
         std::vector<std::string> result;
 
@@ -277,7 +284,7 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
-    BOOST_FOREACH (const CAlert& alert, alerts) {
+    for (const CAlert& alert : alerts) {
         BOOST_CHECK(alert.CheckSignature(alertKey));
     }
 
@@ -293,6 +300,18 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
 
     BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.1.0/"));
     BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0/"));
+    BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0(foo)/"));
+    BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0(bar)/"));
+
+    BOOST_CHECK(alerts[3].AppliesTo(1, "/MagicBean:0.1.0/"));
+    BOOST_CHECK(alerts[3].AppliesTo(1, "/MagicBean:0.2.0/"));
+    BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0(foo)/"));
+    BOOST_CHECK(alerts[3].AppliesTo(1, "/MagicBean:0.2.1(foo)/"));
+
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.1.0/"));
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.2.0/"));
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.2.1(foo)/"));
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.2.1/"));
 
     // Don't match:
     BOOST_CHECK(!alerts[0].AppliesTo(-1, ""));
@@ -304,9 +323,15 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
     BOOST_CHECK(!alerts[1].AppliesTo(1, "MagicBean:0.1.0/"));
     BOOST_CHECK(!alerts[1].AppliesTo(-1, "/MagicBean:0.1.0/"));
     BOOST_CHECK(!alerts[1].AppliesTo(999002, "/MagicBean:0.1.0/"));
+    BOOST_CHECK(!alerts[1].AppliesTo(1, "/MagicBean:0.1.0/FlowerPot:0.0.1/"));
     BOOST_CHECK(!alerts[1].AppliesTo(1, "/MagicBean:0.2.0/"));
 
+    // SubVer with comment doesn't match SubVer pattern without
+    BOOST_CHECK(!alerts[2].AppliesTo(1, "/MagicBean:0.2.1/"));
     BOOST_CHECK(!alerts[2].AppliesTo(1, "/MagicBean:0.3.0/"));
+
+    // SubVer without comment doesn't match SubVer pattern with
+    BOOST_CHECK(!alerts[3].AppliesTo(1, "/MagicBean:0.2.1/"));
 
     SetMockTime(0);
 }
@@ -317,12 +342,12 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
-    boost::filesystem::path temp = GetTempPath() /
-                                   boost::filesystem::unique_path("alertnotify-%%%%.txt");
+    fs::path temp = fs::temp_directory_path() /
+                    fs::unique_path("alertnotify-%%%%.txt");
 
     mapArgs["-alertnotify"] = std::string("echo %s >> ") + temp.string();
 
-    BOOST_FOREACH (CAlert alert, alerts)
+    for (CAlert alert : alerts)
         alert.ProcessAlert(alertKey, false);
 
     std::vector<std::string> r = read_lines(temp);
@@ -346,7 +371,7 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     BOOST_CHECK_EQUAL(r[4], "'Alert 4, reenables RPC' "); // dashes should be removed
     BOOST_CHECK_EQUAL(r[5], "'Evil Alert; /bin/ls; echo ' ");
 #endif
-    boost::filesystem::remove(temp);
+    fs::remove(temp);
 
     SetMockTime(0);
     mapAlerts.clear();
@@ -358,49 +383,20 @@ BOOST_AUTO_TEST_CASE(AlertDisablesRPC)
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
     // Command should work before alerts
-    BOOST_CHECK_EQUAL(GetWarnings("rpc"), "");
+    BOOST_CHECK_EQUAL(GetWarnings("rpc").first, "");
 
     // First alert should disable RPC
-    alerts[5].ProcessAlert(alertKey, false);
-    BOOST_CHECK_EQUAL(alerts[5].strRPCError, "RPC disabled");
-    BOOST_CHECK_EQUAL(GetWarnings("rpc"), "RPC disabled");
+    alerts[7].ProcessAlert(alertKey, false);
+    BOOST_CHECK_EQUAL(alerts[7].strRPCError, "RPC disabled");
+    BOOST_CHECK_EQUAL(GetWarnings("rpc").first, "RPC disabled");
 
     // Second alert should re-enable RPC
-    alerts[6].ProcessAlert(alertKey, false);
-    BOOST_CHECK_EQUAL(alerts[6].strRPCError, "");
-    BOOST_CHECK_EQUAL(GetWarnings("rpc"), "");
+    alerts[8].ProcessAlert(alertKey, false);
+    BOOST_CHECK_EQUAL(alerts[8].strRPCError, "");
+    BOOST_CHECK_EQUAL(GetWarnings("rpc").first, "");
 
     SetMockTime(0);
     mapAlerts.clear();
-}
-
-static bool falseFunc() { return false; }
-
-BOOST_AUTO_TEST_CASE(PartitionAlert)
-{
-    // Test PartitionCheck
-    CCriticalSection csDummy;
-    CBlockIndex indexDummy[400];
-    CChainParams& params = Params(CBaseChainParams::MAIN);
-    int64_t nPowTargetSpacing = params.GetConsensus().nPowTargetSpacing;
-
-    // Generate fake blockchain timestamps relative to
-    // an arbitrary time:
-    int64_t now = 1427379054;
-    SetMockTime(now);
-    for (int i = 0; i < 400; i++) {
-        indexDummy[i].phashBlock = NULL;
-        if (i == 0)
-            indexDummy[i].pprev = NULL;
-        else
-            indexDummy[i].pprev = &indexDummy[i - 1];
-        indexDummy[i].nHeight = i;
-        indexDummy[i].nTime = now - (400 - i) * nPowTargetSpacing;
-        // Other members don't matter, the partition check code doesn't
-        // use them
-    }
-
-    SetMockTime(0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
