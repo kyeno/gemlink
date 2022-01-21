@@ -303,6 +303,7 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
         }
     }
 
+
     // check who we asked for the Masternode list
     it1 = mWeAskedForMasternodeList.begin();
     while (it1 != mWeAskedForMasternodeList.end()) {
@@ -327,7 +328,6 @@ void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
     std::map<uint256, CMasternodeBroadcast>::iterator it3 = mapSeenMasternodeBroadcast.begin();
     while (it3 != mapSeenMasternodeBroadcast.end()) {
         if ((*it3).second.lastPing.sigTime < GetTime() - (MASTERNODE_REMOVAL_SECONDS * 2)) {
-            mapSeenMasternodeBroadcast.erase(it3++);
             masternodeSync.mapSeenSyncMNB.erase((*it3).second.GetHash());
             it3 = mapSeenMasternodeBroadcast.erase(it3);
         } else {
@@ -964,7 +964,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         }
         const auto collateralPubKey = GetScriptForDestination(dest);
 
-        CTxOut vout = CTxOut(((float)Params().GetMasternodeCollateral() - 0.01) * COIN, collateralPubKey);
+        CTxOut vout = CTxOut(((float)Params().GetMasternodeCollateral(chainActive.Height()) - 0.01) * COIN, collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
 
@@ -987,7 +987,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             // should be at least not earlier than block when 1000 SnowGem tx got MASTERNODE_MIN_CONFIRMATIONS
             uint256 hashBlock = uint256();
             CTransaction tx2;
-            GetTransaction(vin.prevout.hash, tx2, hashBlock, true);
+            GetTransaction(vin.prevout.hash, tx2, Params().GetConsensus(), hashBlock, true);
             BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
             if (mi != mapBlockIndex.end() && (*mi).second) {
                 CBlockIndex* pMNIndex = (*mi).second;                                                        // block for 1000 TENT tx -> 1 confirmation
