@@ -1276,8 +1276,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     // Start the lightweight task scheduler thread
-    CScheduler::Function serviceLoop = boost::bind(&CScheduler::serviceQueue, &scheduler);
-    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop));
+    CScheduler::Function serviceLoop = std::bind(&CScheduler::serviceQueue, &scheduler);
+    threadGroup.create_thread(std::bind(&TraceThread<CScheduler::Function>, "scheduler", serviceLoop));
 
     // Count uptime
     MarkStartTime();
@@ -1663,7 +1663,6 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
             }
         }
     }
-    threadGroup.create_thread(boost::bind(&ThreadCheckMasternodes));
 
     // As LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill the GUI during the last operation. If so, exit.
@@ -1907,7 +1906,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         for (const std::string& strFile : mapMultiArgs["-loadblock"])
             vImportFiles.push_back(strFile);
     }
-    threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
+    threadGroup.create_thread(std::bind(&ThreadImport, vImportFiles));
     if (chainActive.Tip() == NULL) {
         LogPrintf("Waiting for genesis block to be imported...\n");
         while (!fRequestShutdown && chainActive.Tip() == NULL)
@@ -2044,6 +2043,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     LogPrintf("Gemlink send rounds %d\n", nGemlinkSendRounds);
     LogPrintf("Anonymize Gemlink Amount %d\n", nAnonymizeGemlinkAmount);
 
+    threadGroup.create_thread(std::bind(&ThreadCheckMasternodes));
+
     // ********************************************************* Step 11: start node
 
     if (!CheckDiskSpace())
@@ -2093,12 +2094,12 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         pwalletMain->ReacceptWalletTransactions();
 
         // Run a thread to flush wallet periodically
-        threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
+        threadGroup.create_thread(std::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
     }
 #endif
 
     // SENDALERT
-    threadGroup.create_thread(boost::bind(ThreadSendAlert));
+    threadGroup.create_thread(std::bind(ThreadSendAlert));
 
     return !fRequestShutdown;
 }

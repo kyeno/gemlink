@@ -292,7 +292,6 @@ bool CSporkManager::UpdateSpork(int nSporkID, int64_t nValue)
 {
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     CSporkMessage spork = CSporkMessage(nSporkID, nValue, GetTime());
@@ -315,7 +314,6 @@ bool CSporkManager::SetPrivKey(std::string strPrivKey)
 {
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     CSporkMessage spork;

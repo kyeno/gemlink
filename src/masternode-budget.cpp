@@ -948,7 +948,7 @@ void CBudgetManager::NewBlock(int height)
             ResetSync();
         }
 
-        LOCK(cs_vNodes);
+        // LOCK(cs_vNodes);
         for (CNode* pnode : vNodes)
             if (pnode->nVersion >= ActiveProtocol())
                 Sync(pnode, uint256(), true);
@@ -2161,7 +2161,6 @@ void CFinalizedBudget::SubmitVote()
     CKey keyMasternode;
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
 

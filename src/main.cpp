@@ -6876,8 +6876,8 @@ bool SendMessages(const Consensus::Params& consensusParams, CNode* pto, bool fSe
 
         // Address refresh broadcast
         static int64_t nLastRebroadcast;
+
         if (!IsInitialBlockDownload(consensusParams) && (GetTime() - nLastRebroadcast > 24 * 60 * 60)) {
-            LOCK(cs_vNodes);
             for (CNode* pnode : vNodes) {
                 // Periodically clear addrKnown to allow refresh broadcasts
                 if (nLastRebroadcast)
