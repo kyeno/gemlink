@@ -614,6 +614,9 @@ bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
     CScript dummyScript;
     dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
     CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
+    if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+        vout = CTxOut(19999.99 * COIN, dummyScript);
+    }
     tx.vin.push_back(vin);
     tx.vout.push_back(vout);
 
