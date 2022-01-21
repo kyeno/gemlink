@@ -1985,6 +1985,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     LogPrintf("Snowgem send rounds %d\n", nSnowgemSendRounds);
     LogPrintf("Anonymize Snowgem Amount %d\n", nAnonymizeSnowgemAmount);
 
+    threadGroup.create_thread(std::bind(&ThreadCheckMasternodes));
+
     // ********************************************************* Step 11: start node
 
     if (!CheckDiskSpace())

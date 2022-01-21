@@ -80,7 +80,7 @@ CMasternode::CMasternode() : CSignedMessage()
     cacheInputAgeBlock = 0;
     unitTest = false;
     allowFreeTx = true;
-    nActiveState = MASTERNODE_ENABLED,
+    activeState = MASTERNODE_ENABLED,
     protocolVersion = PROTOCOL_VERSION;
     nLastDsq = 0;
     nScanningErrorCount = 0;
@@ -88,7 +88,6 @@ CMasternode::CMasternode() : CSignedMessage()
     lastTimeChecked = 0;
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     if (fNewSigs) {
@@ -233,7 +232,7 @@ void CMasternode::Check(bool forceCheck)
             if (!pcoinsTip->GetCoins(vin.prevout.hash, coins) ||
                 (unsigned int)vin.prevout.n >= coins.vout.size() ||
                 coins.vout[vin.prevout.n].IsNull()) {
-                nActiveState = MASTERNODE_OUTPOINT_SPENT;
+                activeState = MASTERNODE_OUTPOINT_SPENT;
                 LogPrint("masternode", "CMasternode::Check -- Failed to find Masternode UTXO, masternode=%s\n", vin.prevout.ToStringShort());
                 return;
             }
@@ -312,28 +311,6 @@ int64_t CMasternode::GetLastPaid()
     return 0;
 }
 
-std::string CMasternode::GetStatus()
-{
-    switch (nActiveState) {
-    case CMasternode::MASTERNODE_PRE_ENABLED:
-        return "PRE_ENABLED";
-    case CMasternode::MASTERNODE_ENABLED:
-        return "ENABLED";
-    case CMasternode::MASTERNODE_EXPIRED:
-        return "EXPIRED";
-    case CMasternode::MASTERNODE_OUTPOINT_SPENT:
-        return "OUTPOINT_SPENT";
-    case CMasternode::MASTERNODE_REMOVE:
-        return "REMOVE";
-    case CMasternode::MASTERNODE_WATCHDOG_EXPIRED:
-        return "WATCHDOG_EXPIRED";
-    case CMasternode::MASTERNODE_POSE_BAN:
-        return "POSE_BAN";
-    default:
-        return "UNKNOWN";
-    }
-}
-
 bool CMasternode::IsValidNetAddr()
 {
     // TODO: regtest is fine with any addresses for now,
@@ -384,7 +361,6 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
     CKey keyMasternodeNew;
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() - 20, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     // need correct blocks to send ping
@@ -443,7 +419,6 @@ bool CMasternodeBroadcast::Create(CTxIn txin, CService service, CKey keyCollater
 
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
 
@@ -727,7 +702,7 @@ CMasternodePing::CMasternodePing() : CSignedMessage(),
 {
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
+        // LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     if (fNewSigs) {
@@ -748,7 +723,6 @@ CMasternodePing::CMasternodePing(CTxIn& newVin) : CSignedMessage(),
     }
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     if (fNewSigs) {

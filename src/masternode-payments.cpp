@@ -813,7 +813,6 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() - 20, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     std::string errorMessage;

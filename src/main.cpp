@@ -21,6 +21,7 @@
 #include "init.h"
 #include "masternode-budget.h"
 #include "masternode-payments.h"
+#include "masternode-sync.h"
 #include "masternodeman.h"
 #include "merkleblock.h"
 #include "messagesigner.h"
@@ -39,7 +40,6 @@
 #include "validationinterface.h"
 #include "wallet/asyncrpcoperation_sendmany.h"
 #include "wallet/asyncrpcoperation_shieldcoinbase.h"
-#include "masternode-sync.h"
 
 #include <algorithm>
 #include <atomic>
@@ -2076,7 +2076,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
-    int64_t ret = blockValue * 35 / 100; //default: 35%
+    int64_t ret = blockValue * 35 / 100; // default: 35%
     int nMNPSBlock = Params().GetConsensus().nMasternodePaymentsStartBlock;
     int nMNPIPeriod = Params().GetConsensus().nMasternodePaymentsIncreasePeriod;
     int nMNPaymentChange = Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight;
@@ -3525,13 +3525,13 @@ static CBlockIndex* FindMostWorkChain()
             bool fMissingData = !(pindexTest->nStatus & BLOCK_HAVE_DATA);
             bool fInvalidChain = false;
 
-            //check last few blocks if you are masternode
+            // check last few blocks if you are masternode
             const CChainParams& chainParams = Params();
             if (pindexOldTip != NULL && pindexOldTip->nHeight > chainParams.GetMasternodeProtectionBlock() &&
                 (activeMasternode.GetStatus() == ACTIVE_MASTERNODE_STARTED ||
                  (masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED && GetBoolArg("-masternodeprotection", false)))) {
-                //check some last hash
-                //CHECK_REORG
+                // check some last hash
+                // CHECK_REORG
                 int heightCheck = pindexOldTip->nHeight - DEFAULT_REORG_MN_CHECK;
                 const CBlockIndex* pindexOldTipCheck = FindBlockAtHeight(heightCheck, (const CBlockIndex*)pindexOldTip);
                 const CBlockIndex* pindexTestCheck = FindBlockAtHeight(heightCheck, (const CBlockIndex*)pindexTest);
@@ -6864,7 +6864,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Address refresh broadcast
         static int64_t nLastRebroadcast;
         if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60)) {
-            LOCK(cs_vNodes);
+            // LOCK(cs_vNodes);
             for (CNode* pnode : vNodes) {
                 // Periodically clear addrKnown to allow refresh broadcasts
                 if (nLastRebroadcast)

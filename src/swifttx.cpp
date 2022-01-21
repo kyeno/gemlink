@@ -283,7 +283,6 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
     ctx.nBlockHeight = nBlockHeight;
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     if (!ctx.SignMessage(strMasterNodePrivKey, fNewSigs)) {

@@ -378,7 +378,6 @@ UniValue mnbudgetvote(const UniValue& params, bool fHelp)
 
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
     uint256 hash = ParseHashV(params[1], "parameter 1");
@@ -882,7 +881,6 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
     bool fNewSigs = false;
     {
-        LOCK(cs_main);
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
 
