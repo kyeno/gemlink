@@ -253,6 +253,7 @@ public:
     CCriticalSection cs_vRecvMsg;
     uint64_t nRecvBytes;
     int nRecvVersion;
+    CCriticalSection cs_sendProcessing;
 
     int64_t nLastSend;
     int64_t nLastRecv;
