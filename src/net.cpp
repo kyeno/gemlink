@@ -1571,9 +1571,8 @@ void ThreadMessageHandler()
 
             // Send messages
             {
-                TRY_LOCK(pnode->cs_vSend, lockSend);
-                if (lockSend)
-                    g_signals.SendMessages(chainparams.GetConsensus(), pnode, pnode == pnodeTrickle || pnode->fWhitelisted);
+                LOCK(pnode->cs_sendProcessing);
+                g_signals.SendMessages(chainparams.GetConsensus(), pnode, pnode == pnodeTrickle || pnode->fWhitelisted);
             }
             boost::this_thread::interruption_point();
         }

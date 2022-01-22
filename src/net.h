@@ -322,6 +322,7 @@ public:
     CCriticalSection cs_inventory;
     std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
+    CCriticalSection cs_sendProcessing;
 
     // Ping time measurement:
     // The pong reply we're expecting, or 0 if no pong expected.
