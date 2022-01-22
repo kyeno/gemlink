@@ -12,8 +12,6 @@
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
-extern CWallet* pwalletMain;
-
 BOOST_FIXTURE_TEST_SUITE(accounting_tests, TestingSetup)
 
 static void

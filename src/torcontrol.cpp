@@ -19,7 +19,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/function.hpp>
 #include <boost/signals2/signal.hpp>
@@ -50,6 +50,7 @@ static const float RECONNECT_TIMEOUT_EXP = 1.5;
  */
 static const int MAX_LINE_LENGTH = 100000;
 
+using namespace boost::placeholders;
 /****** Low-level TorControlConnection ********/
 
 /** Reply from Tor, can be single or multi-line */

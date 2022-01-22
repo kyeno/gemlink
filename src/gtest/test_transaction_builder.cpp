@@ -116,7 +116,7 @@ TEST(TransactionBuilder, TransparentToSapling)
     EXPECT_EQ(tx.valueBalance, -40000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, 2, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 2, 0));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default
@@ -154,7 +154,7 @@ TEST(TransactionBuilder, SaplingToSapling)
     EXPECT_EQ(tx.valueBalance, 10000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, 3, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 3, 0));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default
@@ -193,7 +193,7 @@ TEST(TransactionBuilder, SaplingToSprout)
     EXPECT_EQ(tx.valueBalance, 35000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, 3, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 3, 0));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default
@@ -255,7 +255,7 @@ TEST(TransactionBuilder, SproutToSproutAndSapling)
     EXPECT_EQ(tx.valueBalance, -5000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, 4, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 4, 0));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default

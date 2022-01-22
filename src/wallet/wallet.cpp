@@ -39,6 +39,10 @@
 using namespace std;
 using namespace libzcash;
 
+#ifdef ENABLE_WALLET
+CWallet* pwalletMain = NULL;
+#endif
+
 /**
  * Settings
  */

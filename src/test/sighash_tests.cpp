@@ -12,6 +12,7 @@
 #include "serialize.h"
 #include "sodium.h"
 #include "test/test_bitcoin.h"
+#include "test_random.h"
 #include "util.h"
 #include "version.h"
 
@@ -19,6 +20,9 @@
 #include <random>
 
 #include <boost/test/unit_test.hpp>
+
+#include <rust/ed25519.h>
+#include <rust/test_harness.h>
 
 #include <univalue.h>
 
@@ -112,7 +116,7 @@ void static RandomTransaction(CMutableTransaction& tx, bool fSingle, uint32_t co
             tx.nVersionGroupId = OVERWINTER_VERSION_GROUP_ID;
             tx.nVersion = overwinter_version_dist(rng);
         }
-        tx.nExpiryHeight = (insecure_rand() % 2) ? insecure_rand() : 0;
+        tx.nExpiryHeight = (insecure_rand() % 2) ? insecure_rand() % TX_EXPIRY_HEIGHT_THRESHOLD : 0;
     } else {
         tx.nVersion = insecure_rand() & 0x7FFFFFFF;
     }
@@ -145,25 +149,26 @@ void static RandomTransaction(CMutableTransaction& tx, bool fSingle, uint32_t co
         tx.valueBalance = insecure_rand() % 100000000;
         for (int spend = 0; spend < shielded_spends; spend++) {
             SpendDescription sdesc;
-            sdesc.cv = GetRandHash();
-            sdesc.anchor = GetRandHash();
+            zcash_test_harness_random_jubjub_point(sdesc.cv.begin());
+            zcash_test_harness_random_jubjub_base(sdesc.anchor.begin());
             sdesc.nullifier = GetRandHash();
-            sdesc.rk = GetRandHash();
-            randombytes_buf(sdesc.zkproof.begin(), sdesc.zkproof.size());
+            zcash_test_harness_random_jubjub_point(sdesc.rk.begin());
+            GetRandBytes(sdesc.zkproof.begin(), sdesc.zkproof.size());
             tx.vShieldedSpend.push_back(sdesc);
         }
         for (int out = 0; out < shielded_outs; out++) {
             OutputDescription odesc;
-            odesc.cv = GetRandHash();
-            odesc.cm = GetRandHash();
-            odesc.ephemeralKey = GetRandHash();
-            randombytes_buf(odesc.encCiphertext.begin(), odesc.encCiphertext.size());
-            randombytes_buf(odesc.outCiphertext.begin(), odesc.outCiphertext.size());
-            randombytes_buf(odesc.zkproof.begin(), odesc.zkproof.size());
+            zcash_test_harness_random_jubjub_point(odesc.cv.begin());
+            zcash_test_harness_random_jubjub_base(odesc.cm.begin());
+            zcash_test_harness_random_jubjub_point(odesc.ephemeralKey.begin());
+            GetRandBytes(odesc.encCiphertext.begin(), odesc.encCiphertext.size());
+            GetRandBytes(odesc.outCiphertext.begin(), odesc.outCiphertext.size());
+            GetRandBytes(odesc.zkproof.begin(), odesc.zkproof.size());
             tx.vShieldedOutput.push_back(odesc);
         }
     }
-    if (tx.nVersion >= 2) {
+    // We have removed pre-Sapling Sprout support.
+    if (tx.fOverwintered && tx.nVersion >= SAPLING_TX_VERSION) {
         for (int js = 0; js < joinsplits; js++) {
             JSDescription jsdesc;
             if (insecure_rand() % 2 == 0) {
@@ -177,14 +182,12 @@ void static RandomTransaction(CMutableTransaction& tx, bool fSingle, uint32_t co
             jsdesc.nullifiers[1] = GetRandHash();
             jsdesc.ephemeralKey = GetRandHash();
             jsdesc.randomSeed = GetRandHash();
-            randombytes_buf(jsdesc.ciphertexts[0].begin(), jsdesc.ciphertexts[0].size());
-            randombytes_buf(jsdesc.ciphertexts[1].begin(), jsdesc.ciphertexts[1].size());
-            if (tx.fOverwintered && tx.nVersion >= SAPLING_TX_VERSION) {
+            GetRandBytes(jsdesc.ciphertexts[0].begin(), jsdesc.ciphertexts[0].size());
+            GetRandBytes(jsdesc.ciphertexts[1].begin(), jsdesc.ciphertexts[1].size());
+            {
                 libzcash::GrothProof zkproof;
-                randombytes_buf(zkproof.begin(), zkproof.size());
+                GetRandBytes(zkproof.begin(), zkproof.size());
                 jsdesc.proof = zkproof;
-            } else {
-                jsdesc.proof = libzcash::PHGRProof::random_invalid();
             }
             jsdesc.macs[0] = GetRandHash();
             jsdesc.macs[1] = GetRandHash();
@@ -192,19 +195,21 @@ void static RandomTransaction(CMutableTransaction& tx, bool fSingle, uint32_t co
             tx.vjoinsplit.push_back(jsdesc);
         }
 
-        unsigned char joinSplitPrivKey[crypto_sign_SECRETKEYBYTES];
-        crypto_sign_keypair(tx.joinSplitPubKey.begin(), joinSplitPrivKey);
+        // Ed25519SigningKey joinSplitPrivKey;
+        // ed25519_generate_keypair(&joinSplitPrivKey, &tx.joinSplitPubKey);
 
-        // Empty output script.
-        CScript scriptCode;
-        CTransaction signTx(tx);
-        uint256 dataToBeSigned = SignatureHash(scriptCode, signTx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId);
+        // // Empty output script.
+        // CScript scriptCode;
+        // CTransaction signTx(tx);
+        // uint256 dataToBeSigned = SignatureHash(scriptCode, signTx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId);
 
-        assert(crypto_sign_detached(&tx.joinSplitSig[0], NULL,
-                                    dataToBeSigned.begin(), 32,
-                                    joinSplitPrivKey) == 0);
+        // assert(ed25519_sign(
+        //     &joinSplitPrivKey,
+        //     dataToBeSigned.begin(), 32,
+        //     &tx.joinSplitSig));
     }
 }
+
 
 BOOST_FIXTURE_TEST_SUITE(sighash_tests, JoinSplitTestingSetup)
 

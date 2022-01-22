@@ -9,6 +9,7 @@
 #include "random.h"
 #include "sync.h"
 #include "test/test_bitcoin.h"
+#include "test_random.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
 

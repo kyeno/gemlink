@@ -57,6 +57,7 @@ BOOST_FIXTURE_TEST_SUITE(script_P2SH_tests, BasicTestingSetup)
 BOOST_DATA_TEST_CASE(sign, boost::unit_test::data::xrange(static_cast<int>(Consensus::MAX_NETWORK_UPGRADES)))
 {
     LOCK(cs_main);
+
     uint32_t consensusBranchId = NetworkUpgradeInfo[sample].nBranchId;
     // Pay-to-script-hash looks like this:
     // scriptSig:    <sig> <sig...> <serialized_script>
@@ -92,7 +93,7 @@ BOOST_DATA_TEST_CASE(sign, boost::unit_test::data::xrange(static_cast<int>(Conse
         txFrom.vout[i + 4].scriptPubKey = standardScripts[i];
         txFrom.vout[i + 4].nValue = COIN;
     }
-    BOOST_CHECK(IsStandardTx(txFrom, reason));
+    BOOST_CHECK(IsStandardTx(txFrom, reason, Params()));
 
     CMutableTransaction txTo[8]; // Spending transactions
     for (int i = 0; i < 8; i++) {
@@ -189,7 +190,7 @@ BOOST_DATA_TEST_CASE(set, boost::unit_test::data::xrange(static_cast<int>(Consen
         txFrom.vout[i].scriptPubKey = outer[i];
         txFrom.vout[i].nValue = CENT;
     }
-    BOOST_CHECK(IsStandardTx(txFrom, reason));
+    BOOST_CHECK(IsStandardTx(txFrom, reason, Params()));
 
     CMutableTransaction txTo[4]; // Spending transactions
     for (int i = 0; i < 4; i++) {
@@ -205,7 +206,7 @@ BOOST_DATA_TEST_CASE(set, boost::unit_test::data::xrange(static_cast<int>(Consen
     }
     for (int i = 0; i < 4; i++) {
         BOOST_CHECK_MESSAGE(SignSignature(keystore, txFrom, txTo[i], 0, SIGHASH_ALL, consensusBranchId), strprintf("SignSignature %d", i));
-        BOOST_CHECK_MESSAGE(IsStandardTx(txTo[i], reason), strprintf("txTo[%d].IsStandard", i));
+        BOOST_CHECK_MESSAGE(IsStandardTx(txTo[i], reason, Params()), strprintf("txTo[%d].IsStandard", i));
     }
 }
 

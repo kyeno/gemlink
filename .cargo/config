@@ -8,4 +8,4 @@ replace-with = "vendored-sources"
 
 [source.vendored-sources]
 # The directory for this source is set to RUST_VENDORED_SOURCES by src/Makefile.am
-directory = "/mnt/m/github/gemlink/gemlink/depends/x86_64-pc-linux-gnu/share/../vendored-sources"
+directory = "/mnt/m/github/gemlink/gemlink_ubuntu/depends/x86_64-pc-linux-gnu/share/../vendored-sources"

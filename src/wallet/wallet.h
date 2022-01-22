@@ -37,6 +37,8 @@
 #include <utility>
 #include <vector>
 
+extern CWallet* pwalletMain;
+
 /**
  * Settings
  */

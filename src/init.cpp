@@ -61,7 +61,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/function.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
@@ -85,9 +85,6 @@ extern void ThreadSendAlert();
 ZCJoinSplit* pgemlinkParams = NULL;
 TracingHandle* pTracingHandle = nullptr;
 
-#ifdef ENABLE_WALLET
-CWallet* pwalletMain = NULL;
-#endif
 bool fFeeEstimatesInitialized = false;
 
 #if ENABLE_ZMQ

@@ -2,6 +2,7 @@
 #define BITCOIN_TEST_TEST_BITCOIN_H
 
 #include "consensus/upgrades.h"
+#include "fs.h"
 #include "pubkey.h"
 #include "txdb.h"
 
@@ -30,8 +31,8 @@ struct JoinSplitTestingSetup : public BasicTestingSetup {
  */
 struct TestingSetup : public JoinSplitTestingSetup {
     CCoinsViewDB* pcoinsdbview;
-    boost::filesystem::path orig_current_path;
-    boost::filesystem::path pathTemp;
+    fs::path orig_current_path;
+    fs::path pathTemp;
     boost::thread_group threadGroup;
 
     TestingSetup();

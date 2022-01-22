@@ -19,7 +19,6 @@ class thread_group;
 } // namespace boost
 
 extern TracingHandle* pTracingHandle;
-extern CWallet* pwalletMain;
 extern ZCJoinSplit* pgemlinkParams;
 
 void StartShutdown();

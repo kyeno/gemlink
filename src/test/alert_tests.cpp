@@ -27,8 +27,10 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "alertkeys.h"
 #include "key.h"
+
+// #include "alertkeys.h"
+
 #include <iostream>
 
 /*

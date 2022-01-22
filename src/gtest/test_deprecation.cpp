@@ -13,6 +13,7 @@
 #include <fstream>
 
 using ::testing::StrictMock;
+using namespace boost::placeholders;
 
 static const std::string CLIENT_VERSION_STR = FormatVersion(CLIENT_VERSION);
 extern std::atomic<bool> fRequestShutdown;
@@ -134,8 +135,8 @@ TEST_F(DeprecationTest, DeprecatedNodeIgnoredOnTestnet)
 
 TEST_F(DeprecationTest, AlertNotify)
 {
-    boost::filesystem::path temp = GetTempPath() /
-                                   boost::filesystem::unique_path("alertnotify-%%%%.txt");
+    fs::path temp = fs::temp_directory_path() /
+                    fs::unique_path("alertnotify-%%%%.txt");
 
     mapArgs["-alertnotify"] = std::string("echo %s >> ") + temp.string();
 
