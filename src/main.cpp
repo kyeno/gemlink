@@ -2068,6 +2068,9 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
     if (consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         nSubsidy = 30 * COIN;
         halvings = std::max(0, nHeight - consensusParams.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) / consensusParams.nSubsidyHalvingInterval;
+        if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+            nSubsidy += PREMINE_GEMLINK;
+        }
     }
     // Force block reward to zero when right shift is undefined.
     if (halvings >= 64)
@@ -2085,7 +2088,11 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
     int nMNPaymentDIFA = Params().GetConsensus().vUpgrades[Consensus::UPGRADE_DIFA].nActivationHeight;
     int nMNPaymentKnowhere = Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight;
     if (nHeight >= nMNPaymentKnowhere) {
-        ret = blockValue * 50 / 100;
+        if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+            ret = (blockValue - PREMINE_GEMLINK) * 50 / 100;
+        } else {
+            ret = blockValue * 50 / 100;
+        }
     } else {
         if (nHeight > nMNPSBlock)
             ret = 7 * COIN; // > 193200 - 35.0%
@@ -2106,7 +2113,9 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 int64_t GetDevelopersPayment(int nHeight, int64_t blockValue)
 {
     int64_t ret = blockValue * 20 / 100;
-
+    if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+        ret = (blockValue - PREMINE_GEMLINK) * 20 / 100;
+    }
     return ret;
 }
 
@@ -4345,7 +4354,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const CC
         }
     }
 
-    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG) && (nHeight <= chainparams.GetConsensus().GetLastTreasuryRewardBlockHeight())) {
+    if (Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG) && (nHeight <= chainparams.GetConsensus().GetLastDevelopersRewardBlockHeight())) {
         bool found = false;
 
         for (const CTxOut& output : block.vtx[0].vout) {
@@ -4362,6 +4371,22 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const CC
         }
     }
 
+    if ((nHeight == chainparams.GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight)) {
+        bool found = false;
+
+        for (const CTxOut& output : block.vtx[0].vout) {
+            if (output.scriptPubKey == Params().GetDevelopersRewardScriptAtHeight(nHeight)) {
+                if (output.nValue == PREMINE_GEMLINK) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found) {
+            return state.Invalid(error("%s: premine reward missing", __func__), REJECT_INVALID, "cb-no-treasury-reward");
+        }
+    }
     return true;
 }
 

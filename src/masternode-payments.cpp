@@ -384,14 +384,10 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     }
 
     CAmount blockValue = GetBlockSubsidy(nHeight, Params().GetConsensus());
-    CAmount minerValue = blockValue;
 
     CAmount masternodePayment = GetMasternodePayment(nHeight, blockValue);
-    if (hasPayment) {
-        minerValue -= masternodePayment;
-    }
 
-    txNew.vout[0].nValue = minerValue + nFees;
+    txNew.vout[0].nValue = blockValue + nFees;
 
     if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
         // Founders reward
@@ -439,9 +435,16 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
         txNew.vout[0].nValue -= vDevelopersReward;
     }
 
+    if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+        txNew.vout.push_back(CTxOut(PREMINE_GEMLINK, Params().GetDevelopersRewardScriptAtHeight(nHeight)));
+
+        txNew.vout[0].nValue -= PREMINE_GEMLINK;
+    }
+
     //@TODO masternode
     if (hasPayment) {
         txNew.vout.push_back(CTxOut(masternodePayment, payee));
+        txNew.vout[0].nValue -= masternodePayment;
 
         CTxDestination address1;
         ExtractDestination(payee, address1);

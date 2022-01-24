@@ -332,6 +332,9 @@ int printMetrics(size_t cols, bool mining)
                     chainActive.Contains(mapBlockIndex[hash])) {
                     int height = mapBlockIndex[hash]->nHeight;
                     CAmount blockReward = GetBlockSubsidy(height, consensusParams);
+                    if (height == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+                        blockReward -= PREMINE_GEMLINK;
+                    }
                     CAmount subsidy = blockReward;
                     if ((height > 0) && (height < consensusParams.GetLastFoundersRewardBlockHeight())) {
                         if (height < consensusParams.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
