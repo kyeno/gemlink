@@ -60,9 +60,11 @@ src/univalue/gen
 *.orig
 *.pyc
 *.o
+*.o.tmp
 *.o-*
-.gemlink
+.zcash
 *.a
+*.lib
 *.pb.cc
 *.pb.h
 .vscode
