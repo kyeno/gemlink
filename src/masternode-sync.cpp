@@ -421,7 +421,7 @@ void CMasternodeSync::Process()
                     activeMasternode.ManageStatus();
 
                     // masternode protection code
-                    if (GetBoolArg("-masternodeconnections", false)) {
+                    if (GetBoolArg("-masternodeconnections", false) && !fMasterNode) {
                         DisconnectNodes();
                         LogPrint("mnprotection", "Disconnect not masternode node\n");
                     }
@@ -436,7 +436,7 @@ void CMasternodeSync::Process()
                     activeMasternode.ManageStatus();
 
                     // masternode protection code
-                    if (GetBoolArg("-masternodeconnections", false)) {
+                    if (GetBoolArg("-masternodeconnections", false) && !fMasterNode) {
                         LogPrint("mnprotection", "Disconnect not masternode node\n");
                         DisconnectNodes();
                     }
