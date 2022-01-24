@@ -984,6 +984,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         if (SoftSetArg("-swifttxdepth", 0))
             LogPrintf("AppInit2 : parameter interaction: -enableswifttx=false -> setting -nSwiftTXDepth=0\n");
     }
+    fMasterNode = GetBoolArg("-masternode", false);
+
     // Make sure enough file descriptors are available
     int nBind = std::max((int)mapArgs.count("-bind") + (int)mapArgs.count("-whitebind"), 1);
     nMaxConnections = GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS);
@@ -994,6 +996,10 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections)
         nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
 
+    // for masternode we will need 1000 connections
+    if (fMasterNode) {
+        nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS_MASTERNODE;
+    }
     // if using block pruning, then disable txindex
     // also disable the wallet (for now, until SPV support is implemented in wallet)
     if (GetArg("-prune", 0)) {
@@ -1965,8 +1971,6 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
         else
             LogPrintf("file format is unknown or invalid, please fix it manually\n");
     }
-
-    fMasterNode = GetBoolArg("-masternode", false);
 
     if ((fMasterNode || masternodeConfig.getCount() > -1) && fTxIndex == false) {
         return InitError("Enabling Masternode support requires turning on transaction indexing."
