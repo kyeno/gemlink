@@ -423,6 +423,7 @@ void CMasternodeSync::Process()
                     // masternode protection code
                     if (GetBoolArg("-masternodeconnections", false)) {
                         DisconnectNodes();
+                        LogPrint("mnprotection", "Disconnect not masternode node\n");
                     }
                     return;
                 }
@@ -436,6 +437,7 @@ void CMasternodeSync::Process()
 
                     // masternode protection code
                     if (GetBoolArg("-masternodeconnections", false)) {
+                        LogPrint("mnprotection", "Disconnect not masternode node\n");
                         DisconnectNodes();
                     }
                     return;

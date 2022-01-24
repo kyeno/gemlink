@@ -3508,16 +3508,16 @@ static CBlockIndex* FindMostWorkChain()
                  (masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED && GetBoolArg("-masternodeprotection", false)))) {
                 // check some last hash
                 // CHECK_REORG
-                int heightCheck = pindexOldTip->nHeight - DEFAULT_REORG_MN_CHECK;
-                const CBlockIndex* pindexOldTipCheck = FindBlockAtHeight(heightCheck, (const CBlockIndex*)pindexOldTip);
-                const CBlockIndex* pindexTestCheck = FindBlockAtHeight(heightCheck, (const CBlockIndex*)pindexTest);
-                if (pindexOldTipCheck->phashBlock != pindexTestCheck->phashBlock) {
+                const CBlockIndex* pindexFork = chainActive.FindFork(pindexTest);
+                auto reorgLength = pindexOldTip ? pindexOldTip->nHeight - (pindexFork ? pindexFork->nHeight : -1) : 0;
+                LogPrint("mnprotection", "reorgLength %d\n", reorgLength);
+                if (reorgLength > chainParams.GetReorgNumber(true)) {
                     auto msg = strprintf(
                                    "Invalid block hash"
                                    "\n\n") +
                                _("Block details") + ":\n" +
-                               "- " + strprintf(_("Current tip: %s, height %d"), pindexOldTipCheck->phashBlock->GetHex(), pindexOldTipCheck->nHeight) + "\n" +
-                               "- " + strprintf(_("New tip:     %s, height %d"), pindexTestCheck->phashBlock->GetHex(), pindexTestCheck->nHeight) + "\n";
+                               "- " + strprintf(_("Current tip: %s, height %d"), pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight) + "\n" +
+                               "- " + strprintf(_("New tip:     %s, height %d"), pindexTest->phashBlock->GetHex(), pindexTest->nHeight) + "\n";
                     LogPrintf("*** %s\n", msg);
                     fInvalidChain = true;
                 } else {

@@ -13,6 +13,9 @@
 
 #include <vector>
 
+static const unsigned int DEFAULT_REORG_MN_CHECK = 100;
+static const unsigned int MASTERNODE_REORG_CHECK = 20;
+
 struct CDNSSeedData {
     std::string name, host;
     CDNSSeedData(const std::string& strName, const std::string& strHost) : name(strName), host(strHost) {}
@@ -123,6 +126,14 @@ public:
     int GetNewTimeRule() const { return newTimeRule; }
     int GetMasternodeProtectionBlock() const { return masternodeProtectionBlock; }
     int GetMasternodeCollateral(int height) const;
+    int GetReorgNumber(bool isProtected) const
+    {
+        if (isProtected) {
+            return MASTERNODE_REORG_CHECK;
+        } else {
+            return DEFAULT_REORG_MN_CHECK;
+        }
+    }
 
 protected:
     CChainParams() {}

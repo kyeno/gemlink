@@ -377,7 +377,7 @@ CNode* ConnectNode(CAddress addrConnect, const char* pszDest, bool fCountFailure
     if (masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED && GetBoolArg("-masternodeconnections", false)) {
         CMasternode* mn = mnodeman.Find(addrConnect);
         if (mn == NULL) {
-            LogPrint("net", "create connection fail, address %s is not in masternode list\n", addrConnect.ToString());
+            LogPrint("mnprotection", "create connection fail, address %s is not in masternode list\n", addrConnect.ToString());
             return NULL;
         }
     } else {
@@ -951,7 +951,7 @@ static void AcceptConnection(const ListenSocket& hListenSocket)
     if (masternodeSync.GetSyncValue() == MASTERNODE_SYNC_FINISHED && GetBoolArg("-masternodeconnections", false)) {
         CMasternode* mn = mnodeman.Find(addr);
         if (mn == NULL) {
-            LogPrint("net", "socket error accept failed, address %s is not in masternode list\n", addr.ToString());
+            LogPrint("mnprotection", "socket error accept failed, address %s is not in masternode list\n", addr.ToString());
             CloseSocket(hSocket);
             return;
         }
