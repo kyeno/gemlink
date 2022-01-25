@@ -18,7 +18,7 @@
 #include "swifttx.h"
 #include "util.h"
 #include <boost/filesystem.hpp>
-
+#include <boost/thread.hpp>
 
 #define MN_WINNER_MINIMUM_AGE 8000 // Age in seconds. This should be > MASTERNODE_REMOVAL_SECONDS to avoid misconfigured new nodes in the list.
 
