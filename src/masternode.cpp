@@ -506,8 +506,9 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
     }
 
     // incorrect ping or its sigTime
-    if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true))
-        return false;
+    // TODO activate after upgarding morag active to test
+    // if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true))
+    //     return false;
 
     if (protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
         LogPrint("masternode", "mnb - ignoring outdated Masternode %s protocol version %d\n", vin.prevout.hash.ToString(), protocolVersion);

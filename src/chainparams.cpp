@@ -445,7 +445,7 @@ public:
             "t2Vck95daFLBrvcgfxCT43uBsicECsn6wqe"};
 
         vDevelopersRewardAddress = {
-            "t2Vck95daFLBrvcgfxCT43uBsicECsn6wqe"};
+            "t27uXCcSZd1qSWhFArDbwVBHuuiGscY4DDM"};
 
         assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
 
