@@ -242,7 +242,7 @@ fs::path GetDefaultDataDir()
     // Unix: ~/.gemlink
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Zcash";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "Gemlink";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -254,7 +254,7 @@ fs::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "Zcash";
+    return pathRet / "Gemlink";
 #else
     // Unix
     return pathRet / ".gemlink";
