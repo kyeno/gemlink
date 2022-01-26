@@ -339,7 +339,6 @@ void SerializeMNB(UniValue& statusObjRet, const CMasternodeBroadcast& mnb, const
     return SerializeMNB(statusObjRet, mnb, fSuccess, successful, failed);
 }
 
-
 UniValue startmasternode(const UniValue& params, bool fHelp)
 {
     std::string strCommand;
@@ -656,14 +655,14 @@ UniValue getmasternodestatus(const UniValue& params, bool fHelp)
     CMasternode* pmn = mnodeman.Find(activeMasternode.vin);
 
     if (pmn) {
-        UniValue mnObj(UniValue::VARR);
-        mnObj.push_back(Pair("txhash", activeMasternode.vin.prevout.hash.ToString()));
-        mnObj.push_back(Pair("outputidx", (uint64_t)activeMasternode.vin.prevout.n));
-        mnObj.push_back(Pair("netaddr", activeMasternode.service.ToString()));
-        mnObj.push_back(Pair("addr", EncodeDestination(pmn->pubKeyCollateralAddress.GetID())));
-        mnObj.push_back(Pair("status", activeMasternode.GetStatus()));
-        mnObj.push_back(Pair("message", activeMasternode.GetStatus()));
-        return mnObj;
+        UniValue obj(UniValue::VOBJ);
+        obj.push_back(Pair("txhash", activeMasternode.vin.prevout.hash.ToString()));
+        obj.push_back(Pair("outputidx", (uint64_t)activeMasternode.vin.prevout.n));
+        obj.push_back(Pair("netaddr", activeMasternode.service.ToString()));
+        obj.push_back(Pair("addr", EncodeDestination(pmn->pubKeyCollateralAddress.GetID())));
+        obj.push_back(Pair("status", activeMasternode.GetStatus()));
+        obj.push_back(Pair("message", activeMasternode.GetStatusMessage()));
+        return obj;
     }
     throw runtime_error("Masternode not found in the list of available masternodes. Current status: " + activeMasternode.GetStatusMessage());
 }
