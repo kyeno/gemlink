@@ -83,7 +83,7 @@ void CActiveMasternode::ManageStatus()
         if (!CMasternodeBroadcast::CheckDefaultPort(service, errorMessage, "CActiveMasternode::ManageStatus()"))
             return;
         CAddress addr(service, NODE_NETWORK);
-        if (!OpenNetworkConnection(addr, true, nullptr)) {
+        if (!OpenNetworkConnection(addr, true, nullptr, service.ToString().c_str())) {
             notCapableReason = "Could not connect to " + service.ToString();
             LogPrintf("CActiveMasternode::ManageStatus() - not capable: %s\n", notCapableReason);
             return;

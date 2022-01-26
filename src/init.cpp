@@ -996,7 +996,7 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections)
         nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
 
-    // for masternode we will need 1000 connections
+    // for masternode we will need 250 connections
     if (fMasterNode) {
         nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS_MASTERNODE;
     }
