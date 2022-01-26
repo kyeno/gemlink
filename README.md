@@ -1,26 +1,26 @@
-# GLINK 3.1.4
+# TENT 3.1.4
 
-[![](https://img.shields.io/github/v/release/gemlink/gemlink)](https://github.com/Gemlink/Gemlink/releases) [![](https://img.shields.io/github/release-date/gemlink/gemlink)](https://github.com/Gemlink/Gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/latest/total)](https://github.com/Gemlink/Gemlink/releases) [![](https://img.shields.io/github/downloads/gemlink/gemlink/total)](https://github.com/Gemlink/Gemlink/releases) [![](https://img.shields.io/discord/398513312696107008)](https://discord.gg/78rVJcH)
+[![](https://img.shields.io/github/v/release/snowgem/snowgem)](https://github.com/Snowgem/Snowgem/releases) [![](https://img.shields.io/github/release-date/snowgem/snowgem)](https://github.com/Snowgem/Snowgem/releases) [![](https://img.shields.io/github/downloads/snowgem/snowgem/latest/total)](https://github.com/Snowgem/Snowgem/releases) [![](https://img.shields.io/github/downloads/snowgem/snowgem/total)](https://github.com/Snowgem/Snowgem/releases) [![](https://img.shields.io/discord/398513312696107008)](https://discord.gg/78rVJcH)
 [![](https://img.shields.io/twitter/follow/SnowGemOfficial?label=Follow&style=social)](https://twitter.com/SnowGemOfficial)
 
 ![]()
 
-## What is GLINK?
+## What is TENT?
 
-GLINK(https://gemlink.org/) is an implementation of the "Zerocash" protocol.
+TENT(https://tent.app/) is an implementation of the "Zerocash" protocol.
 Based on Bitcoin's code, it intends to offer a far higher standard of privacy
 through a sophisticated zero-knowledge proving scheme that preserves
 confidentiality of transaction metadata. Technical details are available
 in our [Protocol Specification](https://github.com/zcash/zips/raw/master/protocol/protocol.pdf).
 
-This software is the GLINK client. It downloads and stores the entire history
-of GLINK transactions; depending on the speed of your computer and network
+This software is the TENT client. It downloads and stores the entire history
+of TENT transactions; depending on the speed of your computer and network
 connection, the synchronization process could take a day or more once the
 blockchain has reached a significant size.
 
 ## Security Warnings
 
-**GLINK is experimental and a work-in-progress.** Use at your own risk.
+**TENT is experimental and a work-in-progress.** Use at your own risk.
 
 ## Deprecation Policy
 
@@ -91,7 +91,7 @@ brew install wget llvm
 
 ### Check GCC version
 
-gcc/g++ 4.9 or later is required. GLINK has been successfully built using gcc/g++ versions 4.9 to 7.x inclusive. Use `g++ --version` to check which version you have.
+gcc/g++ 4.9 or later is required. TENT has been successfully built using gcc/g++ versions 4.9 to 7.x inclusive. Use `g++ --version` to check which version you have.
 
 On Ubuntu Trusty, if your version is too old then you can install gcc/g++ 4.9 as follows:
 
@@ -114,20 +114,30 @@ $ ./zcutil/fetch-params.sh
 Ensure you have successfully installed all system package dependencies as described above. Then run the build, e.g.:
 
 ```
-$ git clone https://github.com/gemlink/gemlink.git
-$ cd GLINK/
+$ git clone https://github.com/TENTOfficial/TENT.git
+$ cd TENT/
 $ ./zcutil/build.sh
 ```
 
-This should compile our dependencies and build `gemlinkd`
+This should compile our dependencies and build `snowgemd`
 
 ### Build Windows
+
+With docker:
+
+```
+docker run -ti electriccoinco/zcashd-build-ubuntu2004 bash
+apt install zstd
+git clone https://github.com/gemlink/gemlink.git
+cd gemlink
+HOST=x86_64-w64-mingw32 ./zcutil/build.sh
+```
 
 Ensure you have successfully installed all system package dependencies as described above. Then run the build, e.g.:
 
 ```
-$ git clone https://github.com/gemlink/gemlink.git
-$ cd GLINK/
+$ git clone https://github.com/TENTOfficial/TENT.git
+$ cd TENT/
 HOST=x86_64-w64-mingw32 ./zcutil/build.sh
 ```
 
@@ -137,9 +147,9 @@ HOST=x86_64-w64-mingw32 ./zcutil/build.sh
 
 - See the documentation at the [refer from Zcash Wiki](https://github.com/zcash/zcash/wiki/1.0-User-Guide)
   for help and more information.
-- Ask for help on the [GLINK](https://discuss.gemlink.org/) forum or contact us via email support@gemlink.org
+- Ask for help on the [TENT](https://discuss.snowgem.org/) forum or contact us via email support@snowgem.org
 
-Participation in the GLINK project is subject to a
+Participation in the TENT project is subject to a
 [Code of Conduct](code_of_conduct.md).
 
 ## License
