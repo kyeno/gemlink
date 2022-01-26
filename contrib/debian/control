@@ -1,7 +1,7 @@
 Source: gemlink
 Section: utils
 Priority: optional
-Maintainer: GEM Corporation SE <team@tent.app>
+Maintainer: GLINK Corporation SE <team@tent.app>
 Homepage: https://tent.app
 Build-Depends: autoconf, automake, bsdmainutils, build-essential,
  git, g++-multilib, libc6-dev, libtool,
@@ -13,7 +13,7 @@ Vcs-Browser: https://github.com/gemlink/gemlink
 Package: gemlink
 Architecture: amd64
 Depends: ${shlibs:Depends}
-Description: GEM libraries and tools
+Description: GLINK libraries and tools
  Based on Bitcoin's code, it intends to offer a far higher standard
  of privacy and anonymity through a sophisticiated zero-knowledge
  proving scheme which preserves confidentiality of transaction metadata.

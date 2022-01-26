@@ -73,7 +73,7 @@ public:
     CMainParams()
     {
         strNetworkID = "main";
-        strCurrencyUnits = "GEM";
+        strCurrencyUnits = "GLINK";
         bip44CoinType = 407; // As registered in https://github.com/satoshilabs/slips/blob/master/slip-0044.md
         consensus.fCoinbaseMustBeProtected = true;
         consensus.nSubsidySlowStartInterval = 8000;
@@ -160,9 +160,6 @@ public:
         vSeeds.push_back(CDNSSeedData("dnsseed1.gemlink.org", "dnsseed1.gemlink.org"));   // Gemlink seed node
         vSeeds.push_back(CDNSSeedData("dnsseed2.gemlink.org", "dnsseed2.gemlink.org"));   // Gemlink seed node
         vSeeds.push_back(CDNSSeedData("dnsseed3.gemlink.org", "dnsseed3.gemlink.org"));   // Gemlink seed node
-        vSeeds.push_back(CDNSSeedData("dnsseed1.tent.app", "dnsseed1.tent.app"));         // Tent seed node
-        vSeeds.push_back(CDNSSeedData("dnsseed2.tent.app", "dnsseed2.tent.app"));         // Tent seed node
-        vSeeds.push_back(CDNSSeedData("dnsseed3.tent.app", "dnsseed3.tent.app"));         // Tent seed node
 
         // guarantees the first 2 characters, when base58 encoded, are "s1"
         base58Prefixes[PUBKEY_ADDRESS] = {0x1C, 0x28};
@@ -277,26 +274,26 @@ public:
         };
 
         vDevelopersRewardAddress = {
-            "s3STyRjwtffPWcfQzawkHEcDVVeYCCZvKAw", /* main-index: 0*/
-            "s3QiJcoCmWewixcVVAnt3LoxY3BSNNx8YhM", /* main-index: 1*/
-            "s3b65JSBYsikDESqv1MqgWhn51adyMd2fzY", /* main-index: 2*/
-            "s3fRjrKkH6yVj5rPTU2N8X7pMKnuyWS46Qb", /* main-index: 3*/
-            "s3XYB7NcXsZWb6MX8jsCwefdAU8BnTQvg7x", /* main-index: 4*/
-            "s3dcca3UyRyH56osUEWMRGTS7h9YwXj6Kqq", /* main-index: 5*/
-            "s3c5hmNVHNn5Gb4JzqdUH7iDubSjUSfUD9i", /* main-index: 6*/
-            "s3b3EPcrRvkcgcTVVqEhz8HtF3KrKGu5m3h", /* main-index: 7*/
-            "s3chG3hQjiorgYRACd42S7p4zzWoGaYyVfN", /* main-index: 8*/
-            "s3aVCqrd3qt6EASt9KpGnLtKRQkjAPbu5qC", /* main-index: 9*/
-            "s3jPRn5CmFGVfKENbjbE3U4NwfXaBN4oH2C", /* main-index: 10*/
-            "s3gUK3Vv9gF1hT4XoGfZju1DFmvoGvhEuVH", /* main-index: 11*/
-            "s3b2SGjybAV8vhZeKuXz1vFURpP3CVxyrnq", /* main-index: 12*/
-            "s3inM3mAzVwseCPJzMDgwmNyXDTRA9Pjn5h", /* main-index: 13*/
-            "s3PiBVbSkPeV6VNXJf1HD2hbsyXRGXDN1q5", /* main-index: 14*/
-            "s3aejhtm6xYdB5wEdSyJUsJ79CqqGmeC7Y6", /* main-index: 15*/
-            "s3TTYpvWazeMSbvMHvmTfxsJakWz7cEhcET", /* main-index: 16*/
-            "s3f4F2nsXzgJt1K2drpcGnDiVZedvfMY6H1", /* main-index: 17*/
-            "s3ZGMfXNrYRLEy58bGGacyc7CzsXt6C8brn", /* main-index: 18*/
-            "s3S7Z17UfNmRkxoNkRaLuyXpckMv9DEr4cz", /* main-index: 19*/
+            "s3SgKCHDpuxB7AKCYGZUrxfoRPU1B9hUAfb", /* main-index: 0*/
+            "s3iXM761vHWYV6y3BJ1oqsq95ayFqp6kc2C", /* main-index: 1*/
+            "s3bgknZtCJXS292DHWWEYzEm5ovU2md3AFB", /* main-index: 2*/
+            "s3NQUfs8DupgdW8nXxWUWWrecWJ3jj9hsJK", /* main-index: 3*/
+            "s3ZWJjTMuLvsB6EhXKbDhB4FJnb3psdMHYH", /* main-index: 4*/
+            "s3Tqq7LH4PPJDZqdcZyEVjQLTbx8CJrD8v4", /* main-index: 5*/
+            "s3eKe21Qff1im8zfncdGtCC2wrnaXS9zukG", /* main-index: 6*/
+            "s3inaQace2ASNKwP3ziJf2GkifDt5cvV3ne", /* main-index: 7*/
+            "s3QfbhHb5Q2eaZGuSf14iHp1UVgJdVZjFhT", /* main-index: 8*/
+            "s3T8MHWtFAkJyRfNvodvgGvj68hWqnuzCKh", /* main-index: 9*/
+            "s3NJ8krcBiANTXALNQq6cXzq1xAUEyfyAUU", /* main-index: 10*/
+            "s3jtvD64EUYrwagWnwBWX7nJ4teb7wKxyiw", /* main-index: 11*/
+            "s3QfEvmX1j5Mjq6fcHYHtomXP53QfkdXTbe", /* main-index: 12*/
+            "s3jiQ8xbZx99ZwtbMh8a98d2hLEXLfEQ36V", /* main-index: 13*/
+            "s3UmhWKGCHYUxyuer7mvkK4N4Y6X5E8Bqu6", /* main-index: 14*/
+            "s3jp8bUttie4DLeHqmDX1Y9dAYRnusah4rD", /* main-index: 15*/
+            "s3QBYwZ5WuFEbNCXKwumEvn9TDcUmzWPaTo", /* main-index: 16*/
+            "s3QVgjSx57ReEPy2MsttWsTESBuFG4Z86it", /* main-index: 17*/
+            "s3eYv5LxBqtRTc7PmJ29hw1fetRnVDhTVVo", /* main-index: 18*/
+            "s3NhM4j8n9Z4pDd7MFmihXoszyA7AP1tdYS", /* main-index: 19*/
         };
 
         nPoolMaxTransactions = 3;

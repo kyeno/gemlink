@@ -39,7 +39,7 @@ Update release process with gen-manpages.sh
 Adjust blockheaderToJSON() for Gemlink block header
 Adjust fundrawtransaction RPC test for Gemlink
 Re-encode t-addrs in disablewallet.py with Gemlink prefixes
-BTC -> GEM in paytxfee RPC docs
+BTC -> GLINK in paytxfee RPC docs
 Update default RPC port in help strings
 Fix typo in listbanned RPC keys
 

@@ -15,7 +15,7 @@ from functools import wraps
 
 def main(args=sys.argv[1:]):
     """
-    Perform the final GEM release process up to the git tag.
+    Perform the final GLINK release process up to the git tag.
     """
     opts = parse_args(args)
     chdir_to_repo(opts.REPO)
@@ -343,10 +343,10 @@ def chdir_to_repo(repo):
 def patch_README(release, releaseprev):
     with PathPatcher('README.md') as (inf, outf):
         firstline = inf.readline()
-        assert firstline == 'GEM {}\n'.format(releaseprev.novtext), \
+        assert firstline == 'GLINK {}\n'.format(releaseprev.novtext), \
             repr(firstline)
 
-        outf.write('GEM {}\n'.format(release.novtext))
+        outf.write('GLINK {}\n'.format(release.novtext))
         outf.write(inf.read())
 
 

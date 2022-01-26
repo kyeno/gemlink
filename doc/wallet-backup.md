@@ -2,19 +2,19 @@
 
 ## Overview
 
-Backing up your Gemlink private keys is the best way to be proactive about preventing loss of access to your GEM.
+Backing up your Gemlink private keys is the best way to be proactive about preventing loss of access to your GLINK.
 
 Problems resulting from bugs in the code, user error, device failure, etc. may lead to losing access to your wallet (and as a result, the private keys of addresses which are required to spend from them).
 
 No matter what the cause of a corrupted or lost wallet could be, we highly recommend all users backup on a regular basis. Anytime a new address in the wallet is generated, we recommending making a new backup so all private keys for addresses in your wallet are safe.
 
-Note that a backup is a duplicate of data needed to spend GEM so where you keep your backup(s) is another important consideration. You should not store backups where they would be equally or increasingly susceptible to loss or theft.
+Note that a backup is a duplicate of data needed to spend GLINK so where you keep your backup(s) is another important consideration. You should not store backups where they would be equally or increasingly susceptible to loss or theft.
 
 ## Instructions for backing up your wallet and/or private keys
 
 These instructions are specific for the officially supported Gemlink Linux client. For backing up with third-party wallets, please consult with user guides or support channels provided for those services.
 
-There are multiple ways to make sure you have at least one other copy of the private keys needed to spend your GEM and view your shielded GEM.
+There are multiple ways to make sure you have at least one other copy of the private keys needed to spend your GLINK and view your shielded GLINK.
 
 For all methods, you will need to include an export directory setting in your config file (`gemlink.conf` located in the data directory which is `~/.gemlink/` unless it's been overridden with `datadir=` setting):
 
