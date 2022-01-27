@@ -2255,7 +2255,7 @@ void CheckForkWarningConditions(const Consensus::Params& params)
         }
     } else {
         SetfLargeWorkForkFound(false);
-        SetfLargeWorkInvalidChainFound(true);
+        SetfLargeWorkInvalidChainFound(false);
     }
 }
 
