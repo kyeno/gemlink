@@ -17,25 +17,18 @@
 
 #include "sodium.h"
 
-// bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
-// {
-//     const CChainParams& chainParams = Params();
-//     if (pblock && pblock->GetBlockTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3))
-//     {
-//         return false;
-//     }
-//     else
-//     {
-//         if(!pblock)
-//         {
-//             if (GetAdjustedTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3))
-//             {
-//                 return false;
-//             }
-//         }
-//     }
-//     return true;
-// }
+bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
+{
+    const CChainParams& chainParams = Params();
+    if (pblock && pblock->GetBlockTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3)) {
+        return false;
+    } else {
+        if (GetAdjustedTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3)) {
+            return false;
+        }
+    }
+    return true;
+}
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
 {
@@ -47,8 +40,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return nProofOfWorkLimit;
 
     // Reset the difficulty after the algo fork
-    if (pindexLast->nTime < params.eh_epoch_1_end()
-        && pindexLast->nTime >= params.eh_epoch_2_start()) {
+    if (pindexLast->nTime < params.eh_epoch_1_end() && pindexLast->nTime >= params.eh_epoch_2_start()) {
         LogPrint("pow", "Reset the difficulty for the eh_epoch_2 algo change: %d\n", nProofOfWorkLimit);
         return nProofOfWorkLimit;
     }
@@ -66,15 +58,12 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         }
     }
 
-    // if(!CheckBlockTimestamp(pindexLast, pblock))
-    // {
-    //     LogPrint("pow1", "Return limit work, time = %d\n", pblock ? pblock->nTime : GetAdjustedTime());
-    //     return nProofOfWorkLimitTop;
-    // }
-    // else
-    // {
-    //     LogPrint("pow1", "Not return limit work, time = %d\n", pblock ? pblock->nTime : GetAdjustedTime());
-    // }
+    if (params.NetworkUpgradeActive(pindexLast->nHeight, Consensus::UPGRADE_WAKANDA) && !CheckBlockTimestamp(pindexLast, pblock)) {
+        LogPrint("pow1", "Return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
+        return nProofOfWorkLimitTop;
+    } else {
+        LogPrint("pow1", "Not return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
+    }
 
     // Find the first block in the averaging interval
     const CBlockIndex* pindexFirst = pindexLast;
@@ -192,7 +181,7 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
     return nextTarget.GetCompact();
 }
 
-bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& params)
+bool CheckEquihashSolution(const CBlockHeader* pblock, const Consensus::Params& params)
 {
     // Set parameters N,K from solution size. Filtering of valid parameters
     // for the givenblock height will be carried out in main.cpp/ContextualCheckBlockHeader

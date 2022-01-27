@@ -26,7 +26,7 @@ unsigned int DigishieldCalculateNextWorkRequired(arith_uint256 bnAvg,
 unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const Consensus::Params& params);
 
 /** Check whether the Equihash solution in a block header is valid */
-bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params&);
+bool CheckEquihashSolution(const CBlockHeader* pblock, const Consensus::Params&);
 
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&);
@@ -35,4 +35,5 @@ arith_uint256 GetBlockProof(const CBlockIndex& block);
 /** Return the time it would take to redo the work difference between from and to, assuming the current hashrate corresponds to the difficulty at tip, in seconds. */
 int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& from, const CBlockIndex& tip, const Consensus::Params&);
 
+bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblock);
 #endif // BITCOIN_POW_H

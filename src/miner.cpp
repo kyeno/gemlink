@@ -379,8 +379,11 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 
         CValidationState state;
-        if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false))
-            throw std::runtime_error("CreateNewBlock(): TestBlockValidity failed");
+        if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) {
+            if (state.GetRejectCode() != REJECT_TIME_TOO_FAST) {
+                throw std::runtime_error("CreateNewBlock(): TestBlockValidity failed");
+            }
+        }
     }
 
     return pblocktemplate.release();

@@ -4213,14 +4213,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const CChainParams
     return true;
 }
 
-bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
-{
-    const CChainParams& chainParams = Params();
-    if (pblock && pblock->GetBlockTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3)) {
-        return false;
-    }
-    return true;
-}
+// bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
+// {
+//     const CChainParams& chainParams = Params();
+//     if (pblock && pblock->GetBlockTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3)) {
+//         return false;
+//     }
+//     return true;
+// }
 
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex* const pindexPrev)
 {
@@ -4259,7 +4259,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     if (chainparams.GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_WAKANDA)) {
         if (!CheckBlockTimestamp(pindexPrev, &block)) {
             return state.Invalid(error("%s: new block is too fast", __func__),
-                                 REJECT_INVALID, "block-too-fast");
+                                 REJECT_TIME_TOO_FAST, "block-too-fast");
         }
     }
     return true;
