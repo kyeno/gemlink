@@ -336,7 +336,7 @@ int printMetrics(size_t cols, bool mining)
                         blockReward -= PREMINE_GEMLINK;
                     }
                     CAmount subsidy = blockReward;
-                    if ((height > 0) && (height < consensusParams.GetLastFoundersRewardBlockHeight())) {
+                    if ((height > 0) && (height < consensusParams.GetLastFoundersRewardBlockHeight()) && !Params().GetConsensus().NetworkUpgradeActive(height, Consensus::UPGRADE_MORAG)) {
                         if (height < consensusParams.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
                             subsidy -= blockReward / 20;
                         } else if (height < consensusParams.vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
@@ -354,7 +354,7 @@ int printMetrics(size_t cols, bool mining)
                         }
                     }
 
-                    if (NetworkUpgradeActive(height, Params().GetConsensus(), Consensus::UPGRADE_MORAG) && (height <= Params().GetConsensus().GetLastDevelopersRewardBlockHeight())) {
+                    if (Params().GetConsensus().NetworkUpgradeActive(height, Consensus::UPGRADE_MORAG) && (height <= Params().GetConsensus().GetLastDevelopersRewardBlockHeight())) {
                         subsidy -= blockReward * 20 / 100;
                     }
 

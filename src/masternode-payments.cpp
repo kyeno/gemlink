@@ -150,7 +150,7 @@ CMasternodePaymentDB::ReadResult CMasternodePaymentDB::Read(CMasternodePayments&
 CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
                                                        vinMasternode(CTxIn()),
                                                        nBlockHeight(0),
-                                                       payee(CScript())
+                                                       payee()
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -161,7 +161,7 @@ CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
 CMasternodePaymentWinner::CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage(),
                                                                   vinMasternode(vinIn),
                                                                   nBlockHeight(0),
-                                                                  payee(CScript())
+                                                                  payee()
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -272,28 +272,23 @@ void DumpMasternodePayments()
 
 bool IsBlockValueValid(int nHeight, const CBlock& block, CAmount nExpectedValue)
 {
-    if (!masternodeSync.IsSynced()) { // there is no budget data to use to check anything
+    LogPrintf("IsBlockValueValid");
+    if (!masternodeSync.IsSynced()) {
+        // there is no budget data to use to check anything
         // super blocks will always be on these blocks, max 100 per budgeting
-        if (nHeight % GetBudgetPaymentCycleBlocks() < 100) {
+        if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && nHeight % GetBudgetPaymentCycleBlocks() < 100) {
             return true;
-        } else {
-            if (block.vtx[0].GetValueOut() > nExpectedValue)
-                return false;
         }
-    } else { // we're synced and have data so check the budget schedule
-
-        // are these blocks even enabled
-        if (!sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS)) {
-            if (block.vtx[0].GetValueOut() > nExpectedValue)
-                return false;
-        }
-
-        if (budget.IsBudgetPaymentBlock(nHeight)) {
+    } else {
+        // we're synced and have data so check the budget schedule
+        // if the superblock spork is enabled
+        if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) &&
+            budget.IsBudgetPaymentBlock(nHeight)) {
             // the value of the block is evaluated in CheckBlock
             return true;
         }
     }
-
+    LogPrintf("block.vtx[0].GetValueOut() %d, nExpectedValue %d\n", block.vtx[0].GetValueOut(), nExpectedValue);
     return block.vtx[0].GetValueOut() <= nExpectedValue;
 }
 
@@ -389,7 +384,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
     txNew.vout[0].nValue = blockValue + nFees;
 
-    if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
+    if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight()) && !Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         // Founders reward
         CAmount vFoundersReward = 0;
         if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {

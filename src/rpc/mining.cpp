@@ -728,7 +728,6 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight + 1)));
     result.push_back(Pair("votes", aVotes));
 
-
     if (pblock->payee != CScript()) {
         CTxDestination address1;
         ExtractDestination(pblock->payee, address1);
@@ -738,7 +737,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         result.push_back(Pair("payee_amount", (int64_t)val));
     } else {
         result.push_back(Pair("payee", ""));
-        result.push_back(Pair("payee_amount", ""));
+        result.push_back(Pair("payee_amount", 0));
     }
 
     result.push_back(Pair("masternode_payments", pblock->nTime > Params().StartMasternodePayments() ? "true" : "false"));
@@ -747,7 +746,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     int64_t nHeight = pindexPrev->nHeight + 1;
     CAmount nReward = GetBlockSubsidy(nHeight, Params().GetConsensus());
 
-    if (nHeight < Params().GetConsensus().GetLastFoundersRewardBlockHeight()) {
+    if (nHeight < Params().GetConsensus().GetLastFoundersRewardBlockHeight() && !Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         CAmount nFoundersReward = 0;
         if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
             nFoundersReward = nReward / 20;
@@ -957,7 +956,7 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
 
     CAmount nReward = GetBlockSubsidy(nHeight, Params().GetConsensus());
     CAmount nFoundersReward = 0;
-    if (nHeight < Params().GetConsensus().GetLastFoundersRewardBlockHeight()) {
+    if (nHeight < Params().GetConsensus().GetLastFoundersRewardBlockHeight() && !Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
             nFoundersReward = nReward / 20;
         } else if (nHeight < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {

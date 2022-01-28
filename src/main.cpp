@@ -2044,7 +2044,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
     CAmount nSubsidy = 20 * COIN;
 
-    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN) {
+    if (NetworkIdFromCommandLine() != CBaseChainParams::MAIN && !consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         return nSubsidy;
     }
     // Mining slow start
@@ -3602,7 +3602,7 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     //   our genesis block. In practice this (probably) won't happen because of checks elsewhere.
     auto reorgLength = pindexOldTip ? pindexOldTip->nHeight - (pindexFork ? pindexFork->nHeight : -1) : 0;
     static_assert(MAX_REORG_LENGTH > 0, "We must be able to reorg some distance");
-    if (reorgLength > MAX_REORG_LENGTH) {
+    if (reorgLength > MAX_REORG_LENGTH && masternodeSync.IsSynced()) {
         auto msg = strprintf(_(
                                  "A block chain reorganization has been detected that would roll back %d blocks! "
                                  "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety."),
@@ -4300,7 +4300,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const CC
     // reward block is reached, with exception of the genesis block.
     // The last founders reward block is defined as the block just before the
     // first subsidy halving block, which occurs at halving_interval + slow_start_shift
-    if ((nHeight > 0) && (nHeight <= chainparams.GetConsensus().GetLastFoundersRewardBlockHeight())) {
+    if ((nHeight > 0) && (nHeight <= chainparams.GetConsensus().GetLastFoundersRewardBlockHeight()) && !Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
         bool found = false;
 
         for (const CTxOut& output : block.vtx[0].vout) {

@@ -509,7 +509,7 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew)
     // miners get the full amount on these blocks
     txNew.vout[0].nValue = blockValue;
 
-    if ((height + 1 > 0) && (height + 1 <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
+    if ((height + 1 > 0) && (height + 1 <= Params().GetConsensus().GetLastFoundersRewardBlockHeight()) && !Params().GetConsensus().NetworkUpgradeActive(height, Consensus::UPGRADE_MORAG)) {
         CAmount vFoundersReward = 0;
 
         if (height + 1 < Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {

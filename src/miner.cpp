@@ -356,7 +356,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         FillBlockPayee(txNew, nFees);
 
         // Make payee
-        pblock->payee = txNew.vout[txNew.vout.size() - 1].scriptPubKey;
+        // pblock->payee = txNew.vout[txNew.vout.size() - 1].scriptPubKey;
 
         txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
