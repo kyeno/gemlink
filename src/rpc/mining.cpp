@@ -784,9 +784,11 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     }
 
     if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-        result.push_back(Pair("treasuryReward", (int64_t)PREMINE_GEMLINK));
-        result.push_back(Pair("treasuryAddress", Params().GetDevelopersRewardAddressAtHeight(nHeight)));
+        result.push_back(Pair("premineReward", GetPremineAmountAtHeight(nHeight)));
+        result.push_back(Pair("premineAddress", Params().GetDevelopersRewardAddressAtHeight(nHeight)));
     }
+
+    result.push_back(Pair("gemlink", true));
 
     return result;
 }
@@ -987,7 +989,7 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
     nReward -= nTreasuryReward;
     nReward -= nDeveloperReward;
     if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-        nReward -= PREMINE_GEMLINK;
+        nReward -= GetPremineAmountAtHeight(nHeight);
     }
     result.push_back(Pair("miner", ValueFromAmount(nReward)));
     if (!Params().GetConsensus().NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)) {
@@ -1002,8 +1004,8 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
         result.push_back(Pair("treasuryAddress", Params().GetTreasuryRewardAddressAtHeight(nHeight)));
     }
     if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-        result.push_back(Pair("treasury", ValueFromAmount(PREMINE_GEMLINK)));
-        result.push_back(Pair("treasuryAddress", Params().GetTreasuryRewardAddressAtHeight(nHeight)));
+        result.push_back(Pair("premine", ValueFromAmount(GetPremineAmountAtHeight(nHeight))));
+        result.push_back(Pair("premineAddress", Params().GetDevelopersRewardAddressAtHeight(nHeight)));
     }
     result.push_back(Pair("masternode", ValueFromAmount(nMasternodeReward)));
     return result;

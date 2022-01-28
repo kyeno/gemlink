@@ -333,7 +333,7 @@ int printMetrics(size_t cols, bool mining)
                     int height = mapBlockIndex[hash]->nHeight;
                     CAmount blockReward = GetBlockSubsidy(height, consensusParams);
                     if (height == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-                        blockReward -= PREMINE_GEMLINK;
+                        blockReward -= GetPremineAmountAtHeight(height);
                     }
                     CAmount subsidy = blockReward;
                     if ((height > 0) && (height < consensusParams.GetLastFoundersRewardBlockHeight()) && !Params().GetConsensus().NetworkUpgradeActive(height, Consensus::UPGRADE_MORAG)) {

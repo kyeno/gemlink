@@ -252,6 +252,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
 void FindFilesToPrune(std::set<int>& setFilesToPrune);
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
 int64_t GetDevelopersPayment(int nHeight, int64_t blockValue);
+int64_t GetPremineAmountAtHeight(int height);
 /**
  *  Actually unlink the specified files
  */

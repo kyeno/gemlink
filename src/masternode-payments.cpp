@@ -150,7 +150,7 @@ CMasternodePaymentDB::ReadResult CMasternodePaymentDB::Read(CMasternodePayments&
 CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
                                                        vinMasternode(CTxIn()),
                                                        nBlockHeight(0),
-                                                       payee()
+                                                        payee(CScript())
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -161,7 +161,7 @@ CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
 CMasternodePaymentWinner::CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage(),
                                                                   vinMasternode(vinIn),
                                                                   nBlockHeight(0),
-                                                                  payee()
+                                                                   payee(CScript())
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -272,7 +272,6 @@ void DumpMasternodePayments()
 
 bool IsBlockValueValid(int nHeight, const CBlock& block, CAmount nExpectedValue)
 {
-    LogPrintf("IsBlockValueValid");
     if (!masternodeSync.IsSynced()) {
         // there is no budget data to use to check anything
         // super blocks will always be on these blocks, max 100 per budgeting
@@ -288,7 +287,6 @@ bool IsBlockValueValid(int nHeight, const CBlock& block, CAmount nExpectedValue)
             return true;
         }
     }
-    LogPrintf("block.vtx[0].GetValueOut() %d, nExpectedValue %d\n", block.vtx[0].GetValueOut(), nExpectedValue);
     return block.vtx[0].GetValueOut() <= nExpectedValue;
 }
 
@@ -431,9 +429,9 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     }
 
     if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-        txNew.vout.push_back(CTxOut(PREMINE_GEMLINK, Params().GetDevelopersRewardScriptAtHeight(nHeight)));
+        txNew.vout.push_back(CTxOut(GetPremineAmountAtHeight(nHeight), Params().GetDevelopersRewardScriptAtHeight(nHeight)));
 
-        txNew.vout[0].nValue -= PREMINE_GEMLINK;
+        txNew.vout[0].nValue -= GetPremineAmountAtHeight(nHeight);
     }
 
     //@TODO masternode

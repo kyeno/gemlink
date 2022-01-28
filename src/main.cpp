@@ -2069,7 +2069,7 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
         nSubsidy = 30 * COIN;
         halvings = std::max(0, nHeight - consensusParams.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) / consensusParams.nSubsidyHalvingInterval;
         if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-            nSubsidy += PREMINE_GEMLINK;
+            nSubsidy += GetPremineAmountAtHeight(nHeight);
         }
     }
     // Force block reward to zero when right shift is undefined.
@@ -2089,7 +2089,7 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
     int nMNPaymentKnowhere = Params().GetConsensus().vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight;
     if (nHeight >= nMNPaymentKnowhere) {
         if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-            ret = (blockValue - PREMINE_GEMLINK) * 50 / 100;
+            ret = (blockValue - GetPremineAmountAtHeight(nHeight)) * 50 / 100;
         } else {
             ret = blockValue * 50 / 100;
         }
@@ -2114,7 +2114,16 @@ int64_t GetDevelopersPayment(int nHeight, int64_t blockValue)
 {
     int64_t ret = blockValue * 20 / 100;
     if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
-        ret = (blockValue - PREMINE_GEMLINK) * 20 / 100;
+        ret = (blockValue - GetPremineAmountAtHeight(nHeight)) * 20 / 100;
+    }
+    return ret;
+}
+
+int64_t GetPremineAmountAtHeight(int nHeight)
+{
+    int64_t ret = 0;
+    if (nHeight == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+        ret = PREMINE_GEMLINK;
     }
     return ret;
 }
@@ -4376,7 +4385,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const CC
 
         for (const CTxOut& output : block.vtx[0].vout) {
             if (output.scriptPubKey == Params().GetDevelopersRewardScriptAtHeight(nHeight)) {
-                if (output.nValue == PREMINE_GEMLINK) {
+                if (output.nValue == GetPremineAmountAtHeight(nHeight)) {
                     found = true;
                     break;
                 }
