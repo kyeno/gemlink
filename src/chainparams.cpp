@@ -356,7 +356,7 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_WAKANDA].nProtocolVersion = 170010;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nActivationHeight = 28610;
         consensus.vUpgrades[Consensus::UPGRADE_ATLANTIS].nProtocolVersion = 170010;
-        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 77800;
+        consensus.vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight = 77780;
         consensus.vUpgrades[Consensus::UPGRADE_MORAG].nProtocolVersion = 170010;
         consensus.nMasternodePaymentsStartBlock = 1500;
         consensus.nMasternodePaymentsIncreasePeriod = 200;
