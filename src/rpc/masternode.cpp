@@ -504,11 +504,7 @@ UniValue startmasternode(const UniValue& params, bool fHelp)
             statusObj.push_back(Pair("error_message", "Could not find alias in config. Verify with listmasternodeconf."));
         }
 
-        UniValue returnObj(UniValue::VOBJ);
-        returnObj.push_back(Pair("overall", strprintf("Successfully started %d masternodes, failed to start %d, total %d", successful, failed, successful + failed)));
-        returnObj.push_back(Pair("detail", resultsObj));
-
-        return returnObj;
+        return statusObj;
     }
     return NullUniValue;
 }
