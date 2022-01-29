@@ -150,7 +150,7 @@ CMasternodePaymentDB::ReadResult CMasternodePaymentDB::Read(CMasternodePayments&
 CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
                                                        vinMasternode(CTxIn()),
                                                        nBlockHeight(0),
-                                                        payee(CScript())
+                                                       payee(CScript())
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -161,7 +161,7 @@ CMasternodePaymentWinner::CMasternodePaymentWinner() : CSignedMessage(),
 CMasternodePaymentWinner::CMasternodePaymentWinner(CTxIn vinIn) : CSignedMessage(),
                                                                   vinMasternode(vinIn),
                                                                   nBlockHeight(0),
-                                                                   payee(CScript())
+                                                                  payee(CScript())
 {
     const bool fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     if (fNewSigs) {
@@ -324,8 +324,11 @@ bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int
 
     LogPrintf("masternodepayments", "Invalid mn payment detected %s\n", txNew.ToString().c_str());
 
-    if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT))
+    if (!Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG) && sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
         return false;
+    } else if (sporkManager.IsSporkActive(SPORK_19_MASTERNODE_PAYMENT_ENFORCEMENT_MORAG)) {
+        return false;
+    }
     LogPrint("masternodepayments", "Masternode payment enforcement is disabled, accepting block\n");
 
     return true;

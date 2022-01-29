@@ -246,8 +246,7 @@ void CMasternodeMan::CheckSpentCollaterals(const std::vector<CTransaction>& vtx)
     for (const auto& tx : vtx) {
         for (const auto& in : tx.vin) {
             for (CMasternode& mn : vMasternodes) {
-                if(mn.vin == in)
-                {
+                if (mn.vin == in) {
                     mn.SetSpent();
                 }
             }
@@ -374,7 +373,8 @@ int CMasternodeMan::stable_size()
         if (mn.protocolVersion < nMinProtocol) {
             continue; // Skip obsolete versions
         }
-        if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
+        if ((sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
+            (sporkManager.IsSporkActive(SPORK_19_MASTERNODE_PAYMENT_ENFORCEMENT_MORAG) && Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG))) {
             nMasternode_Age = GetAdjustedTime() - mn.sigTime;
             if ((nMasternode_Age) < nMasternode_Min_Age) {
                 continue; // Skip masternodes younger than (default) 8000 sec (MUST be > MASTERNODE_REMOVAL_SECONDS)
@@ -612,7 +612,8 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
             continue; // Skip obsolete versions
         }
 
-        if (sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)) {
+        if ((sporkManager.IsSporkActive(SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT) && !Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) ||
+            (sporkManager.IsSporkActive(SPORK_19_MASTERNODE_PAYMENT_ENFORCEMENT_MORAG) && Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG))) {
             nMasternode_Age = GetAdjustedTime() - mn.sigTime;
             if ((nMasternode_Age) < nMasternode_Min_Age) {
                 if (fDebug)
