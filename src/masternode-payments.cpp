@@ -332,16 +332,16 @@ bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int
 }
 
 
-void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees)
+void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, CScript& payee)
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (!pindexPrev)
         return;
 
     if (sporkManager.IsSporkActive(SPORK_13_ENABLE_SUPERBLOCKS) && budget.IsBudgetPaymentBlock(pindexPrev->nHeight + 1)) {
-        budget.FillBlockPayee(txNew);
+        budget.FillBlockPayee(txNew, payee);
     } else {
-        masternodePayments.FillBlockPayee(txNew, nFees);
+        masternodePayments.FillBlockPayee(txNew, nFees, payee);
     }
 }
 
@@ -354,7 +354,7 @@ std::string GetRequiredPaymentsString(int nBlockHeight)
     }
 }
 
-void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFees)
+void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, CScript& payee)
 {
     CBlockIndex* pindexPrev = chainActive.Tip();
     if (!pindexPrev)
@@ -362,7 +362,6 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
 
     bool hasPayment = true;
     int nHeight = pindexPrev->nHeight + 1;
-    CScript payee;
 
     // spork
     if (!masternodePayments.GetBlockPayee(nHeight, payee)) {
@@ -372,6 +371,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
             payee = GetScriptForDestination(winningNode->pubKeyCollateralAddress.GetID());
         } else {
             LogPrint("masternode", "CreateNewBlock: Failed to detect masternode to pay\n");
+            payee = CScript();
             hasPayment = false;
         }
     }
@@ -438,11 +438,6 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int64_t nFe
     if (hasPayment) {
         txNew.vout.push_back(CTxOut(masternodePayment, payee));
         txNew.vout[0].nValue -= masternodePayment;
-
-        CTxDestination address1;
-        ExtractDestination(payee, address1);
-
-        LogPrint("masternode", "Masternode payment to %s\n", EncodeDestination(address1));
     }
 }
 

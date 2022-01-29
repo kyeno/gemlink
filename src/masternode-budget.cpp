@@ -477,7 +477,7 @@ void CBudgetManager::CheckAndRemove()
     LogPrint("mnbudget", "%s: PASSED\n", __func__);
 }
 
-void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew)
+void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CScript& payee)
 {
     LOCK(cs);
 
@@ -486,7 +486,6 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew)
         return;
 
     int nHighestCount = 0;
-    CScript payee;
     CAmount nAmount = 0;
     const int height = pindexPrev->nHeight;
     // ------- Grab The Highest Count

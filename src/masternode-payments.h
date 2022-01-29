@@ -31,7 +31,7 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
 bool IsBlockPayeeValid(const CChainParams& chainparams, const CBlock& block, int nBlockHeight);
 std::string GetRequiredPaymentsString(int nBlockHeight);
 bool IsBlockValueValid(int nHeight, const CBlock& block, CAmount nExpectedValue);
-void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees);
+void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, CScript& payee);
 
 void DumpMasternodePayments();
 
@@ -277,7 +277,7 @@ public:
     int GetMinMasternodePaymentsProto();
     void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
     std::string GetRequiredPaymentsString(int nBlockHeight);
-    void FillBlockPayee(CMutableTransaction& txNew, int64_t nFees);
+    void FillBlockPayee(CMutableTransaction& txNew, int64_t nFees, CScript& payee);
     std::string ToString() const;
     ADD_SERIALIZE_METHODS;
 

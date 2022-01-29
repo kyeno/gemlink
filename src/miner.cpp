@@ -353,10 +353,18 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         txNew.vout[0].scriptPubKey = scriptPubKeyIn;
 
         // Masternode and general budget payments
-        FillBlockPayee(txNew, nFees);
+        CScript payee;
+        FillBlockPayee(txNew, nFees, payee);
 
         // Make payee
-        // pblock->payee = txNew.vout[txNew.vout.size() - 1].scriptPubKey;
+        if(payee != CScript())
+        {
+            CTxDestination address1;
+            ExtractDestination(payee, address1);
+
+            LogPrint("masternode", "Masternode payment to %s\n", EncodeDestination(address1));
+            pblock->payee = payee;
+        }
 
         txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
