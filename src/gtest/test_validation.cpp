@@ -98,22 +98,23 @@ TEST(Validation, ContextualCheckInputsPassesWithCoinbase)
     }
 }
 
-TEST(Validation, ReceivedBlockTransactions)
-{
+TEST(Validation, ReceivedBlockTransactions) {
+    SelectParams(CBaseChainParams::REGTEST);
+    auto chainParams = Params();
     auto sk = libzcash::SproutSpendingKey::random();
 
     // Create a fake genesis block
     CBlock block1;
-    block1.vtx.push_back(GetValidReceive(*params, sk, 5, true));
+    block1.vtx.push_back(GetValidSproutReceive(sk, 5, true));
     block1.hashMerkleRoot = block1.BuildMerkleTree();
-    CBlockIndex fakeIndex1{block1};
+    CBlockIndex fakeIndex1 {block1};
 
     // Create a fake child block
     CBlock block2;
     block2.hashPrevBlock = block1.GetHash();
-    block2.vtx.push_back(GetValidReceive(*params, sk, 10, true));
+    block2.vtx.push_back(GetValidSproutReceive(sk, 10, true));
     block2.hashMerkleRoot = block2.BuildMerkleTree();
-    CBlockIndex fakeIndex2{block2};
+    CBlockIndex fakeIndex2 {block2};
     fakeIndex2.pprev = &fakeIndex1;
 
     CDiskBlockPos pos1;
@@ -135,7 +136,7 @@ TEST(Validation, ReceivedBlockTransactions)
 
     // Mark the second block's transactions as received first
     CValidationState state;
-    EXPECT_TRUE(ReceivedBlockTransactions(block2, state, &fakeIndex2, pos2));
+    EXPECT_TRUE(ReceivedBlockTransactions(block2, state, chainParams, &fakeIndex2, pos2));
     EXPECT_FALSE(fakeIndex1.IsValid(BLOCK_VALID_TRANSACTIONS));
     EXPECT_TRUE(fakeIndex2.IsValid(BLOCK_VALID_TRANSACTIONS));
 
@@ -150,7 +151,7 @@ TEST(Validation, ReceivedBlockTransactions)
     EXPECT_FALSE((bool)fakeIndex2.nChainSproutValue);
 
     // Now mark the first block's transactions as received
-    EXPECT_TRUE(ReceivedBlockTransactions(block1, state, &fakeIndex1, pos1));
+    EXPECT_TRUE(ReceivedBlockTransactions(block1, state, chainParams, &fakeIndex1, pos1));
     EXPECT_TRUE(fakeIndex1.IsValid(BLOCK_VALID_TRANSACTIONS));
     EXPECT_TRUE(fakeIndex2.IsValid(BLOCK_VALID_TRANSACTIONS));
 

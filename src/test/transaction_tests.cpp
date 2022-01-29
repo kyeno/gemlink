@@ -38,6 +38,8 @@
 #include "zcash/Note.hpp"
 #include "zcash/Proof.hpp"
 
+#include <rust/ed25519.h>
+
 using namespace std;
 
 // In script_tests.cpp
@@ -95,7 +97,7 @@ BOOST_AUTO_TEST_CASE(tx_valid)
     UniValue tests = read_json(std::string(json_tests::tx_valid, json_tests::tx_valid + sizeof(json_tests::tx_valid)));
     std::string comment("");
 
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
     ScriptError err;
     for (size_t idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
@@ -174,7 +176,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid)
     UniValue tests = read_json(std::string(json_tests::tx_invalid, json_tests::tx_invalid + sizeof(json_tests::tx_invalid)));
     std::string comment("");
 
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
     ScriptError err;
     for (size_t idx = 0; idx < tests.size(); idx++) {
         UniValue test = tests[idx];
@@ -247,7 +249,7 @@ BOOST_AUTO_TEST_CASE(basic_transaction_tests)
     CMutableTransaction tx;
     stream >> tx;
     CValidationState state;
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
     BOOST_CHECK_MESSAGE(CheckTransaction(tx, state, verifier) && state.IsValid(), "Simple deserialized transaction should be valid.");
 
     // Check that duplicate txins fail
@@ -295,9 +297,7 @@ SetupDummyInputs(CBasicKeyStore& keystoreRet, CCoinsViewCache& coinsRet)
 BOOST_AUTO_TEST_CASE(test_basic_joinsplit_verification)
 {
     // We only check that joinsplits are constructed properly
-    // and verify properly here. libsnark tends to segfault
-    // when our snarks or what-have-you are invalid, so
-    // we can't really catch everything here.
+    // and verify them here.
     //
     // See #471, #520, #459 and probably others.
     //
@@ -329,42 +329,44 @@ BOOST_AUTO_TEST_CASE(test_basic_joinsplit_verification)
     auto witness = merkleTree.witness();
 
     // create JSDescription
-    uint256 joinSplitPubKey;
+    Ed25519VerificationKey joinSplitPubKey;
     std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS> inputs = {
         libzcash::JSInput(witness, note, k),
         libzcash::JSInput() // dummy input of zero value
     };
     std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> outputs = {
         libzcash::JSOutput(addr, 50),
-        libzcash::JSOutput(addr, 50)};
+        libzcash::JSOutput(addr, 50)
+    };
 
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
 
     {
-        JSDescription jsdesc(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 0, 0);
-        BOOST_CHECK(jsdesc.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
+        auto jsdesc = JSDescriptionInfo(joinSplitPubKey, rt, inputs, outputs, 0, 0).BuildDeterministic();
+        BOOST_CHECK(verifier.VerifySprout(jsdesc, joinSplitPubKey));
 
         CDataStream ss(SER_DISK, CLIENT_VERSION);
-        ss << jsdesc;
+        auto os = WithVersion(&ss, SAPLING_TX_VERSION | 1 << 31);
+        os << jsdesc;
 
         JSDescription jsdesc_deserialized;
-        ss >> jsdesc_deserialized;
+        os >> jsdesc_deserialized;
 
         BOOST_CHECK(jsdesc_deserialized == jsdesc);
-        BOOST_CHECK(jsdesc_deserialized.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
+        BOOST_CHECK(verifier.VerifySprout(jsdesc_deserialized, joinSplitPubKey));
     }
 
     {
         // Ensure that the balance equation is working.
-        BOOST_CHECK_THROW(JSDescription(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 10, 0), std::invalid_argument);
-        BOOST_CHECK_THROW(JSDescription(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 0, 10), std::invalid_argument);
+        BOOST_CHECK_THROW(JSDescriptionInfo(joinSplitPubKey, rt, inputs, outputs, 10, 0).BuildDeterministic(), std::invalid_argument);
+        BOOST_CHECK_THROW(JSDescriptionInfo(joinSplitPubKey, rt, inputs, outputs, 0, 10).BuildDeterministic(), std::invalid_argument);
     }
 
     {
         // Ensure that it won't verify if the root is changed.
-        auto test = JSDescription(*pgemlinkParams, joinSplitPubKey, rt, inputs, outputs, 0, 0);
+        auto test = JSDescriptionInfo(joinSplitPubKey, rt, inputs, outputs, 0, 0).BuildDeterministic();
         test.anchor = GetRandHash();
-        BOOST_CHECK(!test.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
+        BOOST_CHECK(!verifier.VerifySprout(test, joinSplitPubKey));
     }
 }
 
@@ -430,37 +432,36 @@ void test_simple_sapling_invalidity(uint32_t consensusBranchId, CMutableTransact
         BOOST_CHECK(state.GetRejectReason() == "bad-cb-has-spend-description");
     }
 }
-
 void test_simple_joinsplit_invalidity(uint32_t consensusBranchId, CMutableTransaction tx)
 {
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto orchardAuth = orchard::AuthValidator::Disabled(); // No Orchard components
+    auto verifier = ProofVerifier::Strict();
     {
-        auto chainparams = Params();
         // Ensure that empty vin/vout remain invalid without
         // joinsplits.
         CMutableTransaction newTx(tx);
         CValidationState state;
 
-        unsigned char joinSplitPrivKey[crypto_sign_SECRETKEYBYTES];
-        crypto_sign_keypair(newTx.joinSplitPubKey.begin(), joinSplitPrivKey);
+        Ed25519SigningKey joinSplitPrivKey;
+        ed25519_generate_keypair(&joinSplitPrivKey, &newTx.joinSplitPubKey);
 
         // No joinsplits, vin and vout, means it should be invalid.
         BOOST_CHECK(!CheckTransactionWithoutProofVerification(newTx, state));
-        BOOST_CHECK(state.GetRejectReason() == "bad-txns-vin-empty");
+        BOOST_CHECK(state.GetRejectReason() == "bad-txns-no-source-of-funds");
 
         newTx.vin.push_back(CTxIn(uint256S("0000000000000000000000000000000000000000000000000000000000000001"), 0));
 
         BOOST_CHECK(!CheckTransactionWithoutProofVerification(newTx, state));
-        BOOST_CHECK(state.GetRejectReason() == "bad-txns-vout-empty");
+        BOOST_CHECK(state.GetRejectReason() == "bad-txns-no-sink-of-funds");
 
-        newTx.vjoinsplit.push_back(JSDescription());
-        JSDescription* jsdesc = &newTx.vjoinsplit[0];
+        newTx.vJoinSplit.push_back(JSDescription());
+        JSDescription *jsdesc = &newTx.vJoinSplit[0];
 
         jsdesc->nullifiers[0] = GetRandHash();
         jsdesc->nullifiers[1] = GetRandHash();
 
         BOOST_CHECK(CheckTransactionWithoutProofVerification(newTx, state));
-        BOOST_CHECK(!ContextualCheckTransaction(newTx, state, chainparams, 0, 100));
+        BOOST_CHECK(!ContextualCheckTransaction(newTx, state, Params(), 0, true));
         BOOST_CHECK(state.GetRejectReason() == "bad-txns-invalid-joinsplit-signature");
 
         // Empty output script.
@@ -468,50 +469,55 @@ void test_simple_joinsplit_invalidity(uint32_t consensusBranchId, CMutableTransa
         CTransaction signTx(newTx);
         uint256 dataToBeSigned = SignatureHash(scriptCode, signTx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId);
 
-        assert(crypto_sign_detached(&newTx.joinSplitSig[0], NULL,
-                                    dataToBeSigned.begin(), 32,
-                                    joinSplitPrivKey) == 0);
+        assert(ed25519_sign(
+            &joinSplitPrivKey,
+            dataToBeSigned.begin(), 32,
+            &newTx.joinSplitSig));
 
         BOOST_CHECK(CheckTransactionWithoutProofVerification(newTx, state));
-        BOOST_CHECK(ContextualCheckTransaction(newTx, state, chainparams, 0, 100));
+        BOOST_CHECK(ContextualCheckTransaction(newTx, state, Params(), 0, true));
     }
     {
         // Ensure that values within the joinsplit are well-formed.
         CMutableTransaction newTx(tx);
         CValidationState state;
 
-        newTx.vjoinsplit.push_back(JSDescription());
+        newTx.vJoinSplit.push_back(JSDescription());
 
-        JSDescription* jsdesc = &newTx.vjoinsplit[0];
+        JSDescription *jsdesc = &newTx.vJoinSplit[0];
         jsdesc->vpub_old = -1;
 
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK_THROW((CTransaction(newTx)), std::ios_base::failure);
+        BOOST_CHECK(!CheckTransaction(UNSAFE_CTransaction(newTx), state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-txns-vpub_old-negative");
 
         jsdesc->vpub_old = MAX_MONEY + 1;
 
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK_THROW((CTransaction(newTx)), std::ios_base::failure);
+        BOOST_CHECK(!CheckTransaction(UNSAFE_CTransaction(newTx), state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-txns-vpub_old-toolarge");
 
         jsdesc->vpub_old = 0;
         jsdesc->vpub_new = -1;
 
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK_THROW((CTransaction(newTx)), std::ios_base::failure);
+        BOOST_CHECK(!CheckTransaction(UNSAFE_CTransaction(newTx), state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-txns-vpub_new-negative");
 
         jsdesc->vpub_new = MAX_MONEY + 1;
 
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK_THROW((CTransaction(newTx)), std::ios_base::failure);
+        BOOST_CHECK(!CheckTransaction(UNSAFE_CTransaction(newTx), state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-txns-vpub_new-toolarge");
 
         jsdesc->vpub_new = (MAX_MONEY / 2) + 10;
 
-        newTx.vjoinsplit.push_back(JSDescription());
+        newTx.vJoinSplit.push_back(JSDescription());
 
-        JSDescription* jsdesc2 = &newTx.vjoinsplit[1];
+        JSDescription *jsdesc2 = &newTx.vJoinSplit[1];
         jsdesc2->vpub_new = (MAX_MONEY / 2) + 10;
 
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK(!CheckTransaction(newTx, state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-txns-txintotal-toolarge");
     }
     {
@@ -519,25 +525,25 @@ void test_simple_joinsplit_invalidity(uint32_t consensusBranchId, CMutableTransa
         CMutableTransaction newTx(tx);
         CValidationState state;
 
-        newTx.vjoinsplit.push_back(JSDescription());
-        JSDescription* jsdesc = &newTx.vjoinsplit[0];
+        newTx.vJoinSplit.push_back(JSDescription());
+        JSDescription *jsdesc = &newTx.vJoinSplit[0];
 
         jsdesc->nullifiers[0] = GetRandHash();
         jsdesc->nullifiers[1] = jsdesc->nullifiers[0];
 
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK(!CheckTransaction(newTx, state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-joinsplits-nullifiers-duplicate");
 
         jsdesc->nullifiers[1] = GetRandHash();
 
-        newTx.vjoinsplit.push_back(JSDescription());
-        jsdesc = &newTx.vjoinsplit[0]; // Fixes #2026. Related PR #2078.
-        JSDescription* jsdesc2 = &newTx.vjoinsplit[1];
+        newTx.vJoinSplit.push_back(JSDescription());
+        jsdesc = &newTx.vJoinSplit[0]; // Fixes #2026. Related PR #2078.
+        JSDescription *jsdesc2 = &newTx.vJoinSplit[1];
 
         jsdesc2->nullifiers[0] = GetRandHash();
         jsdesc2->nullifiers[1] = jsdesc->nullifiers[0];
 
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK(!CheckTransaction(newTx, state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-joinsplits-nullifiers-duplicate");
     }
     {
@@ -545,8 +551,8 @@ void test_simple_joinsplit_invalidity(uint32_t consensusBranchId, CMutableTransa
         CMutableTransaction newTx(tx);
         CValidationState state;
 
-        newTx.vjoinsplit.push_back(JSDescription());
-        JSDescription* jsdesc = &newTx.vjoinsplit[0];
+        newTx.vJoinSplit.push_back(JSDescription());
+        JSDescription *jsdesc = &newTx.vJoinSplit[0];
         jsdesc->nullifiers[0] = GetRandHash();
         jsdesc->nullifiers[1] = GetRandHash();
 
@@ -556,7 +562,7 @@ void test_simple_joinsplit_invalidity(uint32_t consensusBranchId, CMutableTransa
             CTransaction finalNewTx(newTx);
             BOOST_CHECK(finalNewTx.IsCoinBase());
         }
-        BOOST_CHECK(!CheckTransaction(newTx, state, verifier));
+        BOOST_CHECK(!CheckTransaction(newTx, state, verifier, orchardAuth));
         BOOST_CHECK(state.GetRejectReason() == "bad-cb-has-joinsplits");
     }
 }

@@ -46,7 +46,7 @@ bool verifySproutProofs(
     const SproutProofs& jsdescs,
     const uint256& joinSplitPubKey)
 {
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
     bool phgrPassed = jsdescs[0].Verify(js, verifier, joinSplitPubKey);
     bool grothPassed = jsdescs[1].Verify(js, verifier, joinSplitPubKey);
     return phgrPassed && grothPassed;
@@ -56,7 +56,7 @@ bool verifySproutProofs(
 void test_full_api(ZCJoinSplit* js)
 {
     // Create verification context.
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
 
     // The recipient's information.
     SproutSpendingKey recipient_key = SproutSpendingKey::random();

@@ -19,7 +19,6 @@ class thread_group;
 } // namespace boost
 
 extern TracingHandle* pTracingHandle;
-extern ZCJoinSplit* pgemlinkParams;
 
 void StartShutdown();
 bool ShutdownRequested();

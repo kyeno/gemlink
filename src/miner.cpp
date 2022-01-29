@@ -361,8 +361,8 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         {
             CTxDestination address1;
             ExtractDestination(payee, address1);
-
-            LogPrint("masternode", "Masternode payment to %s\n", EncodeDestination(address1));
+            KeyIO keyIO(chainparams);
+            LogPrint("masternode", "Masternode payment to %s\n", keyIO.EncodeDestination(address1));
             pblock->payee = payee;
         }
 
@@ -404,9 +404,10 @@ boost::optional<CScript> GetMinerScriptPubKey()
 #endif
 {
     CKeyID keyID;
-    CTxDestination addr = DecodeDestination(GetArg("-mineraddress", ""));
+    KeyIO keyIO(Params());
+    CTxDestination addr = keyIO.DecodeDestination(GetArg("-mineraddress", ""));
     if (IsValidDestination(addr)) {
-        keyID = boost::get<CKeyID>(addr);
+        keyID = std::get<CKeyID>(addr);
     } else {
 #ifdef ENABLE_WALLET
         CPubKey pubkey;

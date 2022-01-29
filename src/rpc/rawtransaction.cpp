@@ -52,8 +52,9 @@ void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fInclud
     out.push_back(Pair("type", GetTxnOutputType(type)));
 
     UniValue a(UniValue::VARR);
+    KeyIO keyIO(Params());
     for (const CTxDestination& addr : addresses) {
-        a.push_back(EncodeDestination(addr));
+        a.push_back(keyIO.EncodeDestination(addr));
     }
     out.push_back(Pair("addresses", a));
 }
@@ -103,7 +104,7 @@ UniValue TxJoinSplitToJSON(const CTransaction& tx)
 
         CDataStream ssProof(SER_NETWORK, PROTOCOL_VERSION);
         auto ps = SproutProofSerializer<CDataStream>(ssProof, useGroth);
-        boost::apply_visitor(ps, jsdescription.proof);
+        std::visit(ps, jsdescription.proof);
         joinsplit.push_back(Pair("proof", HexStr(ssProof.begin(), ssProof.end())));
 
         {
@@ -183,10 +184,11 @@ void TxToJSONExpanded(const CTransaction& tx, const uint256 hashBlock, UniValue&
             if (GetSpentIndex(spentKey, spentInfo)) {
                 in.push_back(Pair("value", ValueFromAmount(spentInfo.satoshis)));
                 in.push_back(Pair("valueZat", spentInfo.satoshis));
+                KeyIO keyIO(Params());
                 if (spentInfo.addressType == 1) {
-                    in.push_back(Pair("address", EncodeDestination(CKeyID(spentInfo.addressHash))));
+                    in.push_back(Pair("address", keyIO.EncodeDestination(CKeyID(spentInfo.addressHash))));
                 } else if (spentInfo.addressType == 2) {
-                    in.push_back(Pair("address", EncodeDestination(CScriptID(spentInfo.addressHash))));
+                    in.push_back(Pair("address", keyIO.EncodeDestination(CScriptID(spentInfo.addressHash))));
                 }
             }
         }
@@ -655,8 +657,9 @@ UniValue createrawtransaction(const UniValue& params, bool fHelp)
 
     std::set<CTxDestination> destinations;
     vector<string> addrList = sendTo.getKeys();
+    KeyIO keyIO(Params());
     for (const std::string& name_ : addrList) {
-        CTxDestination destination = DecodeDestination(name_);
+        CTxDestination destination = keyIO.DecodeDestination(name_);
         if (!IsValidDestination(destination)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Zcash address: ") + name_);
         }
@@ -806,8 +809,8 @@ UniValue decodescript(const UniValue& params, bool fHelp)
         // Empty scripts are valid
     }
     ScriptPubKeyToJSON(script, r, false);
-
-    r.push_back(Pair("p2sh", EncodeDestination(CScriptID(script))));
+    KeyIO keyIO(Params());
+    r.push_back(Pair("p2sh", keyIO.EncodeDestination(CScriptID(script))));
     return r;
 }
 
@@ -931,12 +934,13 @@ UniValue signrawtransaction(const UniValue& params, bool fHelp)
 
     bool fGivenKeys = false;
     CBasicKeyStore tempKeystore;
+    KeyIO keyIO(Params());
     if (params.size() > 2 && !params[2].isNull()) {
         fGivenKeys = true;
         UniValue keys = params[2].get_array();
         for (size_t idx = 0; idx < keys.size(); idx++) {
             UniValue k = keys[idx];
-            CKey key = DecodeSecret(k.get_str());
+            CKey key = keyIO.DecodeSecret(k.get_str());
             if (!key.IsValid())
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
             tempKeystore.AddKey(key);

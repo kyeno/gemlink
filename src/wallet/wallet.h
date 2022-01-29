@@ -25,7 +25,6 @@
 #include "wallet/wallet_ismine.h"
 #include "wallet/walletdb.h"
 #include "zcash/Address.hpp"
-#include "zcash/zip32.h"
 
 #include <algorithm>
 #include <map>
@@ -84,6 +83,8 @@ static const unsigned int DEFAULT_TX_RETENTION_LASTTX = 200;
 
 // Amount of transactions to delete per run while syncing
 static const int MAX_DELETE_TX_SIZE = 50000;
+
+static const bool DEFAULT_WALLETBROADCAST = true;
 
 class CBlockIndex;
 class CCoinControl;
@@ -1295,11 +1296,11 @@ public:
 
     void GetSproutNoteWitnesses(
         std::vector<JSOutPoint> notes,
-        std::vector<boost::optional<SproutWitness>>& witnesses,
+        std::vector<std::optional<SproutWitness>>& witnesses,
         uint256& final_anchor);
     void GetSaplingNoteWitnesses(
         std::vector<SaplingOutPoint> notes,
-        std::vector<boost::optional<SaplingWitness>>& witnesses,
+        std::vector<std::optional<SaplingWitness>>& witnesses,
         uint256& final_anchor);
 
     isminetype IsMine(const CTxIn& txin) const;
@@ -1444,6 +1445,9 @@ public:
                           bool ignoreSpent = true,
                           bool requireSpendingKey = true,
                           bool ignoreLocked = true);
+
+    /* Initializes the wallet, returns a new CWallet instance or a null pointer in case of an error */
+    static bool InitLoadWallet(const CChainParams& params, bool clearWitnessCaches);
 };
 
 /** A key allocated from the key pool. */
@@ -1515,9 +1519,25 @@ private:
 public:
     PaymentAddressBelongsToWallet(CWallet* wallet) : m_wallet(wallet) {}
 
-    bool operator()(const libzcash::SproutPaymentAddress& zaddr) const;
-    bool operator()(const libzcash::SaplingPaymentAddress& zaddr) const;
-    bool operator()(const libzcash::InvalidEncoding& no) const;
+    bool operator()(const CKeyID &zaddr) const;
+    bool operator()(const CScriptID &zaddr) const;
+    bool operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    bool operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    bool operator()(const libzcash::UnifiedAddress &uaddr) const;
+};
+
+class GetViewingKeyForPaymentAddress
+{
+private:
+    CWallet *m_wallet;
+public:
+    GetViewingKeyForPaymentAddress(CWallet *wallet) : m_wallet(wallet) {}
+
+    std::optional<libzcash::ViewingKey> operator()(const CKeyID &zaddr) const;
+    std::optional<libzcash::ViewingKey> operator()(const CScriptID &zaddr) const;
+    std::optional<libzcash::ViewingKey> operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    std::optional<libzcash::ViewingKey> operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    std::optional<libzcash::ViewingKey> operator()(const libzcash::UnifiedAddress &uaddr) const;
 };
 
 class HaveSpendingKeyForPaymentAddress : public boost::static_visitor<bool>
@@ -1528,9 +1548,11 @@ private:
 public:
     HaveSpendingKeyForPaymentAddress(CWallet* wallet) : m_wallet(wallet) {}
 
-    bool operator()(const libzcash::SproutPaymentAddress& zaddr) const;
-    bool operator()(const libzcash::SaplingPaymentAddress& zaddr) const;
-    bool operator()(const libzcash::InvalidEncoding& no) const;
+    bool operator()(const CKeyID &addr) const;
+    bool operator()(const CScriptID &addr) const;
+    bool operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    bool operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    bool operator()(const libzcash::UnifiedAddress &uaddr) const;
 };
 
 class GetSpendingKeyForPaymentAddress : public boost::static_visitor<boost::optional<libzcash::SpendingKey>>
@@ -1541,42 +1563,97 @@ private:
 public:
     GetSpendingKeyForPaymentAddress(CWallet* wallet) : m_wallet(wallet) {}
 
-    boost::optional<libzcash::SpendingKey> operator()(const libzcash::SproutPaymentAddress& zaddr) const;
-    boost::optional<libzcash::SpendingKey> operator()(const libzcash::SaplingPaymentAddress& zaddr) const;
-    boost::optional<libzcash::SpendingKey> operator()(const libzcash::InvalidEncoding& no) const;
+    std::optional<libzcash::SproutSpendingKey> operator()(const CKeyID &zaddr) const;
+    std::optional<libzcash::SproutSpendingKey> operator()(const CScriptID &zaddr) const;
+    std::optional<libzcash::SproutSpendingKey> operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    std::optional<libzcash::SproutSpendingKey> operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    std::optional<libzcash::SproutSpendingKey> operator()(const libzcash::UnifiedAddress &uaddr) const;
 };
 
-enum SpendingKeyAddResult {
+class GetSaplingKeyForPaymentAddress
+{
+private:
+    CWallet *m_wallet;
+public:
+    GetSaplingKeyForPaymentAddress(CWallet *wallet) : m_wallet(wallet) {}
+
+    std::optional<libzcash::SaplingExtendedSpendingKey> operator()(const CKeyID &zaddr) const;
+    std::optional<libzcash::SaplingExtendedSpendingKey> operator()(const CScriptID &zaddr) const;
+    std::optional<libzcash::SaplingExtendedSpendingKey> operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    std::optional<libzcash::SaplingExtendedSpendingKey> operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    std::optional<libzcash::SaplingExtendedSpendingKey> operator()(const libzcash::UnifiedAddress &uaddr) const;
+};
+
+
+enum PaymentAddressSource {
+    Random,
+    LegacyHDSeed,
+    MnemonicHDSeed,
+    Imported,
+    ImportedWatchOnly,
+    AddressNotFound,
+};
+
+class GetSourceForPaymentAddress
+{
+private:
+    CWallet *m_wallet;
+public:
+    GetSourceForPaymentAddress(CWallet *wallet) : m_wallet(wallet) {}
+
+    PaymentAddressSource operator()(const CKeyID &zaddr) const;
+    PaymentAddressSource operator()(const CScriptID &zaddr) const;
+    PaymentAddressSource operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    PaymentAddressSource operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    PaymentAddressSource operator()(const libzcash::UnifiedAddress &uaddr) const;
+};
+
+enum KeyAddResult {
+    SpendingKeyExists,
     KeyAlreadyExists,
     KeyAdded,
     KeyNotAdded,
 };
 
-class AddSpendingKeyToWallet : public boost::static_visitor<SpendingKeyAddResult>
+
+class AddViewingKeyToWallet
 {
 private:
-    CWallet* m_wallet;
-    const Consensus::Params& params;
-    int64_t nTime;
-    boost::optional<std::string> hdKeypath; // currently sapling only
-    boost::optional<std::string> seedFpStr; // currently sapling only
-    bool log;
-
+    CWallet *m_wallet;
 public:
-    AddSpendingKeyToWallet(CWallet* wallet, const Consensus::Params& params) : m_wallet(wallet), params(params), nTime(1), hdKeypath(boost::none), seedFpStr(boost::none), log(false) {}
-    AddSpendingKeyToWallet(
-        CWallet* wallet,
-        const Consensus::Params& params,
-        int64_t _nTime,
-        boost::optional<std::string> _hdKeypath,
-        boost::optional<std::string> _seedFp,
-        bool _log) : m_wallet(wallet), params(params), nTime(_nTime), hdKeypath(_hdKeypath), seedFpStr(_seedFp), log(_log) {}
+    AddViewingKeyToWallet(CWallet *wallet) : m_wallet(wallet) {}
 
-
-    SpendingKeyAddResult operator()(const libzcash::SproutSpendingKey& sk) const;
-    SpendingKeyAddResult operator()(const libzcash::SaplingExtendedSpendingKey& sk) const;
-    SpendingKeyAddResult operator()(const libzcash::InvalidEncoding& no) const;
+    KeyAddResult operator()(const libzcash::SproutViewingKey &sk) const;
+    KeyAddResult operator()(const libzcash::SaplingExtendedFullViewingKey &sk) const;
 };
+
+
+class AddSpendingKeyToWallet
+{
+private:
+    CWallet *m_wallet;
+    const Consensus::Params &params;
+    int64_t nTime;
+    std::optional<std::string> hdKeypath; // currently sapling only
+    std::optional<std::string> seedFpStr; // currently sapling only
+    bool log;
+public:
+    AddSpendingKeyToWallet(CWallet *wallet, const Consensus::Params &params) :
+        m_wallet(wallet), params(params), nTime(1), hdKeypath(std::nullopt), seedFpStr(std::nullopt), log(false) {}
+    AddSpendingKeyToWallet(
+        CWallet *wallet,
+        const Consensus::Params &params,
+        int64_t _nTime,
+        std::optional<std::string> _hdKeypath,
+        std::optional<std::string> _seedFp,
+        bool _log
+    ) : m_wallet(wallet), params(params), nTime(_nTime), hdKeypath(_hdKeypath), seedFpStr(_seedFp), log(_log) {}
+
+
+    KeyAddResult operator()(const libzcash::SproutSpendingKey &sk) const;
+    KeyAddResult operator()(const libzcash::SaplingExtendedSpendingKey &sk) const;
+};
+
 
 
 #endif // BITCOIN_WALLET_WALLET_H

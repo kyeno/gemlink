@@ -15,7 +15,8 @@
 bool CMessageSigner::GetKeysFromSecret(const std::string& strSecret, CKey& keyRet, CPubKey& pubkeyRet, const bool fNewSigs)
 {
     if (!fNewSigs) {
-        CKey key2 = DecodeSecret(strSecret);
+        KeyIO keyIO(Params());
+        CKey key2 = keyIO.DecodeSecret(strSecret);
 
         if (!key2.IsValid())
             return false;
