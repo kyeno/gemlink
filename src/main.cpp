@@ -3452,6 +3452,8 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
 
     // Update chainActive & related variables.
     UpdateTip(pindexNew, chainparams);
+
+    mnodeman.CheckSpentCollaterals(pblock->vtx);
     // Tell wallet about transactions that went from mempool
     // to conflicted:
     for (const CTransaction& tx : txConflicted) {

@@ -23,6 +23,7 @@
 #define MASTERNODE_EXPIRATION_SECONDS (120 * 60)
 #define MASTERNODE_REMOVAL_SECONDS (130 * 60)
 #define MASTERNODE_CHECK_SECONDS 5
+#define MASTERNODE_MIN_MNP_SECONDS (10 * 60)
 
 using namespace std;
 
@@ -72,7 +73,7 @@ public:
     std::string GetStrMessage() const override;
     const CTxIn GetVin() const override { return vin; };
 
-    bool IsNull() { return blockHash.IsNull() || vin.prevout.IsNull(); }
+    bool IsNull() const { return blockHash.IsNull() || vin.prevout.IsNull(); }
     bool CheckAndUpdate(int& nDos, bool fRequireEnabled = true, bool fCheckSigTimeOnly = false);
     void Relay();
     // TODO gemlink can remove after morag fork
@@ -118,6 +119,7 @@ private:
     // critical section to protect the inner data structures
     mutable CCriticalSection cs;
     int64_t lastTimeChecked;
+    bool fCollateralSpent{false};
 
 public:
     enum state {
@@ -197,7 +199,7 @@ public:
     }
 
     // CALCULATE A RANK AGAINST OF GIVEN BLOCK
-    arith_uint256 CalculateScore(int64_t nBlockHeight = 0);
+    arith_uint256 CalculateScore(int64_t nBlockHeight = 0) const;
 
     ADD_SERIALIZE_METHODS;
 
@@ -226,6 +228,8 @@ public:
 
     bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
 
+    CMasternode::state GetActiveState() const;
+
     void Check(bool forceCheck = false);
 
     bool IsBroadcastedWithin(int seconds)
@@ -233,12 +237,14 @@ public:
         return (GetAdjustedTime() - sigTime) < seconds;
     }
 
-    bool IsPingedWithin(int seconds, int64_t now = -1)
+    bool IsPingedWithin(int seconds, int64_t now = -1) const
     {
         now == -1 ? now = GetAdjustedTime() : now;
 
         return lastPing.IsNull() ? false : now - lastPing.sigTime < seconds;
     }
+
+    void SetSpent() { fCollateralSpent = true; }
 
     void Disable()
     {
@@ -247,14 +253,26 @@ public:
         lastPing = CMasternodePing();
     }
 
-    bool IsEnabled()
+    bool IsEnabled() const
     {
-        return WITH_LOCK(cs, return activeState == MASTERNODE_ENABLED);
+        return GetActiveState() == MASTERNODE_ENABLED;
+    }
+
+    bool IsPreEnabled() const
+    {
+        return GetActiveState() == MASTERNODE_PRE_ENABLED;
+    }
+
+    bool IsAvailableState() const
+    {
+        state s = GetActiveState();
+        return s == MASTERNODE_ENABLED || s == MASTERNODE_PRE_ENABLED;
     }
 
     std::string Status()
     {
         std::string strStatus = "ACTIVE";
+        activeState = GetActiveState();
 
         LOCK(cs);
         if (activeState == CMasternode::MASTERNODE_ENABLED)

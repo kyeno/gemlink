@@ -210,7 +210,7 @@ bool CMasternodeMan::Add(CMasternode& mn)
 {
     LOCK(cs);
 
-    if (!mn.IsEnabled())
+    if (!mn.IsAvailableState())
         return false;
 
     CMasternode* pmn = Find(mn.vin);
@@ -240,27 +240,32 @@ void CMasternodeMan::AskForMN(CNode* pnode, const CTxIn& vin)
     mWeAskedForMasternodeListEntry[vin.prevout] = askAgain;
 }
 
-void CMasternodeMan::Check()
+void CMasternodeMan::CheckSpentCollaterals(const std::vector<CTransaction>& vtx)
 {
     LOCK(cs);
-
-    for (CMasternode& mn : vMasternodes) {
-        mn.Check();
+    for (const auto& tx : vtx) {
+        for (const auto& in : tx.vin) {
+            for (CMasternode& mn : vMasternodes) {
+                if(mn.vin == in)
+                {
+                    mn.SetSpent();
+                }
+            }
+        }
     }
 }
 
 void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
 {
-    Check();
-
     LOCK(cs);
 
     // remove inactive and outdated
     vector<CMasternode>::iterator it = vMasternodes.begin();
     while (it != vMasternodes.end()) {
-        if ((*it).activeState == CMasternode::MASTERNODE_REMOVE ||
-            (*it).activeState == CMasternode::MASTERNODE_VIN_SPENT ||
-            (forceExpiredRemoval && (*it).activeState == CMasternode::MASTERNODE_EXPIRED) ||
+        auto activeState = (*it).GetActiveState();
+        if (activeState == CMasternode::MASTERNODE_REMOVE ||
+            activeState == CMasternode::MASTERNODE_VIN_SPENT ||
+            (forceExpiredRemoval && activeState == CMasternode::MASTERNODE_EXPIRED) ||
             (*it).protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
             LogPrint("masternode", "CMasternodeMan: Removing inactive Masternode %s - %i now\n", (*it).vin.prevout.hash.ToString(), size() - 1);
 
@@ -375,7 +380,7 @@ int CMasternodeMan::stable_size()
                 continue; // Skip masternodes younger than (default) 8000 sec (MUST be > MASTERNODE_REMOVAL_SECONDS)
             }
         }
-        mn.Check();
+
         if (!mn.IsEnabled())
             continue; // Skip not-enabled masternodes
 
@@ -391,7 +396,6 @@ int CMasternodeMan::CountEnabled(int protocolVersion)
     protocolVersion = protocolVersion == -1 ? masternodePayments.GetMinMasternodePaymentsProto() : protocolVersion;
 
     for (CMasternode& mn : vMasternodes) {
-        mn.Check();
         if (mn.protocolVersion < protocolVersion || !mn.IsEnabled())
             continue;
         i++;

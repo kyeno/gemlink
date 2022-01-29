@@ -161,7 +161,7 @@ bool CMasternode::UpdateFromNewBroadcast(CMasternodeBroadcast& mnb)
 // the proof of work for that block. The further away they are the better, the furthest will win the election
 // and get paid this block
 //
-arith_uint256 CMasternode::CalculateScore(int64_t nBlockHeight)
+arith_uint256 CMasternode::CalculateScore(int64_t nBlockHeight) const
 {
     {
         LOCK(cs_main);
@@ -301,6 +301,24 @@ int64_t CMasternode::GetLastPaid()
     }
 
     return 0;
+}
+
+CMasternode::state CMasternode::GetActiveState() const
+{
+    LOCK(cs);
+    if (fCollateralSpent) {
+        return MASTERNODE_VIN_SPENT;
+    }
+    if (!IsPingedWithin(MASTERNODE_REMOVAL_SECONDS)) {
+        return MASTERNODE_REMOVE;
+    }
+    if (!IsPingedWithin(MASTERNODE_EXPIRATION_SECONDS)) {
+        return MASTERNODE_EXPIRED;
+    }
+    if (lastPing.sigTime - sigTime < MASTERNODE_MIN_MNP_SECONDS) {
+        return MASTERNODE_PRE_ENABLED;
+    }
+    return MASTERNODE_ENABLED;
 }
 
 bool CMasternode::IsValidNetAddr()
@@ -505,38 +523,11 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         return false;
     }
 
-    // incorrect ping or its sigTime
-    // TODO activate after upgarding morag active to test
-    // if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true))
-    //     return false;
-
     if (protocolVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
         LogPrint("masternode", "mnb - ignoring outdated Masternode %s protocol version %d\n", vin.prevout.hash.ToString(), protocolVersion);
         return false;
     }
 
-    CScript pubkeyScript;
-    pubkeyScript = GetScriptForDestination(pubKeyCollateralAddress.GetID());
-
-    if (pubkeyScript.size() != 25) {
-        LogPrint("masternode", "mnb - pubkey the wrong size\n");
-        nDos = 100;
-        return false;
-    }
-
-    CScript pubkeyScript2;
-    pubkeyScript2 = GetScriptForDestination(pubKeyMasternode.GetID());
-
-    if (pubkeyScript2.size() != 25) {
-        LogPrint("masternode", "mnb - pubkey2 the wrong size\n");
-        nDos = 100;
-        return false;
-    }
-
-    if (!vin.scriptSig.empty()) {
-        LogPrint("masternode", "mnb - Ignore Not Empty ScriptSig %s\n", vin.prevout.hash.ToString());
-        return false;
-    }
 
     std::string strError = "";
     if (!CheckSignature()) {
@@ -550,6 +541,13 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
             return false;
     } else if (addr.GetPort() == 16113)
         return false;
+
+    // incorrect ping or its sigTime
+    if (Params().GetConsensus().NetworkUpgradeActive(chainActive.Height() + 1, Consensus::UPGRADE_MORAG)) {
+        if (lastPing.IsNull() || !lastPing.CheckAndUpdate(nDos, false, true)) {
+            return false;
+        }
+    }
 
     // search existing Masternode list, this is where we update existing Masternodes with new mnb broadcasts
     CMasternode* pmn = mnodeman.Find(vin);
@@ -576,7 +574,6 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         // take the newest entry
         LogPrint("masternode", "mnb - Got updated entry for %s\n", vin.prevout.hash.ToString());
         if (pmn->UpdateFromNewBroadcast((*this))) {
-            pmn->Check();
             if (pmn->IsEnabled())
                 Relay();
         }
@@ -802,17 +799,14 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
 
     // see if we have this Masternode
     if (isMasternodeFound && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
-        if (fRequireEnabled && !pmn->IsEnabled())
+        if (fRequireEnabled && !pmn->IsAvailableState())
             return false;
 
         // LogPrint("masternode","mnping - Found corresponding mn for vin: %s\n", vin.ToString());
         // update only if there is no known ping for this masternode or
         // last ping was more then MASTERNODE_MIN_MNP_SECONDS-60 ago comparing to this one
         if (!pmn->IsPingedWithin(MASTERNODE_MIN_MNP_SECONDS - 60, sigTime)) {
-            std::string strMessage = vin.ToString() + blockHash.ToString() + std::to_string(sigTime);
-
-            std::string strError = "";
-            if (!CheckSignature()) {
+            if (!isSignatureValid) {
                 LogPrint("masternode", "CMasternodePing::CheckAndUpdate - Got bad Masternode address signature %s\n", vin.prevout.hash.ToString());
                 nDos = 33;
                 return false;
@@ -844,7 +838,6 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
                 mnodeman.mapSeenMasternodeBroadcast[hash].lastPing = *this;
             }
 
-            pmn->Check(true);
             if (!pmn->IsEnabled())
                 return false;
 

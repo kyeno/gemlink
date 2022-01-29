@@ -105,9 +105,8 @@ public:
     /// Ask (source) node for mnb
     void AskForMN(CNode* pnode, const CTxIn& vin);
 
-    /// Check all Masternodes
-    void Check();
-
+    void CheckSpentCollaterals(const std::vector<CTransaction>& vtx);
+    
     /// Check all Masternodes and remove inactive
     void CheckAndRemove(bool forceExpiredRemoval = false);
 
@@ -134,7 +133,6 @@ public:
 
     std::vector<CMasternode> GetFullMasternodeVector()
     {
-        Check();
         return vMasternodes;
     }
 
