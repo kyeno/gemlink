@@ -10,21 +10,21 @@
 #include "main.h"
 #include "ui_interface.h"
 #include "util.h"
-#include "utiltime.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
+#include "utiltime.h"
 
 #include <boost/thread.hpp>
 #include <boost/thread/synchronized_value.hpp>
 #include <string>
 
- #ifdef WIN32
- #include <io.h>
- #include <windows.h>
- #else
- #include <sys/ioctl.h>
- #endif
- 
+#ifdef WIN32
+#include <io.h>
+#include <windows.h>
+#else
+#include <sys/ioctl.h>
+#endif
+
 #include <unistd.h>
 
 void AtomicTimer::start()
@@ -110,19 +110,17 @@ double GetLocalSolPS()
     return miningTimer.rate(solutionTargetChecks);
 }
 
-int EstimateNetHeightInner(int height, int64_t tipmediantime,
-                           int heightLastCheckpoint, int64_t timeLastCheckpoint,
-                           int64_t genesisTime, int64_t targetSpacing)
+int EstimateNetHeightInner(int height, int64_t tipmediantime, int heightLastCheckpoint, int64_t timeLastCheckpoint, int64_t genesisTime, int64_t targetSpacing)
 {
     // We average the target spacing with the observed spacing to the last
     // checkpoint (either from below or above depending on the current height),
     // and use that to estimate the current network height.
     int medianHeight = height > CBlockIndex::nMedianTimeSpan ?
-            height - (1 + ((CBlockIndex::nMedianTimeSpan - 1) / 2)) :
-            height / 2;
+                           height - (1 + ((CBlockIndex::nMedianTimeSpan - 1) / 2)) :
+                           height / 2;
     double checkpointSpacing = medianHeight > heightLastCheckpoint ?
-            (double (tipmediantime - timeLastCheckpoint)) / (medianHeight - heightLastCheckpoint) :
-            (double (timeLastCheckpoint - genesisTime)) / heightLastCheckpoint;
+                                   (double(tipmediantime - timeLastCheckpoint)) / (medianHeight - heightLastCheckpoint) :
+                                   (double(timeLastCheckpoint - genesisTime)) / heightLastCheckpoint;
     double averageSpacing = (targetSpacing + checkpointSpacing) / 2;
     int netheight = medianHeight + ((GetTime() - tipmediantime) / averageSpacing);
     // Round to nearest ten to reduce noise
@@ -148,8 +146,8 @@ void TriggerRefresh()
 }
 
 static bool metrics_ThreadSafeMessageBox(const std::string& message,
-                                      const std::string& caption,
-                                      unsigned int style)
+                                         const std::string& caption,
+                                         unsigned int style)
 {
     // The SECURE flag has no effect in the metrics UI.
     style &= ~CClientUIInterface::SECURE;
@@ -218,7 +216,7 @@ int printStats(bool mining)
     }
     auto localsolps = GetLocalSolPS();
 
-    if (IsInitialBlockDownload()) {
+    if (IsInitialBlockDownload(Params().GetConsensus())) {
         int netheight = EstimateNetHeight(height, tipmediantime, Params());
         int downloadPercent = netheight == 0 ? 0 : height * 100 / netheight;
         std::cout << "     " << _("Downloading blocks") << " | " << height << " / ~" << netheight << " (" << downloadPercent << "%)" << std::endl;
@@ -246,7 +244,8 @@ int printMiningStatus(bool mining)
         auto nThreads = miningTimer.threadCount();
         if (nThreads > 0) {
             std::cout << strprintf(_("You are mining with the %s solver on %d threads."),
-                                   GetArg("-equihashsolver", "default"), nThreads) << std::endl;
+                                   GetArg("-equihashsolver", "default"), nThreads)
+                      << std::endl;
         } else {
             bool fvNodesEmpty;
             {
@@ -255,7 +254,7 @@ int printMiningStatus(bool mining)
             }
             if (fvNodesEmpty) {
                 std::cout << _("Mining is paused while waiting for connections.") << std::endl;
-            } else if (IsInitialBlockDownload()) {
+            } else if (IsInitialBlockDownload(Params().GetConsensus())) {
                 std::cout << _("Mining is paused while downloading blocks.") << std::endl;
             } else {
                 std::cout << _("Mining is paused (a JoinSplit may be in progress).") << std::endl;
@@ -264,13 +263,13 @@ int printMiningStatus(bool mining)
         lines++;
     } else {
         std::cout << _("You are currently not mining.") << std::endl;
-        std::cout << _("To enable mining, add 'gen=1' to your snowgem.conf and restart.") << std::endl;
+        std::cout << _("To enable mining, add 'gen=1' to your gemlink.conf and restart.") << std::endl;
         lines += 2;
     }
     std::cout << std::endl;
 
     return lines;
-#else // ENABLE_MINING
+#else  // ENABLE_MINING
     return 0;
 #endif // !ENABLE_MINING
 }
@@ -304,11 +303,11 @@ int printMetrics(size_t cols, bool mining)
 
     int validatedCount = transactionsValidated.get();
     if (validatedCount > 1) {
-      std::cout << "- " << strprintf(_("You have validated %d transactions!"), validatedCount) << std::endl;
+        std::cout << "- " << strprintf(_("You have validated %d transactions!"), validatedCount) << std::endl;
     } else if (validatedCount == 1) {
-      std::cout << "- " << _("You have validated a transaction!") << std::endl;
+        std::cout << "- " << _("You have validated a transaction!") << std::endl;
     } else {
-      std::cout << "- " << _("You have validated no transactions.") << std::endl;
+        std::cout << "- " << _("You have validated no transactions.") << std::endl;
     }
 
     if (mining && loaded) {
@@ -317,8 +316,8 @@ int printMetrics(size_t cols, bool mining)
 
         int mined = 0;
         int orphaned = 0;
-        CAmount immature {0};
-        CAmount mature {0};
+        CAmount immature{0};
+        CAmount mature{0};
         {
             LOCK2(cs_main, cs_metrics);
             boost::strict_lock_ptr<std::list<uint256>> u = trackedBlocks.synchronize();
@@ -330,24 +329,35 @@ int printMetrics(size_t cols, bool mining)
             while (it != u->end()) {
                 auto hash = *it;
                 if (mapBlockIndex.count(hash) > 0 &&
-                        chainActive.Contains(mapBlockIndex[hash])) {
+                    chainActive.Contains(mapBlockIndex[hash])) {
                     int height = mapBlockIndex[hash]->nHeight;
-                    CAmount subsidy = GetBlockSubsidy(height, consensusParams);
-                    if ((height > 0) && (height < consensusParams.GetLastFoundersRewardBlockHeight())) {
-                        if(height < consensusParams.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight)
-                        {
-                            subsidy -= subsidy / 20;
-                        }
-                        else if(height < consensusParams.vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight)
-                        {
-                            subsidy -= subsidy * 7.5 / 100;
-                        }
-                        else
-                        {
-                            subsidy -= subsidy * 15 / 100; //founders reward
-                            subsidy -= subsidy * 5 / 100; //treasury reward
+                    CAmount blockReward = GetBlockSubsidy(height, consensusParams);
+                    if (height == Params().GetConsensus().vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight) {
+                        blockReward -= GetPremineAmountAtHeight(height);
+                    }
+                    CAmount subsidy = blockReward;
+                    if ((height > 0) && (height < consensusParams.GetLastFoundersRewardBlockHeight()) && !Params().GetConsensus().NetworkUpgradeActive(height, Consensus::UPGRADE_MORAG)) {
+                        if (height < consensusParams.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight) {
+                            subsidy -= blockReward / 20;
+                        } else if (height < consensusParams.vUpgrades[Consensus::UPGRADE_KNOWHERE].nActivationHeight) {
+                            subsidy -= blockReward * 7.5 / 100;
+                        } else {
+                            subsidy -= blockReward * 15 / 100; // founders reward
                         }
                     }
+
+                    if ((height > 0) && (height <= Params().GetConsensus().GetLastTreasuryRewardBlockHeight())) {
+                        if (!NetworkUpgradeActive(height, Params().GetConsensus(), Consensus::UPGRADE_ATLANTIS)) {
+                            subsidy -= blockReward * 5 / 100;
+                        } else if (!NetworkUpgradeActive(height, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+                            subsidy -= blockReward * 10 / 100;
+                        }
+                    }
+
+                    if (Params().GetConsensus().NetworkUpgradeActive(height, Consensus::UPGRADE_MORAG) && (height <= Params().GetConsensus().GetLastDevelopersRewardBlockHeight())) {
+                        subsidy -= blockReward * 20 / 100;
+                    }
+
                     if (std::max(0, COINBASE_MATURITY - (tipHeight - height)) > 0) {
                         immature += subsidy;
                     } else {
@@ -368,9 +378,9 @@ int printMetrics(size_t cols, bool mining)
             std::cout << "- " << strprintf(_("You have mined %d blocks!"), mined) << std::endl;
             std::cout << "  "
                       << strprintf(_("Orphaned: %d blocks, Immature: %u %s, Mature: %u %s"),
-                                     orphaned,
-                                     FormatMoney(immature), units,
-                                     FormatMoney(mature), units)
+                                   orphaned,
+                                   FormatMoney(immature), units,
+                                   FormatMoney(mature), units)
                       << std::endl;
             lines += 2;
         }
@@ -455,7 +465,7 @@ bool enableVTMode()
 void ThreadShowMetricsScreen()
 {
     // Make this thread recognisable as the metrics screen thread
-    RenameThread("snowgem-metrics-screen");
+    RenameThread("gemlink-metrics-screen");
 
     // Determine whether we should render a persistent UI or rolling metrics
     bool isTTY = isatty(STDOUT_FILENO);
@@ -475,7 +485,7 @@ void ThreadShowMetricsScreen()
         std::cout << std::endl;
 
         // Thank you text
-        std::cout << _("Thank you for running a Snowgem node!") << std::endl;
+        std::cout << _("Thank you for running a Gemlink node!") << std::endl;
         std::cout << _("You're helping to strengthen the network and contributing to a social good :)") << std::endl;
 
         // Privacy notice text
@@ -495,7 +505,7 @@ void ThreadShowMetricsScreen()
             if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi) != 0) {
                 cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
             }
-			cols = 80;
+            cols = 80;
 #else
 
             struct winsize w;

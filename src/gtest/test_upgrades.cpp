@@ -5,18 +5,22 @@
 
 #include <boost/optional.hpp>
 
-class UpgradesTest : public ::testing::Test {
+class UpgradesTest : public ::testing::Test
+{
 protected:
-    virtual void SetUp() {
+    virtual void SetUp()
+    {
     }
 
-    virtual void TearDown() {
+    virtual void TearDown()
+    {
         // Revert to default
         UpdateNetworkUpgradeParameters(Consensus::UPGRADE_TESTDUMMY, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
     }
 };
 
-TEST_F(UpgradesTest, NetworkUpgradeState) {
+TEST_F(UpgradesTest, NetworkUpgradeState)
+{
     SelectParams(CBaseChainParams::REGTEST);
     const Consensus::Params& params = Params().GetConsensus();
 
@@ -54,7 +58,8 @@ TEST_F(UpgradesTest, NetworkUpgradeState) {
         UPGRADE_ACTIVE);
 }
 
-TEST_F(UpgradesTest, CurrentEpoch) {
+TEST_F(UpgradesTest, CurrentEpoch)
+{
     SelectParams(CBaseChainParams::REGTEST);
     const Consensus::Params& params = Params().GetConsensus();
     auto nBranchId = NetworkUpgradeInfo[Consensus::UPGRADE_TESTDUMMY].nBranchId;
@@ -85,7 +90,8 @@ TEST_F(UpgradesTest, CurrentEpoch) {
     EXPECT_EQ(CurrentEpochBranchId(1000000, params), nBranchId);
 }
 
-TEST_F(UpgradesTest, IsActivationHeight) {
+TEST_F(UpgradesTest, IsActivationHeight)
+{
     SelectParams(CBaseChainParams::REGTEST);
     const Consensus::Params& params = Params().GetConsensus();
 
@@ -114,7 +120,8 @@ TEST_F(UpgradesTest, IsActivationHeight) {
     EXPECT_FALSE(IsActivationHeight(1000000, params, Consensus::UPGRADE_TESTDUMMY));
 }
 
-TEST_F(UpgradesTest, IsActivationHeightForAnyUpgrade) {
+TEST_F(UpgradesTest, IsActivationHeightForAnyUpgrade)
+{
     SelectParams(CBaseChainParams::REGTEST);
     const Consensus::Params& params = Params().GetConsensus();
 
@@ -143,7 +150,8 @@ TEST_F(UpgradesTest, IsActivationHeightForAnyUpgrade) {
     EXPECT_FALSE(IsActivationHeightForAnyUpgrade(1000000, params));
 }
 
-TEST_F(UpgradesTest, NextEpoch) {
+TEST_F(UpgradesTest, NextEpoch)
+{
     SelectParams(CBaseChainParams::REGTEST);
     const Consensus::Params& params = Params().GetConsensus();
 
@@ -172,7 +180,8 @@ TEST_F(UpgradesTest, NextEpoch) {
     EXPECT_EQ(NextEpoch(1000000, params), boost::none);
 }
 
-TEST_F(UpgradesTest, NextActivationHeight) {
+TEST_F(UpgradesTest, NextActivationHeight)
+{
     SelectParams(CBaseChainParams::REGTEST);
     const Consensus::Params& params = Params().GetConsensus();
 

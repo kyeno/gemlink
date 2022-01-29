@@ -13,7 +13,7 @@ namespace
 //   matches the original.
 bool sanity_test_widen(char testchar)
 {
-    const std::ctype<char>& test(std::use_facet<std::ctype<char> >(std::locale()));
+    const std::ctype<char>& test(std::use_facet<std::ctype<char>>(std::locale()));
     return test.narrow(test.widen(testchar), 'b') == testchar;
 }
 
@@ -38,7 +38,7 @@ bool sanity_test_list(unsigned int size)
     return true;
 }
 
-} // anon namespace
+} // namespace
 
 // trigger: string::at(x) on an empty string to trigger __throw_out_of_range_fmt.
 // test: force std::string to throw an out_of_range exception. Verify that

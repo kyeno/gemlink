@@ -67,6 +67,8 @@ public:
 
 /** nServices flags */
 enum {
+        // Nothing
+    NODE_NONE = 0,
     // NODE_NETWORK means that the node is capable of serving the block chain. It is currently
     // set by all Bitcoin Core nodes, and is unset by SPV clients or other peers that just want
     // network services but don't provide them.
@@ -81,10 +83,10 @@ enum {
     // but no longer do as of protocol version 70011 (= NO_BLOOM_VERSION)
     NODE_BLOOM = (1 << 2),
 
-	// NODE_BLOOM_WITHOUT_MN means the node has the same features as NODE_BLOOM with the only difference
-	// that the node doens't want to receive master nodes messages. (the 1<<3 was not picked as constant because on bitcoin 0.14 is witness and we want that update here )
+    // NODE_BLOOM_WITHOUT_MN means the node has the same features as NODE_BLOOM with the only difference
+    // that the node doens't want to receive master nodes messages. (the 1<<3 was not picked as constant because on bitcoin 0.14 is witness and we want that update here )
 
-	NODE_BLOOM_WITHOUT_MN = (1 << 4),
+    NODE_BLOOM_WITHOUT_MN = (1 << 4),
     // Bits 24-31 are reserved for temporary experiments. Just pick a bit that
     // isn't getting used, or one not being used much, and notify the
     // bitcoin-development mailing list. Remember that service bits are just

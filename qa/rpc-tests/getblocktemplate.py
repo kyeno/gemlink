@@ -1,60 +1,105 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # Copyright (c) 2016 The Zcash developers
-# Copyright (c) 2017-2018 The SnowGem developers
 # Distributed under the MIT software license, see the accompanying
-# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+# file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
+from io import BytesIO
+import codecs
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import initialize_chain_clean, start_nodes, \
-    connect_nodes_bi
-
+from test_framework.util import (
+    assert_equal,
+    BLOSSOM_BRANCH_ID,
+    CANOPY_BRANCH_ID,
+    HEARTWOOD_BRANCH_ID,
+    NU5_BRANCH_ID,
+    get_coinbase_address,
+    hex_str_to_bytes,
+    nuparams,
+    start_nodes,
+    wait_and_assert_operationid_status,
+)
+from test_framework.mininode import (
+    CTransaction,
+)
+from test_framework.blocktools import(
+    create_block
+)
+from decimal import Decimal
 
 class GetBlockTemplateTest(BitcoinTestFramework):
     '''
-    Test getblocktemplate.
+    Test getblocktemplate, ensure that a block created from its result
+    can be submitted and accepted.
     '''
 
-    def setup_chain(self):
-        print("Initializing test directory "+self.options.tmpdir)
-        initialize_chain_clean(self.options.tmpdir, 4)
+    def __init__(self):
+        super().__init__()
+        self.num_nodes = 1
+        self.setup_clean_chain = True
 
     def setup_network(self, split=False):
-        self.nodes = start_nodes(2, self.options.tmpdir)
-        connect_nodes_bi(self.nodes,0,1)
+        args = [
+            nuparams(BLOSSOM_BRANCH_ID, 1),
+            nuparams(HEARTWOOD_BRANCH_ID, 1),
+            nuparams(CANOPY_BRANCH_ID, 1),
+            nuparams(NU5_BRANCH_ID, 1),
+        ]
+        self.nodes = start_nodes(self.num_nodes, self.options.tmpdir, [args] * self.num_nodes)
         self.is_network_split=False
         self.sync_all()
 
     def run_test(self):
         node = self.nodes[0]
-        node.generate(1) # Mine a block to leave initial block download
+        print("Generating blocks")
+        node.generate(110)
 
-        # Test 1: Default to coinbasetxn
-        tmpl = node.getblocktemplate()
-        assert('coinbasetxn' in tmpl)
-        assert('coinbasevalue' not in tmpl)
+        print("Add transactions to the mempool so they will be in the template")
+        # This part of the test should be improved, submit some V4 transactions
+        # and varying combinations of shielded and transparent
+        for _ in range(5):
+            # submit a tx with a shielded output
+            taddr0 = get_coinbase_address(node)
+            zaddr = node.z_getnewaddress('sapling')
+            recipients = [{"address": zaddr, "amount": Decimal('0.1')}]
+            myopid = node.z_sendmany(taddr0, recipients, 1, 0)
+            wait_and_assert_operationid_status(node, myopid)
 
-        # Test 2: Get coinbasetxn if requested
-        tmpl = node.getblocktemplate({'capabilities': ['coinbasetxn']})
-        assert('coinbasetxn' in tmpl)
-        assert('coinbasevalue' not in tmpl)
+            # submit a tx with a transparent output
+            outputs = {node.getnewaddress():0.2}
+            node.sendmany('', outputs)
 
-        # Test 3: coinbasevalue not supported if requested
-        tmpl = node.getblocktemplate({'capabilities': ['coinbasevalue']})
-        assert('coinbasetxn' in tmpl)
-        assert('coinbasevalue' not in tmpl)
+        print("Getting block template")
+        gbt = node.getblocktemplate()
 
-        # Test 4: coinbasevalue not supported if both requested
-        tmpl = node.getblocktemplate({'capabilities': ['coinbasetxn', 'coinbasevalue']})
-        assert('coinbasetxn' in tmpl)
-        assert('coinbasevalue' not in tmpl)
+        prevhash = int(gbt['previousblockhash'], 16)
+        blockcommitmentshash = int(gbt['defaultroots']['blockcommitmentshash'], 16)
+        nTime = gbt['mintime']
+        nBits = int(gbt['bits'], 16)
 
-        # Test 5: General checks
-        tmpl = node.getblocktemplate()
-        assert(len(tmpl['noncerange']) == 16)
+        f = BytesIO(hex_str_to_bytes(gbt['coinbasetxn']['data']))
+        coinbase = CTransaction()
+        coinbase.deserialize(f)
 
-        # Test 6: coinbasetxn checks
-        assert('foundersreward' in tmpl['coinbasetxn'])
-        assert(tmpl['coinbasetxn']['required'])
+        print("Creating_block from template (simulating a miner)")
+        block = create_block(prevhash, coinbase, nTime, nBits, blockcommitmentshash)
+
+        # copy the non-coinbase transactions from the block template to the block
+        for gbt_tx in gbt['transactions']:
+            f = BytesIO(hex_str_to_bytes(gbt_tx['data']))
+            tx = CTransaction()
+            tx.deserialize(f)
+            block.vtx.append(tx)
+        block.hashMerkleRoot = int(gbt['defaultroots']['merkleroot'], 16)
+        assert_equal(block.hashMerkleRoot, block.calc_merkle_root(), "merkleroot")
+        assert_equal(len(block.vtx), len(gbt['transactions']) + 1, "number of transactions")
+        assert_equal(block.hashPrevBlock, int(gbt['previousblockhash'], 16), "prevhash")
+        block.solve()
+        block = block.serialize()
+        block = codecs.encode(block, 'hex_codec')
+
+        print("Submitting block")
+        node.submitblock(block)
+
 
 if __name__ == '__main__':
     GetBlockTemplateTest().main()

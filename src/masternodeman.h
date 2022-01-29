@@ -7,6 +7,7 @@
 #ifndef MASTERNODEMAN_H
 #define MASTERNODEMAN_H
 
+#include "activemasternode.h"
 #include "base58.h"
 #include "key.h"
 #include "main.h"
@@ -21,8 +22,12 @@
 using namespace std;
 
 class CMasternodeMan;
+class CActiveMasternode;
 
 extern CMasternodeMan mnodeman;
+extern CActiveMasternode activeMasternode;
+extern std::string strMasterNodePrivKey;
+
 void DumpMasternodes();
 
 /** Access to the MN database (mncache.dat)
@@ -93,17 +98,15 @@ public:
     }
 
     CMasternodeMan();
-    CMasternodeMan(CMasternodeMan& other);
 
     /// Add an entry
     bool Add(CMasternode& mn);
 
     /// Ask (source) node for mnb
-    void AskForMN(CNode* pnode, CTxIn& vin);
+    void AskForMN(CNode* pnode, const CTxIn& vin);
 
-    /// Check all Masternodes
-    void Check();
-
+    void CheckSpentCollaterals(const std::vector<CTransaction>& vtx);
+    
     /// Check all Masternodes and remove inactive
     void CheckAndRemove(bool forceExpiredRemoval = false);
 
@@ -125,23 +128,17 @@ public:
     /// Find an entry in the masternode list that is next to be paid
     CMasternode* GetNextMasternodeInQueueForPayment(int nBlockHeight, bool fFilterSigTime, int& nCount);
 
-    /// Find a random entry
-    CMasternode* FindRandomNotInVec(std::vector<CTxIn>& vecToExclude, int protocolVersion = -1);
-
     /// Get the current winner for this block
     CMasternode* GetCurrentMasterNode(int mod = 1, int64_t nBlockHeight = 0, int minProtocol = 0);
 
     std::vector<CMasternode> GetFullMasternodeVector()
     {
-        Check();
         return vMasternodes;
     }
 
-    std::vector<pair<int, CMasternode> > GetMasternodeRanks(int64_t nBlockHeight, int minProtocol = 0);
+    std::vector<pair<int, CMasternode>> GetMasternodeRanks(int64_t nBlockHeight, int minProtocol = 0);
     int GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, int minProtocol = 0, bool fOnlyActive = true);
-    CMasternode* GetMasternodeByRank(int nRank, int64_t nBlockHeight, int minProtocol = 0, bool fOnlyActive = true);
 
-    void ProcessMasternodeConnections();
 
     void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
@@ -149,7 +146,7 @@ public:
     int size() { return vMasternodes.size(); }
 
     /// Return the number of Masternodes older than (default) 8000 seconds
-    int stable_size ();
+    int stable_size();
 
     std::string ToString() const;
 
@@ -158,5 +155,7 @@ public:
     /// Update masternode list and maps using provided CMasternodeBroadcast
     void UpdateMasternodeList(CMasternodeBroadcast mnb);
 };
+
+void ThreadCheckMasternodes();
 
 #endif

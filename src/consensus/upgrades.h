@@ -7,7 +7,7 @@
 
 #include "consensus/params.h"
 
-#include <boost/optional.hpp>
+#include "optional.h"
 
 enum UpgradeState {
     UPGRADE_DISABLED,

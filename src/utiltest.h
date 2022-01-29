@@ -11,15 +11,19 @@
 #include "zcash/zip32.h"
 
 CWalletTx GetValidReceive(ZCJoinSplit& params,
-                          const libzcash::SproutSpendingKey& sk, CAmount value,
+                          const libzcash::SproutSpendingKey& sk,
+                          CAmount value,
                           bool randomInputs,
                           int32_t version = 2);
 libzcash::SproutNote GetNote(ZCJoinSplit& params,
-                       const libzcash::SproutSpendingKey& sk,
-                       const CTransaction& tx, size_t js, size_t n);
+                             const libzcash::SproutSpendingKey& sk,
+                             const CTransaction& tx,
+                             size_t js,
+                             size_t n);
 CWalletTx GetValidSpend(ZCJoinSplit& params,
                         const libzcash::SproutSpendingKey& sk,
-                        const libzcash::SproutNote& note, CAmount value);
+                        const libzcash::SproutNote& note,
+                        CAmount value);
 
 CWalletTx GetValidSproutReceive(ZCJoinSplit& params,
                                 const libzcash::SproutSpendingKey& sk,
@@ -27,15 +31,17 @@ CWalletTx GetValidSproutReceive(ZCJoinSplit& params,
                                 bool randomInputs,
                                 uint32_t versionGroupId = SAPLING_VERSION_GROUP_ID,
                                 int32_t version = SAPLING_TX_VERSION);
-                                CWalletTx GetInvalidCommitmentSproutReceive(ZCJoinSplit& params,
-                                const libzcash::SproutSpendingKey& sk,
-                                CAmount value,
-                                bool randomInputs,
-                                uint32_t versionGroupId = SAPLING_VERSION_GROUP_ID,
-                                int32_t version = SAPLING_TX_VERSION);
+CWalletTx GetInvalidCommitmentSproutReceive(ZCJoinSplit& params,
+                                            const libzcash::SproutSpendingKey& sk,
+                                            CAmount value,
+                                            bool randomInputs,
+                                            uint32_t versionGroupId = SAPLING_VERSION_GROUP_ID,
+                                            int32_t version = SAPLING_TX_VERSION);
 libzcash::SproutNote GetSproutNote(ZCJoinSplit& params,
                                    const libzcash::SproutSpendingKey& sk,
-                                   const CTransaction& tx, size_t js, size_t n);
+                                   const CTransaction& tx,
+                                   size_t js,
+                                   size_t n);
 CWalletTx GetValidSproutSpend(ZCJoinSplit& params,
                               const libzcash::SproutSpendingKey& sk,
                               const libzcash::SproutNote& note,
@@ -68,5 +74,5 @@ TestSaplingNote GetTestSaplingNote(const libzcash::SaplingPaymentAddress& pa, CA
 
 CWalletTx GetValidSaplingReceive(const Consensus::Params& consensusParams,
                                  CBasicKeyStore& keyStore,
-                                 const libzcash::SaplingExtendedSpendingKey &sk,
+                                 const libzcash::SaplingExtendedSpendingKey& sk,
                                  CAmount value);

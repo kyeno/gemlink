@@ -4,7 +4,7 @@
 #include "zcash/Address.hpp"
 #include "zcash/zip32.h"
 
-//Default fee used for consolidation transactions
+// Default fee used for consolidation transactions
 static const CAmount DEFAULT_CONSOLIDATION_FEE = 0;
 extern CAmount fConsolidationTxFee;
 extern bool fConsolidationMapUsed;
@@ -33,5 +33,4 @@ private:
     bool main_impl();
 
     void setConsolidationResult(int numTxCreated, const CAmount& amountConsolidated, const std::vector<std::string>& consolidationTxIds);
-
 };

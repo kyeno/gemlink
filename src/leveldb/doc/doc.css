@@ -9,16 +9,20 @@ h1 {
   margin-left: -0.2in;
   font-size: 14pt;
 }
+
 h2 {
   margin-left: -0in;
   font-size: 12pt;
 }
+
 h3 {
   margin-left: -0in;
 }
+
 h4 {
   margin-left: -0in;
 }
+
 hr {
   margin-left: -0in;
 }
@@ -31,12 +35,17 @@ dt {
 address {
   text-align: center;
 }
-code,samp,var {
+
+code,
+samp,
+var {
   color: blue;
 }
+
 kbd {
   color: #600000;
 }
+
 div.note p {
   float: right;
   width: 3in;
@@ -70,8 +79,8 @@ p {
 pre {
   line-height: 1.3em;
   padding: 0.4em 0 0.8em 0;
-  margin:  0 0 0 0;
-  border:  0 0 0 0;
+  margin: 0 0 0 0;
+  border: 0 0 0 0;
   color: blue;
 }
 
@@ -83,7 +92,8 @@ pre {
   border: 1px solid;
 }
 
-.datatable td,th {
+.datatable td,
+th {
   padding: 0 0.5em 0 0.5em;
   text-align: right;
 }

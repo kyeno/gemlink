@@ -11,35 +11,27 @@
 #include "crypto/equihash.h"
 #include "primitives/block.h"
 #include "streams.h"
+#include "timedata.h"
 #include "uint256.h"
 #include "util.h"
-#include "timedata.h"
 
 #include "sodium.h"
 
-// bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
-// {
-//     const CChainParams& chainParams = Params();
-//     if (pblock && pblock->GetBlockTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3))
-//     {
-//         return false;
-//     }
-//     else
-//     {
-//         if(!pblock)
-//         {
-//             if (GetAdjustedTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3))
-//             {
-//                 return false;
-//             }
-//         }
-//     }
-//     return true;
-// }
-
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
+bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
 {
     const CChainParams& chainParams = Params();
+    if (pblock && pblock->GetBlockTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3)) {
+        return false;
+    } else {
+        if (GetAdjustedTime() < pindexLast->GetBlockTime() + (int64_t)(chainParams.GetConsensus().nPowTargetSpacing / 3)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
+{
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
     unsigned int nProofOfWorkLimitTop = UintToArith256(params.powLimitTop).GetCompact();
 
@@ -48,18 +40,16 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         return nProofOfWorkLimit;
 
     // Reset the difficulty after the algo fork
-    if (pindexLast->nTime < chainParams.eh_epoch_1_end()
-        && pindexLast->nTime >= chainParams.eh_epoch_2_start()) {
+    if (pindexLast->nTime < params.eh_epoch_1_end() && pindexLast->nTime >= params.eh_epoch_2_start()) {
         LogPrint("pow", "Reset the difficulty for the eh_epoch_2 algo change: %d\n", nProofOfWorkLimit);
         return nProofOfWorkLimit;
     }
 
-	{
+    {
         // Comparing to pindexLast->nHeight with >= because this function
         // returns the work required for the block after pindexLast.
         if (params.nPowAllowMinDifficultyBlocksAfterHeight != boost::none &&
-            pindexLast->nHeight >= params.nPowAllowMinDifficultyBlocksAfterHeight.get())
-        {
+            pindexLast->nHeight >= params.nPowAllowMinDifficultyBlocksAfterHeight.get()) {
             // Special difficulty rule for testnet:
             // If the new block's timestamp is more than 6 * 2.5 minutes
             // then allow mining of a min-difficulty block.
@@ -68,19 +58,16 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         }
     }
 
-    // if(!CheckBlockTimestamp(pindexLast, pblock))
-    // {
-    //     LogPrint("pow1", "Return limit work, time = %d\n", pblock ? pblock->nTime : GetAdjustedTime());
-    //     return nProofOfWorkLimitTop;
-    // }
-    // else
-    // {
-    //     LogPrint("pow1", "Not return limit work, time = %d\n", pblock ? pblock->nTime : GetAdjustedTime());
-    // }
+    if (params.NetworkUpgradeActive(pindexLast->nHeight, Consensus::UPGRADE_WAKANDA) && !CheckBlockTimestamp(pindexLast, pblock)) {
+        LogPrint("pow1", "Return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
+        return nProofOfWorkLimitTop;
+    } else {
+        LogPrint("pow1", "Not return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
+    }
 
     // Find the first block in the averaging interval
     const CBlockIndex* pindexFirst = pindexLast;
-    arith_uint256 bnTot {0};
+    arith_uint256 bnTot{0};
     for (int i = 0; pindexFirst && i < params.nPowAveragingWindow; i++) {
         arith_uint256 bnTmp;
         bnTmp.SetCompact(pindexFirst->nBits);
@@ -92,9 +79,9 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     if (pindexFirst == NULL)
         return nProofOfWorkLimit;
 
-    arith_uint256 bnAvg {bnTot / params.nPowAveragingWindow};
+    arith_uint256 bnAvg{bnTot / params.nPowAveragingWindow};
 
-    //Difficulty algo
+    // Difficulty algo
     int nHeight = pindexLast->nHeight + 1;
     if (nHeight < params.vUpgrades[Consensus::UPGRADE_DIFA].nActivationHeight) {
         return DigishieldCalculateNextWorkRequired(bnAvg, pindexLast->GetMedianTimePast(), pindexFirst->GetMedianTimePast(), params);
@@ -104,14 +91,15 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 }
 
 unsigned int DigishieldCalculateNextWorkRequired(arith_uint256 bnAvg,
-                                       int64_t nLastBlockTime, int64_t nFirstBlockTime,
-                                       const Consensus::Params& params)
+                                                 int64_t nLastBlockTime,
+                                                 int64_t nFirstBlockTime,
+                                                 const Consensus::Params& params)
 {
     // Limit adjustment step
     // Use medians to prevent time-warp attacks
     int64_t nActualTimespan = nLastBlockTime - nFirstBlockTime;
     LogPrint("pow", "  nActualTimespan = %d  before dampening\n", nActualTimespan);
-    nActualTimespan = params.AveragingWindowTimespan() + (nActualTimespan - params.AveragingWindowTimespan())/4;
+    nActualTimespan = params.AveragingWindowTimespan() + (nActualTimespan - params.AveragingWindowTimespan()) / 4;
     LogPrint("pow", "  nActualTimespan = %d  before bounds\n", nActualTimespan);
 
     if (nActualTimespan < params.MinActualTimespan())
@@ -121,7 +109,7 @@ unsigned int DigishieldCalculateNextWorkRequired(arith_uint256 bnAvg,
 
     // Retarget
     const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
-    arith_uint256 bnNew {bnAvg};
+    arith_uint256 bnNew{bnAvg};
     bnNew /= params.AveragingWindowTimespan();
     bnNew *= nActualTimespan;
 
@@ -145,8 +133,10 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
     const int64_t k = N * (N + 1) * T / 2;
     const int64_t height = pindexLast->nHeight;
     const arith_uint256 powLimit = UintToArith256(params.powLimit);
-    
-    if (height < N) { return powLimit.GetCompact(); }
+
+    if (height < N) {
+        return powLimit.GetCompact();
+    }
 
     arith_uint256 sumTarget, previousDiff, nextTarget;
     int64_t thisTimestamp, previousTimestamp;
@@ -155,7 +145,7 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
     const CBlockIndex* blockPreviousTimestamp = pindexLast->GetAncestor(height - N);
     previousTimestamp = blockPreviousTimestamp->GetBlockTime();
 
-    // Loop through N most recent blocks. 
+    // Loop through N most recent blocks.
     for (int64_t i = height - N + 1; i <= height; i++) {
         const CBlockIndex* block = pindexLast->GetAncestor(i);
         thisTimestamp = (block->GetBlockTime() > previousTimestamp) ? block->GetBlockTime() : previousTimestamp + 1;
@@ -169,47 +159,54 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
         target.SetCompact(block->nBits);
         sumTarget += target / (k * N);
 
-      //  if (i > height - 3) { solvetimeSum += solvetime; } // deprecated
-        if (i == height) { previousDiff = target.SetCompact(block->nBits); }
+        //  if (i > height - 3) { solvetimeSum += solvetime; } // deprecated
+        if (i == height) {
+            previousDiff = target.SetCompact(block->nBits);
+        }
     }
 
     nextTarget = t * sumTarget;
-    
+
     // 150% diff change
-    if (nextTarget > (previousDiff * 150) / 100) { nextTarget = (previousDiff * 150) / 100; }
-    if ((previousDiff * 67) / 100 > nextTarget) { nextTarget = (previousDiff * 67)/100; }
-    if (nextTarget > powLimit) { nextTarget = powLimit; }
+    if (nextTarget > (previousDiff * 150) / 100) {
+        nextTarget = (previousDiff * 150) / 100;
+    }
+    if ((previousDiff * 67) / 100 > nextTarget) {
+        nextTarget = (previousDiff * 67) / 100;
+    }
+    if (nextTarget > powLimit) {
+        nextTarget = powLimit;
+    }
 
     return nextTarget.GetCompact();
 }
 
-bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& params)
+bool CheckEquihashSolution(const CBlockHeader* pblock, const Consensus::Params& params)
 {
-    //Set parameters N,K from solution size. Filtering of valid parameters
-    //for the givenblock height will be carried out in main.cpp/ContextualCheckBlockHeader
-    unsigned int n,k;
+    // Set parameters N,K from solution size. Filtering of valid parameters
+    // for the givenblock height will be carried out in main.cpp/ContextualCheckBlockHeader
+    unsigned int n, k;
     size_t nSolSize = pblock->nSolution.size();
-    switch (nSolSize){
-        case 1344:
-        case 100:
-        case 68:
-        case 36: break;
-        default: return error("CheckEquihashSolution: Unsupported solution size of %d", nSolSize);
+    switch (nSolSize) {
+    case 1344:
+    case 100:
+    case 68:
+    case 36:
+        break;
+    default:
+        return error("CheckEquihashSolution: Unsupported solution size of %d", nSolSize);
     }
 
-    if(pblock->nTime <= params.eh_epoch_1_end())
-    {
+    if (pblock->nTime <= params.eh_epoch_1_end()) {
         n = params.eh_epoch_1_params().n;
         k = params.eh_epoch_1_params().k;
-    }
-    else
-    {
+    } else {
         n = params.eh_epoch_2_params().n;
         k = params.eh_epoch_2_params().k;
     }
     // LogPrint("pow", "selected n,k : %d, %d \n", n,k);
 
-    //need to put block height param switching code here
+    // need to put block height param switching code here
 
     // Hash state
     crypto_generichash_blake2b_state state;

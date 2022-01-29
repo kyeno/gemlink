@@ -2,11 +2,12 @@
 ## Usage:
 ##  ./zcutil/build-debian-package.sh
 
+export LC_ALL=C
 set -e
 set -x
 
 BUILD_PATH="/tmp/zcbuild"
-PACKAGE_NAME="snowgem"
+PACKAGE_NAME="gemlink"
 SRC_PATH=`pwd`
 SRC_DEB=$SRC_PATH/contrib/debian
 SRC_DOC=$SRC_PATH/doc
@@ -17,7 +18,7 @@ if [ ! -d $BUILD_PATH ]; then
     mkdir $BUILD_PATH
 fi
 
-PACKAGE_VERSION=$($SRC_PATH/src/snowgemd --version | grep version | cut -d' ' -f4 | tr -d v)
+PACKAGE_VERSION=$($SRC_PATH/src/gemlinkd --version | grep version | cut -d' ' -f4 | tr -d v)
 DEBVERSION=$(echo $PACKAGE_VERSION | sed 's/-beta/~beta/' | sed 's/-rc/~rc/' | sed 's/-/+/')
 BUILD_DIR="$BUILD_PATH/$PACKAGE_NAME-$PACKAGE_VERSION-amd64"
 
@@ -38,32 +39,32 @@ chmod 0755 -R $BUILD_DIR/*
 #cp $SRC_DEB/preinst $BUILD_DIR/DEBIAN
 #cp $SRC_DEB/prerm $BUILD_DIR/DEBIAN
 # Copy binaries
-cp $SRC_PATH/src/snowgemd $DEB_BIN
-cp $SRC_PATH/src/snowgem-cli $DEB_BIN
-cp $SRC_PATH/zcutil/fetch-params.sh $DEB_BIN/snowgem-fetch-params
+cp $SRC_PATH/src/gemlinkd $DEB_BIN
+cp $SRC_PATH/src/gemlink-cli $DEB_BIN
+cp $SRC_PATH/zcutil/fetch-params.sh $DEB_BIN/gemlink-fetch-params
 # Copy docs
 cp $SRC_PATH/doc/release-notes/release-notes-1.0.0.md $DEB_DOC/changelog
 cp $SRC_DEB/changelog $DEB_DOC/changelog.Debian
 cp $SRC_DEB/copyright $DEB_DOC
 cp -r $SRC_DEB/examples $DEB_DOC
 # Copy manpages
-cp $SRC_DOC/man/snowgemd.1 $DEB_MAN
-cp $SRC_DOC/man/snowgem-cli.1 $DEB_MAN
-cp $SRC_DOC/man/snowgem-fetch-params.1 $DEB_MAN
+cp $SRC_DOC/man/gemlinkd.1 $DEB_MAN
+cp $SRC_DOC/man/gemlink-cli.1 $DEB_MAN
+cp $SRC_DOC/man/gemlink-fetch-params.1 $DEB_MAN
 # Copy bash completion files
-cp $SRC_PATH/contrib/snowgemd.bash-completion $DEB_CMP/snowgemd
-cp $SRC_PATH/contrib/snowgem-cli.bash-completion $DEB_CMP/snowgem-cli
+cp $SRC_PATH/contrib/gemlinkd.bash-completion $DEB_CMP/gemlinkd
+cp $SRC_PATH/contrib/gemlink-cli.bash-completion $DEB_CMP/gemlink-cli
 # Gzip files
 gzip --best -n $DEB_DOC/changelog
 gzip --best -n $DEB_DOC/changelog.Debian
-gzip --best -n $DEB_MAN/snowgemd.1
-gzip --best -n $DEB_MAN/snowgem-cli.1
-gzip --best -n $DEB_MAN/snowgem-fetch-params.1
+gzip --best -n $DEB_MAN/gemlinkd.1
+gzip --best -n $DEB_MAN/gemlink-cli.1
+gzip --best -n $DEB_MAN/gemlink-fetch-params.1
 
 cd $SRC_PATH/contrib
 
 # Create the control file
-dpkg-shlibdeps $DEB_BIN/snowgemd $DEB_BIN/snowgem-cli
+dpkg-shlibdeps $DEB_BIN/gemlinkd $DEB_BIN/gemlink-cli
 dpkg-gencontrol -P$BUILD_DIR -v$DEBVERSION
 
 # Create the Debian package

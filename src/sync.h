@@ -89,7 +89,9 @@ void LeaveCritical();
 std::string LocksHeld();
 void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs);
 #else
-void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false) {}
+void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false)
+{
+}
 void static inline LeaveCritical() {}
 void static inline AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs) {}
 #endif
@@ -139,7 +141,8 @@ public:
 
     CMutexLock(Mutex* pmutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(pmutexIn)
     {
-        if (!pmutexIn) return;
+        if (!pmutexIn)
+            return;
 
         lock = boost::unique_lock<Mutex>(*pmutexIn, boost::defer_lock);
         if (fTry)
@@ -177,6 +180,17 @@ typedef CMutexLock<CCriticalSection> CCriticalBlock;
         (cs).unlock();             \
         LeaveCritical();           \
     }
+
+//! Run code while locking a mutex.
+//!
+//! Examples:
+//!
+//!   WITH_LOCK(cs, shared_val = shared_val + 1);
+//!
+//!   int val = WITH_LOCK(cs, return shared_val);
+//!
+#define WITH_LOCK(cs, code) [&] { LOCK(cs); code; }()
+
 
 class CSemaphore
 {

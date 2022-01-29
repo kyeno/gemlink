@@ -4,9 +4,9 @@ TOPDIR=${TOPDIR:-$(git rev-parse --show-toplevel)}
 SRCDIR=${SRCDIR:-$TOPDIR/src}
 MANDIR=${MANDIR:-$TOPDIR/doc/man}
 
-SNOWGEMD=${SNOWGEMD:-$SRCDIR/snowgemd}
-SNOWGEMCLI=${SNOWGEMCLI:-$SRCDIR/snowgem-cli}
-SNOWGEMTX=${SNOWGEMTX:-$SRCDIR/snowgem-tx}
+SNOWGEMD=${SNOWGEMD:-$SRCDIR/gemlinkd}
+SNOWGEMCLI=${SNOWGEMCLI:-$SRCDIR/gemlink-cli}
+SNOWGEMTX=${SNOWGEMTX:-$SRCDIR/gemlink-tx}
 
 [ ! -x $SNOWGEMD ] && echo "$SNOWGEMD not found or not executable." && exit 1
 
@@ -16,8 +16,8 @@ SNGVER=$(echo $SNGVERSTR | awk -F- '{ OFS="-"; NF--; print $0; }')
 SNGCOMMIT=$(echo $SNGVERSTR | awk -F- '{ print $NF }')
 
 # Create a footer file with copyright content.
-# This gets autodetected fine for snowgemd if --version-string is not set,
-# but has different outcomes for snowgem-cli.
+# This gets autodetected fine for gemlinkd if --version-string is not set,
+# but has different outcomes for gemlink-cli.
 echo "[COPYRIGHT]" > footer.h2m
 $SNOWGEMD --version | sed -n '1!p' >> footer.h2m
 

@@ -16,7 +16,7 @@ typedef AMQPAbstractNotifier* (*AMQPNotifierFactory)();
 class AMQPAbstractNotifier
 {
 public:
-    AMQPAbstractNotifier() { }
+    AMQPAbstractNotifier() {}
     virtual ~AMQPAbstractNotifier();
 
     template <typename T>
@@ -26,15 +26,15 @@ public:
     }
 
     std::string GetType() const { return type; }
-    void SetType(const std::string &t) { type = t; }
+    void SetType(const std::string& t) { type = t; }
     std::string GetAddress() const { return address; }
-    void SetAddress(const std::string &a) { address = a; }
+    void SetAddress(const std::string& a) { address = a; }
 
     virtual bool Initialize() = 0;
     virtual void Shutdown() = 0;
 
-    virtual bool NotifyBlock(const CBlockIndex *pindex);
-    virtual bool NotifyTransaction(const CTransaction &transaction);
+    virtual bool NotifyBlock(const CBlockIndex* pindex);
+    virtual bool NotifyTransaction(const CTransaction& transaction);
 
 protected:
     std::string type;

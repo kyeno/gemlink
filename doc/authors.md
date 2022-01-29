@@ -1,5 +1,4 @@
-TENT Contributors
-==================
+# GLINK Contributors
 
 Jack Grigg (438)
 Simon Liu (268)

@@ -1,10 +1,10 @@
-Coding
-====================
+# Coding
 
 Various coding styles have been used during the history of the codebase,
 and the result is not very consistent. However, we're now trying to converge to
 a single style, so please use it in new code. Old code will be converted
 gradually.
+
 - Basic rules specified in src/.clang-format. Use a recent clang-format-3.5 to format automatically.
   - Braces on new lines for namespaces, classes, functions, methods.
   - Braces on the same line for everything else.
@@ -14,6 +14,7 @@ gradually.
   - No space after function names; one space after if, for and while.
 
 Block style example:
+
 ```c++
 namespace foo
 {
@@ -36,12 +37,12 @@ class Class
 }
 ```
 
-Doxygen comments
------------------
+## Doxygen comments
 
 To facilitate the generation of documentation, use doxygen-compatible comment blocks for functions, methods and fields.
 
 For example, to describe a function use:
+
 ```c++
 /**
  * ... text ...
@@ -51,11 +52,13 @@ For example, to describe a function use:
  */
 bool function(int arg1, const char *arg2)
 ```
+
 A complete list of `@xxx` commands can be found at http://www.stack.nl/~dimitri/doxygen/manual/commands.html.
 As Doxygen recognizes the comments by the delimiters (`/**` and `*/` in this case), you don't
-*need* to provide any commands for a comment to be valid; just a description text is fine.
+_need_ to provide any commands for a comment to be valid; just a description text is fine.
 
 To describe a class use the same construct above the class definition:
+
 ```c++
 /**
  * Alerts are for notifying old versions if they become too obsolete and
@@ -67,11 +70,13 @@ class CAlert
 ```
 
 To describe a member or variable use:
+
 ```c++
 int var; //!< Detailed description after the member
 ```
 
 Also OK:
+
 ```c++
 ///
 /// ... text ...
@@ -80,6 +85,7 @@ bool function2(int arg1, const char *arg2)
 ```
 
 Not OK (used plenty in the current source, but not picked up):
+
 ```c++
 //
 // ... text ...
@@ -89,8 +95,7 @@ Not OK (used plenty in the current source, but not picked up):
 A full list of comment syntaxes picked up by doxygen can be found at http://www.stack.nl/~dimitri/doxygen/manual/docblocks.html,
 but if possible use one of the above styles.
 
-Development tips and tricks
----------------------------
+## Development tips and tricks
 
 **compiling for debugging**
 
@@ -107,7 +112,7 @@ on all categories (and give you a very large debug.log file).
 
 **testnet and regtest modes**
 
-Run with the -testnet option to run with "play snowgem" on the test network, if you
+Run with the -testnet option to run with "play gemlink" on the test network, if you
 are testing multi-machine code that needs to operate across the internet.
 
 If you are testing something that can run on one machine, run with the -regtest option.
@@ -116,13 +121,12 @@ that run in -regtest mode.
 
 **DEBUG_LOCKORDER**
 
-Snowgem is a multithreaded application, and deadlocks or other multithreading bugs
+Gemlink is a multithreaded application, and deadlocks or other multithreading bugs
 can be very difficult to track down. Compiling with -DDEBUG_LOCKORDER (configure
 CXXFLAGS="-DDEBUG_LOCKORDER -g") inserts run-time checks to keep track of which locks
 are held, and adds warnings to the debug.log file if inconsistencies are detected.
 
-Locking/mutex usage notes
--------------------------
+## Locking/mutex usage notes
 
 The code is multi-threaded, and uses mutexes and the
 LOCK/TRY_LOCK macros to protect data structures.
@@ -138,12 +142,11 @@ between the various components is a goal, with any necessary locking
 done by the components (e.g. see the self-contained CKeyStore class
 and its cs_KeyStore lock for example).
 
-Threads
--------
+## Threads
 
 - ThreadScriptCheck : Verifies block scripts.
 
-- ThreadImport : Loads blocks from blk*.dat files or bootstrap.dat.
+- ThreadImport : Loads blocks from blk\*.dat files or bootstrap.dat.
 
 - StartNode : Starts other threads.
 
@@ -165,12 +168,11 @@ Threads
 
 - ThreadRPCServer : Remote procedure call handler, listens on port 16112 for connections and services them.
 
-- SnowgemMiner : Generates snowgem (if wallet is enabled).
+- GemlinkMiner : Generates gemlink (if wallet is enabled).
 
 - Shutdown : Does an orderly shutdown of everything.
 
-Pull Request Terminology
-------------------------
+## Pull Request Terminology
 
 Concept ACK - Agree with the idea and overall direction, but have neither reviewed nor tested the code changes.
 
@@ -178,6 +180,6 @@ utACK (untested ACK) - Reviewed and agree with the code changes but haven't actu
 
 Tested ACK - Reviewed the code changes and have verified the functionality or bug fix.
 
-ACK -  A loose ACK can be confusing. It's best to avoid them unless it's a documentation/comment only change in which case there is nothing to test/verify; therefore the tested/untested distinction is not there.
+ACK - A loose ACK can be confusing. It's best to avoid them unless it's a documentation/comment only change in which case there is nothing to test/verify; therefore the tested/untested distinction is not there.
 
 NACK - Disagree with the code changes/concept. Should be accompanied by an explanation.

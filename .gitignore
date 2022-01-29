@@ -5,19 +5,20 @@
 *.srctrldb
 *.srctrlprj
 src/bitcoin
-src/snowgemd
-src/snowgem-cli
-src/snowgem-gtest
-src/snowgem-tx
+src/gemlinkd
+src/gemlink-cli
+src/gemlink-gtest
+src/gemlink-tx
 src/test/test_bitcoin
 src/Makefile
+zcutil/bin/
 
-# Snowgem utilities
-src/snowgem/GenerateParams
-src/snowgem/CreateJoinSplit
+# Gemlink utilities
+src/gemlink/GenerateParams
+src/gemlink/CreateJoinSplit
 
-*snowgemTest.pk
-*snowgemTest.vk
+*gemlinkTest.pk
+*gemlinkTest.vk
 
 # autoreconf
 Makefile.in
@@ -44,6 +45,7 @@ src/config/bitcoin-config.h
 src/config/bitcoin-config.h.in
 src/config/stamp-h1
 share/setup.nsi
+gen_context
 
 cache/
 venv-mnf/
@@ -59,9 +61,11 @@ src/univalue/gen
 *.orig
 *.pyc
 *.o
+*.o.tmp
 *.o-*
-.snowgem
+.zcash
 *.a
+*.lib
 *.pb.cc
 *.pb.h
 .vscode
@@ -80,9 +84,20 @@ src/univalue/gen
 # Compilation
 Makefile
 
+# Rust
+.cargo/.configured-for-*
+.cargo/config
+target/
+
 # Unit-tests
 Makefile.test
 src/test/buildenv.py
+
+# Rust
+.cargo/.configured-for-*
+.cargo/config
+target/
+target1/
 
 # Resources cpp
 qrc_*.cpp
@@ -96,7 +111,7 @@ build
 *.gcda
 /*.info
 test_bitcoin.coverage/
-snowgem-gtest.coverage/
+gemlink-gtest.coverage/
 total.coverage/
 coverage_percent.txt
 

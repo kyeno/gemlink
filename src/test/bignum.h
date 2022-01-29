@@ -27,6 +27,7 @@ public:
 class CBigNum
 {
     BIGNUM* bn;
+
 public:
     CBigNum()
     {
@@ -38,8 +39,7 @@ public:
     {
         bn = BN_new();
         assert(bn);
-        if (!BN_copy(bn, b.bn))
-        {
+        if (!BN_copy(bn, b.bn)) {
             BN_clear_free(bn);
             throw bignum_error("CBigNum::CBigNum(const CBigNum&): BN_copy failed");
         }
@@ -57,7 +57,12 @@ public:
         BN_clear_free(bn);
     }
 
-    CBigNum(long long n)          { bn = BN_new(); assert(bn); setint64(n); }
+    CBigNum(long long n)
+    {
+        bn = BN_new();
+        assert(bn);
+        setint64(n);
+    }
 
     explicit CBigNum(const std::vector<unsigned char>& vch)
     {
@@ -82,9 +87,8 @@ public:
         bool fNegative;
         uint64_t n;
 
-        if (sn < (int64_t)0)
-        {
-            // Since the minimum signed integer cannot be represented as positive so long as its type is signed, 
+        if (sn < (int64_t)0) {
+            // Since the minimum signed integer cannot be represented as positive so long as its type is signed,
             // and it's not well-defined what happens if you make it unsigned before negating it,
             // we instead increment the negative integer by 1, convert it, then increment the (now positive) unsigned integer by 1 to compensate
             n = -(sn + 1);
@@ -96,12 +100,10 @@ public:
         }
 
         bool fLeadingZeroes = true;
-        for (int i = 0; i < 8; i++)
-        {
+        for (int i = 0; i < 8; i++) {
             unsigned char c = (n >> 56) & 0xff;
             n <<= 8;
-            if (fLeadingZeroes)
-            {
+            if (fLeadingZeroes) {
                 if (c == 0)
                     continue;
                 if (c & 0x80)
@@ -116,7 +118,7 @@ public:
         pch[0] = (nSize >> 24) & 0xff;
         pch[1] = (nSize >> 16) & 0xff;
         pch[2] = (nSize >> 8) & 0xff;
-        pch[3] = (nSize) & 0xff;
+        pch[3] = (nSize)&0xff;
         BN_mpi2bn(pch, p - pch, bn);
     }
 
@@ -159,7 +161,6 @@ public:
 };
 
 
-
 inline const CBigNum operator+(const CBigNum& a, const CBigNum& b)
 {
     CBigNum r;
@@ -187,7 +188,7 @@ inline bool operator==(const CBigNum& a, const CBigNum& b) { return (BN_cmp(a.bn
 inline bool operator!=(const CBigNum& a, const CBigNum& b) { return (BN_cmp(a.bn, b.bn) != 0); }
 inline bool operator<=(const CBigNum& a, const CBigNum& b) { return (BN_cmp(a.bn, b.bn) <= 0); }
 inline bool operator>=(const CBigNum& a, const CBigNum& b) { return (BN_cmp(a.bn, b.bn) >= 0); }
-inline bool operator<(const CBigNum& a, const CBigNum& b)  { return (BN_cmp(a.bn, b.bn) < 0); }
-inline bool operator>(const CBigNum& a, const CBigNum& b)  { return (BN_cmp(a.bn, b.bn) > 0); }
+inline bool operator<(const CBigNum& a, const CBigNum& b) { return (BN_cmp(a.bn, b.bn) < 0); }
+inline bool operator>(const CBigNum& a, const CBigNum& b) { return (BN_cmp(a.bn, b.bn) > 0); }
 
 #endif // BITCOIN_TEST_BIGNUM_H

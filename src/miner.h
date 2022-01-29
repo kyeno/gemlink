@@ -12,39 +12,43 @@
 #include <stdint.h>
 
 class CBlockIndex;
+class CChainParams;
 class CScript;
 #ifdef ENABLE_WALLET
 class CReserveKey;
 class CWallet;
 #endif
-namespace Consensus { struct Params; };
-
-struct CBlockTemplate
+namespace Consensus
 {
+struct Params;
+};
+
+struct CBlockTemplate {
     CBlock block;
     std::vector<CAmount> vTxFees;
     std::vector<int64_t> vTxSigOps;
 };
 
 /** Generate a new block, without valid proof-of-work */
-CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn);
+CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& scriptPubKeyIn);
 #ifdef ENABLE_WALLET
 boost::optional<CScript> GetMinerScriptPubKey(CReserveKey& reservekey);
-CBlockTemplate* CreateNewBlockWithKey(CReserveKey& reservekey);
+CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams, CReserveKey& reservekey);
 #else
 boost::optional<CScript> GetMinerScriptPubKey();
-CBlockTemplate* CreateNewBlockWithKey();
+CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams);
 #endif
 
 #ifdef ENABLE_MINING
 /** Modify the extranonce in a block */
-void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
+void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce,
+    const Consensus::Params& consensusParams);
 /** Run the miner threads */
  #ifdef ENABLE_WALLET
-void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads);
+void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads, const CChainParams& chainparams);
  #else
-void GenerateBitcoins(bool fGenerate, int nThreads);
- #endif
+void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams);
+#endif
 #endif
 
 void UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);

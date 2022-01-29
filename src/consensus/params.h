@@ -7,13 +7,12 @@
 #define BITCOIN_CONSENSUS_PARAMS_H
 
 #include "uint256.h"
-
 #include <boost/optional.hpp>
-
+#include <optional>
 int32_t MAX_BLOCK_SIZE(int32_t height);
 
-namespace Consensus {
-
+namespace Consensus
+{
 /**
  * Index into Params.vUpgrades and NetworkUpgradeInfo
  *
@@ -33,9 +32,25 @@ enum UpgradeIndex {
     UPGRADE_KNOWHERE,
     UPGRADE_WAKANDA,
     UPGRADE_ATLANTIS,
+    UPGRADE_MORAG,
     // NOTE: Also add new upgrades to NetworkUpgradeInfo in upgrades.cpp
     MAX_NETWORK_UPGRADES
 };
+
+
+struct EHparameters {
+    unsigned char n;
+    unsigned char k;
+    unsigned short int nSolSize;
+};
+
+
+// EH sol size = (pow(2, k) * ((n/(k+1))+1)) / 8;
+static const EHparameters eh200_9 = {200, 9, 1344};
+static const EHparameters eh144_5 = {144, 5, 100};
+static const EHparameters eh96_5 = {96, 5, 68};
+static const EHparameters eh48_5 = {48, 5, 36};
+static const unsigned int MAX_EH_PARAM_LIST_LEN = 2;
 
 struct NetworkUpgrade {
     /**
@@ -65,6 +80,18 @@ struct NetworkUpgrade {
      * should remain disabled on mainnet.
      */
     static constexpr int NO_ACTIVATION_HEIGHT = -1;
+
+    /**
+     * The hash of the block at height nActivationHeight, if known. This is set manually
+     * after a network upgrade activates.
+     *
+     * We use this in IsInitialBlockDownload to detect whether we are potentially being
+     * fed a fake alternate chain. We use NU activation blocks for this purpose instead of
+     * the checkpoint blocks, because network upgrades (should) have significantly more
+     * scrutiny than regular releases. nMinimumChainWork MUST be set to at least the chain
+     * work of this block, otherwise this detection will have false positives.
+     */
+    std::optional<uint256> hashActivationBlock;
 };
 
 /**
@@ -90,16 +117,25 @@ struct Params {
      */
     int SubsidySlowStartShift() const { return nSubsidySlowStartInterval / 2; }
     int nSubsidyHalvingInterval;
-    int GetLastFoundersRewardBlockHeight() const {
+    int nDelayHalvingBlocks;
+    int GetLastFoundersRewardBlockHeight() const
+    {
         return nSubsidyHalvingInterval + SubsidySlowStartShift() - 1;
         // return 99999999;
     }
 
-    int GetLastTreasuryRewardBlockHeight() const {
+    int GetLastDevelopersRewardBlockHeight() const
+    {
         return 99999999;
     }
 
-    int GetFoundersRewardRepeatInterval() const {
+    int GetLastTreasuryRewardBlockHeight() const
+    {
+        return vUpgrades[Consensus::UPGRADE_MORAG].nActivationHeight - 1;
+    }
+
+    int GetFoundersRewardRepeatInterval() const
+    {
         return nSubsidyHalvingInterval + SubsidySlowStartShift() - 1;
     }
     /** Used to check majorities for block version upgrade */
@@ -116,16 +152,29 @@ struct Params {
     int64_t nPowMaxAdjustUp;
     int64_t nPowTargetSpacing;
     int64_t nTimeshiftPriv;
+    int64_t nProposalEstablishmentTime;
     int nMasternodePaymentsStartBlock;
     int nMasternodePaymentsIncreasePeriod; // in blocks
+    EHparameters eh_epoch_1 = eh200_9;
+    EHparameters eh_epoch_2 = eh144_5;
+    unsigned int eh_epoch_1_endtime = 0;   // it's time, not height
+    unsigned int eh_epoch_2_starttime = 0; // it's time, not height
+
     int64_t AveragingWindowTimespan() const { return nPowAveragingWindow * nPowTargetSpacing; }
-    int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp  )) / 100; }
+    int64_t MinActualTimespan() const { return (AveragingWindowTimespan() * (100 - nPowMaxAdjustUp)) / 100; }
     int64_t MaxActualTimespan() const { return (AveragingWindowTimespan() * (100 + nPowMaxAdjustDown)) / 100; }
+    EHparameters eh_epoch_1_params() const { return eh_epoch_1; }
+    EHparameters eh_epoch_2_params() const { return eh_epoch_2; }
+    unsigned int eh_epoch_1_end() const { return eh_epoch_1_endtime; }
+    unsigned int eh_epoch_2_start() const { return eh_epoch_2_starttime; }
+    bool NetworkUpgradeActive(int nHeight, Consensus::UpgradeIndex idx) const;
+    int validEHparameterList(EHparameters* ehparams, unsigned int blocktime) const;
     uint256 nMinimumChainWork;
 
     /** Parameters for LWMA3 **/
-    int64_t nZawyLWMA3AveragingWindow;  // N
+    int64_t nZawyLWMA3AveragingWindow; // N
 };
+
 } // namespace Consensus
 
 #endif // BITCOIN_CONSENSUS_PARAMS_H

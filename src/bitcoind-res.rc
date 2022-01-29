@@ -16,14 +16,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Snowgem"
-            VALUE "FileDescription",    "snowgemd (Snowgem node with a JSON-RPC server)"
+            VALUE "CompanyName",        "Gemlink"
+            VALUE "FileDescription",    "gemlinkd (Gemlink node with a JSON-RPC server)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "snowgemd"
+            VALUE "InternalName",       "gemlinkd"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "snowgemd.exe"
-            VALUE "ProductName",        "snowgemd"
+            VALUE "OriginalFilename",   "gemlinkd.exe"
+            VALUE "ProductName",        "gemlinkd"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

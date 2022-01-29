@@ -1,5 +1,5 @@
 #!/bin/sh
-# preinst script for snowgem
+# preinst script for gemlink
 #
 # see: dh_installdeb(1)
 

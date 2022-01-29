@@ -1,0 +1,28 @@
+noinst_PROGRAMS += \
+  gemlink/GenerateParams \
+  gemlink/CreateJoinSplit
+
+# tool for generating our public parameters
+gemlink_GenerateParams_SOURCES = gemlink/GenerateParams.cpp
+gemlink_GenerateParams_CPPFLAGS = $(AM_CPPFLAGS)
+gemlink_GenerateParams_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+gemlink_GenerateParams_LDADD = \
+  $(BOOST_LIBS) \
+  $(libzcash) \
+  $(LIBSNARK) \
+  $(LIBBITCOIN_UTIL) \
+  $(LIBBITCOIN_CRYPTO) \
+  $(LIBZCASH_LIBS)
+
+# tool for profiling the creation of joinsplits
+gemlink_CreateJoinSplit_SOURCES = gemlink/CreateJoinSplit.cpp
+gemlink_CreateJoinSplit_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+gemlink_CreateJoinSplit_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+gemlink_CreateJoinSplit_LDADD = \
+  $(LIBBITCOIN_COMMON) \
+  $(libzcash) \
+  $(LIBSNARK) \
+  $(LIBBITCOIN_UTIL) \
+  $(LIBBITCOIN_CRYPTO) \
+  $(BOOST_LIBS) \
+  $(LIBZCASH_LIBS)

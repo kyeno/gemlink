@@ -53,10 +53,10 @@ bool CheckForConflictingLocks(CTransaction& tx);
 
 void ProcessMessageSwiftTX(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
-//check if we need to vote on this transaction
+// check if we need to vote on this transaction
 void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight);
 
-//process consensus vote message
+// process consensus vote message
 bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx);
 
 // keep transaction locks in memory for an hour
@@ -64,18 +64,26 @@ void CleanTransactionLocksList();
 
 int64_t GetAverageVoteTime();
 
-class CConsensusVote
+class CConsensusVote : public CSignedMessage
 {
 public:
     CTxIn vinMasternode;
     uint256 txHash;
     int nBlockHeight;
-    std::vector<unsigned char> vchMasterNodeSignature;
+
+    CConsensusVote() : CSignedMessage(),
+                       vinMasternode(),
+                       txHash(),
+                       nBlockHeight(0)
+    {
+    }
 
     uint256 GetHash() const;
 
-    bool SignatureValid();
-    bool Sign();
+    // override CSignedMessage functions
+    uint256 GetSignatureHash() const override;
+    std::string GetStrMessage() const override;
+    const CTxIn GetVin() const override { return vinMasternode; };
 
     ADD_SERIALIZE_METHODS;
 
@@ -84,8 +92,14 @@ public:
     {
         READWRITE(txHash);
         READWRITE(vinMasternode);
-        READWRITE(vchMasterNodeSignature);
+        READWRITE(vchSig);
         READWRITE(nBlockHeight);
+        try
+        {
+            READWRITE(nMessVersion);
+        } catch (...) {
+            nMessVersion = MessageVersion::MESS_VER_STRMESS;
+        }
     }
 };
 

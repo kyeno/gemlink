@@ -63,9 +63,8 @@ AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
     std::vector<MergeToAddressInputSaplingNote> saplingNoteInputs,
     MergeToAddressRecipient recipient,
     CAmount fee,
-    UniValue contextInfo) :
-    tx_(contextualTx), utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs),
-    saplingNoteInputs_(saplingNoteInputs), recipient_(recipient), fee_(fee), contextinfo_(contextInfo)
+    UniValue contextInfo) : tx_(contextualTx), utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs),
+                            saplingNoteInputs_(saplingNoteInputs), recipient_(recipient), fee_(fee), contextinfo_(contextInfo)
 {
     if (fee < 0 || fee > MAX_MONEY) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is out of range");
@@ -141,9 +140,9 @@ void AsyncRPCOperation_mergetoaddress::main()
 
 #ifdef ENABLE_MINING
 #ifdef ENABLE_WALLET
-    GenerateBitcoins(false, NULL, 0);
+    GenerateBitcoins(false, NULL, 0, Params());
 #else
-    GenerateBitcoins(false, 0);
+    GenerateBitcoins(false, 0, Params());
 #endif
 #endif
 
@@ -170,9 +169,9 @@ void AsyncRPCOperation_mergetoaddress::main()
 
 #ifdef ENABLE_MINING
 #ifdef ENABLE_WALLET
-    GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1));
+    GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1), Params());
 #else
-    GenerateBitcoins(GetBoolArg("-gen", false), GetArg("-genproclimit", 1));
+    GenerateBitcoins(GetBoolArg("-gen", false), GetArg("-genproclimit", 1), Params());
 #endif
 #endif
 
@@ -276,8 +275,13 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         tx_ = CTransaction(rawTx);
     }
 
-    LogPrint(isPureTaddrOnlyTx ? "zrpc" : "zrpcunsafe", "%s: spending %s to send %s with fee %s\n",
-             getId(), FormatMoney(targetAmount), FormatMoney(sendAmount), FormatMoney(minersFee));
+    if (isPureTaddrOnlyTx) {
+        LogPrint("zrpc", "%s: spending %s to send %s with fee %s\n",
+                 getId(), FormatMoney(targetAmount), FormatMoney(sendAmount), FormatMoney(minersFee));
+    } else {
+        LogPrint("zrpcunsafe", "%s: spending %s to send %s with fee %s\n",
+                 getId(), FormatMoney(targetAmount), FormatMoney(sendAmount), FormatMoney(minersFee));
+    }
     LogPrint("zrpc", "%s: transparent input: %s\n", getId(), FormatMoney(t_inputs_total));
     LogPrint("zrpcunsafe", "%s: private input: %s\n", getId(), FormatMoney(z_inputs_total));
     if (isToTaddr_) {
@@ -316,7 +320,7 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         std::vector<SaplingOutPoint> saplingOPs;
         std::vector<SaplingNote> saplingNotes;
         std::vector<SaplingExpandedSpendingKey> expsks;
-        for (const MergeToAddressInputSaplingNote& saplingNoteInput: saplingNoteInputs_) {
+        for (const MergeToAddressInputSaplingNote& saplingNoteInput : saplingNoteInputs_) {
             saplingOPs.push_back(std::get<0>(saplingNoteInput));
             saplingNotes.push_back(std::get<1>(saplingNoteInput));
             auto expsk = std::get<3>(saplingNoteInput);
@@ -567,7 +571,7 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
 
             // Decrypt the change note's ciphertext to retrieve some data we need
             ZCNoteDecryption decryptor(changeKey.receiving_key());
-            auto hSig = prevJoinSplit.h_sig(*psnowgemParams, tx_.joinSplitPubKey);
+            auto hSig = prevJoinSplit.h_sig(*pgemlinkParams, tx_.joinSplitPubKey);
             try {
                 SproutNotePlaintext plaintext = SproutNotePlaintext::decrypt(
                     decryptor,
@@ -692,7 +696,8 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
             vpubNewProcessed = true;
             jsChange -= vpubNewTarget;
             // If we are merging to a t-addr, there should be no change
-            if (isToTaddr_) assert(jsChange == 0);
+            if (isToTaddr_)
+                assert(jsChange == 0);
         }
 
         // create dummy output
@@ -883,7 +888,7 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
     uint256 esk; // payment disclosure - secret
 
     JSDescription jsdesc = JSDescription::Randomized(
-        *psnowgemParams,
+        *pgemlinkParams,
         joinSplitPubKey_,
         anchor,
         inputs,
@@ -896,7 +901,7 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
         &esk); // parameter expects pointer to esk, so pass in address
     {
         auto verifier = libzcash::ProofVerifier::Strict();
-        if (!(jsdesc.Verify(*psnowgemParams, verifier, joinSplitPubKey_))) {
+        if (!(jsdesc.Verify(*pgemlinkParams, verifier, joinSplitPubKey_))) {
             throw std::runtime_error("error verifying joinsplit");
         }
     }
@@ -935,7 +940,7 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
         ss2 << ((unsigned char)0x00);
         ss2 << jsdesc.ephemeralKey;
         ss2 << jsdesc.ciphertexts[0];
-        ss2 << jsdesc.h_sig(*psnowgemParams, joinSplitPubKey_);
+        ss2 << jsdesc.h_sig(*pgemlinkParams, joinSplitPubKey_);
 
         encryptedNote1 = HexStr(ss2.begin(), ss2.end());
     }
@@ -944,7 +949,7 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
         ss2 << ((unsigned char)0x01);
         ss2 << jsdesc.ephemeralKey;
         ss2 << jsdesc.ciphertexts[1];
-        ss2 << jsdesc.h_sig(*psnowgemParams, joinSplitPubKey_);
+        ss2 << jsdesc.h_sig(*pgemlinkParams, joinSplitPubKey_);
 
         encryptedNote2 = HexStr(ss2.begin(), ss2.end());
     }
@@ -1031,7 +1036,8 @@ UniValue AsyncRPCOperation_mergetoaddress::getStatus() const
 /**
  * Lock input utxos
  */
- void AsyncRPCOperation_mergetoaddress::lock_utxos() {
+void AsyncRPCOperation_mergetoaddress::lock_utxos()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto utxo : utxoInputs_) {
         pwalletMain->LockCoin(std::get<0>(utxo));
@@ -1041,7 +1047,8 @@ UniValue AsyncRPCOperation_mergetoaddress::getStatus() const
 /**
  * Unlock input utxos
  */
-void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
+void AsyncRPCOperation_mergetoaddress::unlock_utxos()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto utxo : utxoInputs_) {
         pwalletMain->UnlockCoin(std::get<0>(utxo));
@@ -1052,7 +1059,8 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
 /**
  * Lock input notes
  */
- void AsyncRPCOperation_mergetoaddress::lock_notes() {
+void AsyncRPCOperation_mergetoaddress::lock_notes()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto note : sproutNoteInputs_) {
         pwalletMain->LockNote(std::get<0>(note));
@@ -1065,7 +1073,8 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
 /**
  * Unlock input notes
  */
-void AsyncRPCOperation_mergetoaddress::unlock_notes() {
+void AsyncRPCOperation_mergetoaddress::unlock_notes()
+{
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto note : sproutNoteInputs_) {
         pwalletMain->UnlockNote(std::get<0>(note));

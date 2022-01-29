@@ -21,8 +21,8 @@ class CBlockHeader
 {
 public:
     // header
-    static const size_t HEADER_SIZE=4+32+32+32+4+4+32; // excluding Equihash solution
-    static const int32_t CURRENT_VERSION=4;
+    static const size_t HEADER_SIZE = 4 + 32 + 32 + 32 + 4 + 4 + 32; // excluding Equihash solution
+    static const int32_t CURRENT_VERSION = 4;
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
@@ -40,7 +40,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
@@ -92,7 +93,7 @@ public:
         SetNull();
     }
 
-    CBlock(const CBlockHeader &header)
+    CBlock(const CBlockHeader& header)
     {
         SetNull();
         *((CBlockHeader*)this) = header;
@@ -101,7 +102,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
     }
@@ -117,14 +119,14 @@ public:
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
-        block.nVersion       = nVersion;
-        block.hashPrevBlock  = hashPrevBlock;
+        block.nVersion = nVersion;
+        block.hashPrevBlock = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
-        block.hashFinalSaplingRoot   = hashFinalSaplingRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
-        block.nSolution      = nSolution;
+        block.hashFinalSaplingRoot = hashFinalSaplingRoot;
+        block.nTime = nTime;
+        block.nBits = nBits;
+        block.nNonce = nNonce;
+        block.nSolution = nSolution;
         return block;
     }
 
@@ -147,7 +149,7 @@ public:
 class CEquihashInput : private CBlockHeader
 {
 public:
-    CEquihashInput(const CBlockHeader &header)
+    CEquihashInput(const CBlockHeader& header)
     {
         CBlockHeader::SetNull();
         *((CBlockHeader*)this) = header;
@@ -156,7 +158,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
@@ -171,8 +174,7 @@ public:
  * other node doesn't have the same branch, it can find a recent common trunk.
  * The further back it is, the further before the fork it may be.
  */
-struct CBlockLocator
-{
+struct CBlockLocator {
     std::vector<uint256> vHave;
 
     CBlockLocator() {}
@@ -185,7 +187,8 @@ struct CBlockLocator
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         int nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH))
             READWRITE(nVersion);
@@ -202,7 +205,8 @@ struct CBlockLocator
         return vHave.empty();
     }
 
-    friend bool operator==(const CBlockLocator& a, const CBlockLocator& b) {
+    friend bool operator==(const CBlockLocator& a, const CBlockLocator& b)
+    {
         return (a.vHave == b.vHave);
     }
 };

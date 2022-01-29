@@ -1,0 +1,10 @@
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source."https://github.com/zcash/librustzcash.git"]
+git = "https://github.com/zcash/librustzcash.git"
+rev = "5622b060b1f57de7afc3d0b4e425b9b4b22482a0"
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+# The directory for this source is set to RUST_VENDORED_SOURCES by src/Makefile.am

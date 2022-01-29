@@ -3,7 +3,7 @@
 - include: unix.yml
 
 - name: Install grind-specific worker dependencies
-  hosts: snowgem-ci-worker-unix
+  hosts: gemlink-ci-worker-unix
   become: true
 
   vars_files:

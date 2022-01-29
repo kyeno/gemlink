@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "addrman.h"
 #include "test/test_bitcoin.h"
-#include <string>
 #include <boost/test/unit_test.hpp>
+#include <string>
 
 #include "hash.h"
 #include "random.h"
@@ -25,7 +25,7 @@ public:
     void MakeDeterministic()
     {
         nKey.SetNull();
-        seed_insecure_rand(true);
+        insecure_rand = FastRandomContext(true);
     }
 
     int RandomInt(int nMax)
@@ -201,11 +201,11 @@ BOOST_AUTO_TEST_CASE(addrman_new_collisions)
         CService addr = CService("250.1.1." + boost::to_string(i));
         addrman.Add(CAddress(addr), source);
 
-        //Test 13: No collision in new table yet.
+        // Test 13: No collision in new table yet.
         BOOST_CHECK(addrman.size() == i);
     }
 
-    //Test 14: new table collision!
+    // Test 14: new table collision!
     CService addr1 = CService("250.1.1.18");
     addrman.Add(CAddress(addr1), source);
     BOOST_CHECK(addrman.size() == 17);
@@ -231,12 +231,12 @@ BOOST_AUTO_TEST_CASE(addrman_tried_collisions)
         addrman.Add(CAddress(addr), source);
         addrman.Good(CAddress(addr));
 
-        //Test 15: No collision in tried table yet.
+        // Test 15: No collision in tried table yet.
         BOOST_TEST_MESSAGE(addrman.size());
         BOOST_CHECK(addrman.size() == i);
     }
 
-    //Test 16: tried table collision!
+    // Test 16: tried table collision!
     CService addr1 = CService("250.1.1.80");
     addrman.Add(CAddress(addr1), source);
     BOOST_CHECK(addrman.size() == 79);
@@ -365,7 +365,7 @@ BOOST_AUTO_TEST_CASE(addrman_getaddr)
     addrman.Add(addr5, source1);
 
     // GetAddr returns 23% of addresses, 23% of 5 is 1 rounded down.
-    BOOST_CHECK(addrman.GetAddr().size() == 1); 
+    BOOST_CHECK(addrman.GetAddr().size() == 1);
 
     // Test 24: Ensure GetAddr works with new and tried addresses.
     addrman.Good(CAddress(addr1));
@@ -379,7 +379,7 @@ BOOST_AUTO_TEST_CASE(addrman_getaddr)
         int octet3 = (i / (256 * 2)) % 256;
         string strAddr = boost::to_string(octet1) + "." + boost::to_string(octet2) + "." + boost::to_string(octet3) + ".23";
         CAddress addr = CAddress(CService(strAddr));
-        
+
         // Ensure that for all addrs in addrman, isTerrible == false.
         addr.nTime = GetAdjustedTime();
         addrman.Add(addr, CNetAddr(strAddr));
@@ -498,7 +498,7 @@ BOOST_AUTO_TEST_CASE(caddrinfo_get_new_bucket)
         CAddrInfo infoj = CAddrInfo(CAddress(
                                         CService(
                                             boost::to_string(250 + (j / 255)) + "." + boost::to_string(j % 256) + ".1.1")),
-            CNetAddr("251.4.1.1"));
+                                    CNetAddr("251.4.1.1"));
         int bucket = infoj.GetNewBucket(nKey1);
         buckets.insert(bucket);
     }

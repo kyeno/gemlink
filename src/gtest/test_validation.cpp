@@ -7,9 +7,10 @@
 
 extern ZCJoinSplit* params;
 
-extern bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBlockIndex *pindexNew, const CDiskBlockPos& pos);
+extern bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBlockIndex* pindexNew, const CDiskBlockPos& pos);
 
-void ExpectOptionalAmount(CAmount expected, boost::optional<CAmount> actual) {
+void ExpectOptionalAmount(CAmount expected, boost::optional<CAmount> actual)
+{
     EXPECT_TRUE((bool)actual);
     if (actual) {
         EXPECT_EQ(expected, *actual);
@@ -17,57 +18,68 @@ void ExpectOptionalAmount(CAmount expected, boost::optional<CAmount> actual) {
 }
 
 // Fake an empty view
-class FakeCoinsViewDB : public CCoinsView {
+class FakeCoinsViewDB : public CCoinsView
+{
 public:
     FakeCoinsViewDB() {}
 
-    bool GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const {
+    bool GetSproutAnchorAt(const uint256& rt, SproutMerkleTree& tree) const
+    {
         return false;
     }
 
-    bool GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &tree) const {
+    bool GetSaplingAnchorAt(const uint256& rt, SaplingMerkleTree& tree) const
+    {
         return false;
     }
 
-    bool GetNullifier(const uint256 &nf, ShieldedType type) const {
+    bool GetNullifier(const uint256& nf, ShieldedType type) const
+    {
         return false;
     }
 
-    bool GetCoins(const uint256 &txid, CCoins &coins) const {
+    bool GetCoins(const uint256& txid, CCoins& coins) const
+    {
         return false;
     }
 
-    bool HaveCoins(const uint256 &txid) const {
+    bool HaveCoins(const uint256& txid) const
+    {
         return false;
     }
 
-    uint256 GetBestBlock() const {
+    uint256 GetBestBlock() const
+    {
         uint256 a;
         return a;
     }
 
-    uint256 GetBestAnchor(ShieldedType type) const {
+    uint256 GetBestAnchor(ShieldedType type) const
+    {
         uint256 a;
         return a;
     }
 
-    bool BatchWrite(CCoinsMap &mapCoins,
-                    const uint256 &hashBlock,
-                    const uint256 &hashSproutAnchor,
-                    const uint256 &hashSaplingAnchor,
-                    CAnchorsSproutMap &mapSproutAnchors,
-                    CAnchorsSaplingMap &mapSaplingAnchors,
-                    CNullifiersMap &mapSproutNullifiers,
-                    CNullifiersMap saplingNullifiersMap) {
+    bool BatchWrite(CCoinsMap& mapCoins,
+                    const uint256& hashBlock,
+                    const uint256& hashSproutAnchor,
+                    const uint256& hashSaplingAnchor,
+                    CAnchorsSproutMap& mapSproutAnchors,
+                    CAnchorsSaplingMap& mapSaplingAnchors,
+                    CNullifiersMap& mapSproutNullifiers,
+                    CNullifiersMap saplingNullifiersMap)
+    {
         return false;
     }
 
-    bool GetStats(CCoinsStats &stats) const {
+    bool GetStats(CCoinsStats& stats) const
+    {
         return false;
     }
 };
 
-TEST(Validation, ContextualCheckInputsPassesWithCoinbase) {
+TEST(Validation, ContextualCheckInputsPassesWithCoinbase)
+{
     // Create fake coinbase transaction
     CMutableTransaction mtx;
     mtx.vin.resize(1);
@@ -86,21 +98,22 @@ TEST(Validation, ContextualCheckInputsPassesWithCoinbase) {
     }
 }
 
-TEST(Validation, ReceivedBlockTransactions) {
+TEST(Validation, ReceivedBlockTransactions)
+{
     auto sk = libzcash::SproutSpendingKey::random();
 
     // Create a fake genesis block
     CBlock block1;
     block1.vtx.push_back(GetValidReceive(*params, sk, 5, true));
     block1.hashMerkleRoot = block1.BuildMerkleTree();
-    CBlockIndex fakeIndex1 {block1};
+    CBlockIndex fakeIndex1{block1};
 
     // Create a fake child block
     CBlock block2;
     block2.hashPrevBlock = block1.GetHash();
     block2.vtx.push_back(GetValidReceive(*params, sk, 10, true));
     block2.hashMerkleRoot = block2.BuildMerkleTree();
-    CBlockIndex fakeIndex2 {block2};
+    CBlockIndex fakeIndex2{block2};
     fakeIndex2.pprev = &fakeIndex1;
 
     CDiskBlockPos pos1;

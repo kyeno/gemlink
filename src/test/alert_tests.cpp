@@ -1,6 +1,6 @@
 // Copyright (c) 2013 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 //
 // Unit tests for alert system
@@ -10,26 +10,27 @@
 #include "chain.h"
 #include "chainparams.h"
 #include "clientversion.h"
-#include "data/alertTests.raw.h"
+#include "fs.h"
+#include "test/data/alertTests.raw.h"
 
-#include "main.h"
 #include "rpc/protocol.h"
 #include "rpc/server.h"
 #include "serialize.h"
 #include "streams.h"
-#include "util.h"
 #include "utilstrencodings.h"
+#include "utiltest.h"
+#include "warnings.h"
 
 #include "test/test_bitcoin.h"
 
 #include <fstream>
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include "key.h"
-#include "alertkeys.h"
+
+// #include "alertkeys.h"
+
 #include <iostream>
 
 /*
@@ -71,19 +72,17 @@
 
 
 // Code to output a C-style array of values
-template<typename T>
+template <typename T>
 std::string HexStrArray(const T itbegin, const T itend, int lineLength)
 {
     std::string rv;
-    static const char hexmap[16] = { '0', '1', '2', '3', '4', '5', '6', '7',
-                                     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-    rv.reserve((itend-itbegin)*3);
+    static const char hexmap[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                                    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    rv.reserve((itend - itbegin) * 3);
     int i = 0;
-    for(T it = itbegin; it < itend; ++it)
-    {
+    for (T it = itbegin; it < itend; ++it) {
         unsigned char val = (unsigned char)(*it);
-        if(it != itbegin)
-        {
+        if (it != itbegin) {
             if (i % lineLength == 0)
                 rv.push_back('\n');
             else
@@ -91,8 +90,8 @@ std::string HexStrArray(const T itbegin, const T itend, int lineLength)
         }
         rv.push_back('0');
         rv.push_back('x');
-        rv.push_back(hexmap[val>>4]);
-        rv.push_back(hexmap[val&15]);
+        rv.push_back(hexmap[val >> 4]);
+        rv.push_back(hexmap[val & 15]);
         rv.push_back(',');
         i++;
     }
@@ -100,7 +99,7 @@ std::string HexStrArray(const T itbegin, const T itend, int lineLength)
     return rv;
 }
 
-template<typename T>
+template <typename T>
 inline std::string HexStrArray(const T& vch, int lineLength)
 {
     return HexStrArray(vch.begin(), vch.end(), lineLength);
@@ -108,7 +107,7 @@ inline std::string HexStrArray(const T& vch, int lineLength)
 
 
 // Sign CAlert with alert private key
-bool SignAlert(CAlert &alert)
+bool SignAlert(CAlert& alert)
 {
     // serialize alert data
     CDataStream sMsg(SER_NETWORK, PROTOCOL_VERSION);
@@ -119,13 +118,11 @@ bool SignAlert(CAlert &alert)
     std::vector<unsigned char> vchTmp(ParseHex(pszPrivKey));
     CPrivKey vchPrivKey(vchTmp.begin(), vchTmp.end());
     CKey key;
-    if (!key.SetPrivKey(vchPrivKey, false))
-    {
+    if (!key.SetPrivKey(vchPrivKey, false)) {
         printf("key.SetPrivKey failed\n");
         return false;
     }
-    if (!key.Sign(Hash(alert.vchMsg.begin(), alert.vchMsg.end()), alert.vchSig))
-    {
+    if (!key.Sign(Hash(alert.vchMsg.begin(), alert.vchMsg.end()), alert.vchSig)) {
         printf("SignAlert() : key.Sign failed\n");
         return false;
     }
@@ -133,11 +130,10 @@ bool SignAlert(CAlert &alert)
 }
 
 // Sign a CAlert and serialize it
-bool SignAndSerialize(CAlert &alert, CDataStream &buffer)
+bool SignAndSerialize(CAlert& alert, CDataStream& buffer)
 {
     // Sign
-    if(!SignAlert(alert))
-    {
+    if (!SignAlert(alert)) {
         printf("SignAndSerialize() : could not sign alert\n");
         return false;
     }
@@ -151,33 +147,41 @@ void GenerateAlertTests()
     CDataStream sBuffer(SER_DISK, CLIENT_VERSION);
 
     CAlert alert;
-    alert.nRelayUntil   = 60;
-    alert.nExpiration   = 24 * 60 * 60;
-    alert.nID           = 1;
-    alert.nCancel       = 0;  // cancels previous messages up to this ID number
-    alert.nMinVer       = 0;  // These versions are protocol versions
-    alert.nMaxVer       = 999001;
-    alert.nPriority     = 1;
-    alert.strComment    = "Alert comment";
-    alert.strStatusBar  = "Alert 1";
+    alert.nRelayUntil = 60;
+    alert.nExpiration = 24 * 60 * 60;
+    alert.nID = 1;
+    alert.nCancel = 0; // cancels previous messages up to this ID number
+    alert.nMinVer = 0; // These versions are protocol versions
+    alert.nMaxVer = 999001;
+    alert.nPriority = 1;
+    alert.strComment = "Alert comment";
+    alert.strStatusBar = "Alert 1";
 
     // Replace SignAndSave with SignAndSerialize
     SignAndSerialize(alert, sBuffer);
 
     // More tests go here ...
     alert.setSubVer.insert(std::string("/MagicBean:0.1.0/"));
-    alert.strStatusBar  = "Alert 1 for MagicBean 0.1.0";
+    alert.strStatusBar = "Alert 1 for MagicBean 0.1.0";
     SignAndSerialize(alert, sBuffer);
 
     alert.setSubVer.insert(std::string("/MagicBean:0.2.0/"));
-    alert.strStatusBar  = "Alert 1 for MagicBean 0.1.0, 0.2.0";
+    alert.strStatusBar = "Alert 1 for MagicBean 0.1.0, 0.2.0";
+    SignAndSerialize(alert, sBuffer);
+
+    alert.setSubVer.insert(std::string("/MagicBean:0.2.1(foo)/"));
+    alert.strStatusBar = "Alert 1 for MagicBean 0.1.0, 0.2.0, 0.2.1(foo)";
+    SignAndSerialize(alert, sBuffer);
+
+    alert.setSubVer.insert(std::string("/MagicBean:0.2.1/"));
+    alert.strStatusBar = "Alert 1 for MagicBean 0.1.0, 0.2.0, 0.2.1(foo), 0.2.1";
     SignAndSerialize(alert, sBuffer);
 
     alert.setSubVer.clear();
     ++alert.nID;
     alert.nCancel = 1;
     alert.nPriority = 100;
-    alert.strStatusBar  = "Alert 2, cancels 1";
+    alert.strStatusBar = "Alert 2, cancels 1";
     SignAndSerialize(alert, sBuffer);
 
     alert.nExpiration += 60;
@@ -186,13 +190,13 @@ void GenerateAlertTests()
 
     ++alert.nID;
     alert.nPriority = 5000;
-    alert.strStatusBar  = "Alert 3, disables RPC";
+    alert.strStatusBar = "Alert 3, disables RPC";
     alert.strRPCError = "RPC disabled";
     SignAndSerialize(alert, sBuffer);
 
     ++alert.nID;
     alert.nPriority = 5000;
-    alert.strStatusBar  = "Alert 4, re-enables RPC";
+    alert.strStatusBar = "Alert 4, re-enables RPC";
     alert.strRPCError = "";
     SignAndSerialize(alert, sBuffer);
 
@@ -203,14 +207,14 @@ void GenerateAlertTests()
     SignAndSerialize(alert, sBuffer);
 
     ++alert.nID;
-    alert.strStatusBar  = "Alert 2 for MagicBean 0.1.0";
+    alert.strStatusBar = "Alert 2 for MagicBean 0.1.0";
     alert.setSubVer.insert(std::string("/MagicBean:0.1.0/"));
     SignAndSerialize(alert, sBuffer);
 
     ++alert.nID;
     alert.nMinVer = 0;
     alert.nMaxVer = 999999;
-    alert.strStatusBar  = "Evil Alert'; /bin/ls; echo '";
+    alert.strStatusBar = "Evil Alert'; /bin/ls; echo '";
     alert.setSubVer.clear();
     bool b = SignAndSerialize(alert, sBuffer);
 
@@ -227,10 +231,9 @@ void GenerateAlertTests()
 }
 
 
-
 struct GenerateAlertTestsFixture : public TestingSetup {
-  GenerateAlertTestsFixture() {}
-  ~GenerateAlertTestsFixture() {}
+    GenerateAlertTestsFixture() {}
+    ~GenerateAlertTestsFixture() {}
 };
 
 BOOST_FIXTURE_TEST_SUITE(Generate_Alert_Test_Data, GenerateAlertTestsFixture);
@@ -244,31 +247,29 @@ BOOST_AUTO_TEST_SUITE_END()
 #else
 
 
-struct ReadAlerts : public TestingSetup
-{
+struct ReadAlerts : public TestingSetup {
     ReadAlerts()
     {
         std::vector<unsigned char> vch(alert_tests::alertTests, alert_tests::alertTests + sizeof(alert_tests::alertTests));
         CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
         try {
-            while (!stream.eof())
-            {
+            while (!stream.eof()) {
                 CAlert alert;
                 stream >> alert;
                 alerts.push_back(alert);
             }
+        } catch (const std::exception&) {
         }
-        catch (const std::exception&) { }
     }
-    ~ReadAlerts() { }
+    ~ReadAlerts() {}
 
-    static std::vector<std::string> read_lines(boost::filesystem::path filepath)
+    static std::vector<std::string> read_lines(fs::path filepath)
     {
         std::vector<std::string> result;
 
         std::ifstream f(filepath.string().c_str());
         std::string line;
-        while (std::getline(f,line))
+        while (std::getline(f, line))
             result.push_back(line);
 
         return result;
@@ -285,8 +286,7 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
-    BOOST_FOREACH(const CAlert& alert, alerts)
-    {
+    for (const CAlert& alert : alerts) {
         BOOST_CHECK(alert.CheckSignature(alertKey));
     }
 
@@ -302,6 +302,18 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
 
     BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.1.0/"));
     BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0/"));
+    BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0(foo)/"));
+    BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0(bar)/"));
+
+    BOOST_CHECK(alerts[3].AppliesTo(1, "/MagicBean:0.1.0/"));
+    BOOST_CHECK(alerts[3].AppliesTo(1, "/MagicBean:0.2.0/"));
+    BOOST_CHECK(alerts[2].AppliesTo(1, "/MagicBean:0.2.0(foo)/"));
+    BOOST_CHECK(alerts[3].AppliesTo(1, "/MagicBean:0.2.1(foo)/"));
+
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.1.0/"));
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.2.0/"));
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.2.1(foo)/"));
+    BOOST_CHECK(alerts[4].AppliesTo(1, "/MagicBean:0.2.1/"));
 
     // Don't match:
     BOOST_CHECK(!alerts[0].AppliesTo(-1, ""));
@@ -313,9 +325,15 @@ BOOST_AUTO_TEST_CASE(AlertApplies)
     BOOST_CHECK(!alerts[1].AppliesTo(1, "MagicBean:0.1.0/"));
     BOOST_CHECK(!alerts[1].AppliesTo(-1, "/MagicBean:0.1.0/"));
     BOOST_CHECK(!alerts[1].AppliesTo(999002, "/MagicBean:0.1.0/"));
+    BOOST_CHECK(!alerts[1].AppliesTo(1, "/MagicBean:0.1.0/FlowerPot:0.0.1/"));
     BOOST_CHECK(!alerts[1].AppliesTo(1, "/MagicBean:0.2.0/"));
 
+    // SubVer with comment doesn't match SubVer pattern without
+    BOOST_CHECK(!alerts[2].AppliesTo(1, "/MagicBean:0.2.1/"));
     BOOST_CHECK(!alerts[2].AppliesTo(1, "/MagicBean:0.3.0/"));
+
+    // SubVer without comment doesn't match SubVer pattern with
+    BOOST_CHECK(!alerts[3].AppliesTo(1, "/MagicBean:0.2.1/"));
 
     SetMockTime(0);
 }
@@ -326,26 +344,26 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
-    boost::filesystem::path temp = GetTempPath() /
-        boost::filesystem::unique_path("alertnotify-%%%%.txt");
+    fs::path temp = fs::temp_directory_path() /
+                    fs::unique_path("alertnotify-%%%%.txt");
 
     mapArgs["-alertnotify"] = std::string("echo %s >> ") + temp.string();
 
-    BOOST_FOREACH(CAlert alert, alerts)
+    for (CAlert alert : alerts)
         alert.ProcessAlert(alertKey, false);
 
     std::vector<std::string> r = read_lines(temp);
     BOOST_CHECK_EQUAL(r.size(), 6u);
 
-// Windows built-in echo semantics are different than posixy shells. Quotes and
-// whitespace are printed literally.
+    // Windows built-in echo semantics are different than posixy shells. Quotes and
+    // whitespace are printed literally.
 
 #ifndef WIN32
     BOOST_CHECK_EQUAL(r[0], "Alert 1");
     BOOST_CHECK_EQUAL(r[1], "Alert 2, cancels 1");
     BOOST_CHECK_EQUAL(r[2], "Alert 2, cancels 1");
     BOOST_CHECK_EQUAL(r[3], "Alert 3, disables RPC");
-    BOOST_CHECK_EQUAL(r[4], "Alert 4, reenables RPC"); // dashes should be removed
+    BOOST_CHECK_EQUAL(r[4], "Alert 4, reenables RPC");     // dashes should be removed
     BOOST_CHECK_EQUAL(r[5], "Evil Alert; /bin/ls; echo "); // single-quotes should be removed
 #else
     BOOST_CHECK_EQUAL(r[0], "'Alert 1' ");
@@ -355,7 +373,7 @@ BOOST_AUTO_TEST_CASE(AlertNotify)
     BOOST_CHECK_EQUAL(r[4], "'Alert 4, reenables RPC' "); // dashes should be removed
     BOOST_CHECK_EQUAL(r[5], "'Evil Alert; /bin/ls; echo ' ");
 #endif
-    boost::filesystem::remove(temp);
+    fs::remove(temp);
 
     SetMockTime(0);
     mapAlerts.clear();
@@ -367,79 +385,20 @@ BOOST_AUTO_TEST_CASE(AlertDisablesRPC)
     const std::vector<unsigned char>& alertKey = Params(CBaseChainParams::MAIN).AlertKey();
 
     // Command should work before alerts
-    BOOST_CHECK_EQUAL(GetWarnings("rpc"), "");
+    BOOST_CHECK_EQUAL(GetWarnings("rpc").first, "");
 
     // First alert should disable RPC
-    alerts[5].ProcessAlert(alertKey, false);
-    BOOST_CHECK_EQUAL(alerts[5].strRPCError, "RPC disabled");
-    BOOST_CHECK_EQUAL(GetWarnings("rpc"), "RPC disabled");
+    alerts[7].ProcessAlert(alertKey, false);
+    BOOST_CHECK_EQUAL(alerts[7].strRPCError, "RPC disabled");
+    BOOST_CHECK_EQUAL(GetWarnings("rpc").first, "RPC disabled");
 
     // Second alert should re-enable RPC
-    alerts[6].ProcessAlert(alertKey, false);
-    BOOST_CHECK_EQUAL(alerts[6].strRPCError, "");
-    BOOST_CHECK_EQUAL(GetWarnings("rpc"), "");
+    alerts[8].ProcessAlert(alertKey, false);
+    BOOST_CHECK_EQUAL(alerts[8].strRPCError, "");
+    BOOST_CHECK_EQUAL(GetWarnings("rpc").first, "");
 
     SetMockTime(0);
     mapAlerts.clear();
-}
-
-static bool falseFunc() { return false; }
-
-BOOST_AUTO_TEST_CASE(PartitionAlert)
-{
-    // Test PartitionCheck
-    CCriticalSection csDummy;
-    CBlockIndex indexDummy[400];
-    CChainParams& params = Params(CBaseChainParams::MAIN);
-    int64_t nPowTargetSpacing = params.GetConsensus().nPowTargetSpacing;
-
-    // Generate fake blockchain timestamps relative to
-    // an arbitrary time:
-    int64_t now = 1427379054;
-    SetMockTime(now);
-    for (int i = 0; i < 400; i++)
-    {
-        indexDummy[i].phashBlock = NULL;
-        if (i == 0) indexDummy[i].pprev = NULL;
-        else indexDummy[i].pprev = &indexDummy[i-1];
-        indexDummy[i].nHeight = i;
-        indexDummy[i].nTime = now - (400-i)*nPowTargetSpacing;
-        // Other members don't matter, the partition check code doesn't
-        // use them
-    }
-
-    // Test 1: chain with blocks every nPowTargetSpacing seconds,
-    // as normal, no worries:
-    PartitionCheck(falseFunc, csDummy, &indexDummy[399], nPowTargetSpacing);
-    BOOST_CHECK(strMiscWarning.empty());
-
-    // Test 2: go 3.5 hours without a block, expect a warning:
-    now += 3*60*60+30*60;
-    SetMockTime(now);
-    PartitionCheck(falseFunc, csDummy, &indexDummy[399], nPowTargetSpacing);
-    BOOST_CHECK(!strMiscWarning.empty());
-    BOOST_TEST_MESSAGE(std::string("Got alert text: ")+strMiscWarning);
-    strMiscWarning = "";
-
-    // Test 3: test the "partition alerts only go off once per day"
-    // code:
-    now += 60*10;
-    SetMockTime(now);
-    PartitionCheck(falseFunc, csDummy, &indexDummy[399], nPowTargetSpacing);
-    BOOST_CHECK(strMiscWarning.empty());
-
-    // Test 4: get 2.5 times as many blocks as expected:
-    now += 60*60*24; // Pretend it is a day later
-    SetMockTime(now);
-    int64_t quickSpacing = nPowTargetSpacing*2/5;
-    for (int i = 0; i < 400; i++) // Tweak chain timestamps:
-        indexDummy[i].nTime = now - (400-i)*quickSpacing;
-    PartitionCheck(falseFunc, csDummy, &indexDummy[399], nPowTargetSpacing);
-    BOOST_CHECK(!strMiscWarning.empty());
-    BOOST_TEST_MESSAGE(std::string("Got alert text: ")+strMiscWarning);
-    strMiscWarning = "";
-
-    SetMockTime(0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

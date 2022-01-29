@@ -2,6 +2,7 @@
 #define BITCOIN_TEST_TEST_BITCOIN_H
 
 #include "consensus/upgrades.h"
+#include "fs.h"
 #include "pubkey.h"
 #include "txdb.h"
 
@@ -19,7 +20,7 @@ struct BasicTestingSetup {
 };
 
 // Setup w.r.t. zk-SNARK API
-struct JoinSplitTestingSetup: public BasicTestingSetup {
+struct JoinSplitTestingSetup : public BasicTestingSetup {
     JoinSplitTestingSetup();
     ~JoinSplitTestingSetup();
 };
@@ -28,10 +29,10 @@ struct JoinSplitTestingSetup: public BasicTestingSetup {
  * Included are data directory, coins database, script check threads
  * and wallet (if enabled) setup.
  */
-struct TestingSetup: public JoinSplitTestingSetup {
-    CCoinsViewDB *pcoinsdbview;
-    boost::filesystem::path orig_current_path;
-    boost::filesystem::path pathTemp;
+struct TestingSetup : public JoinSplitTestingSetup {
+    CCoinsViewDB* pcoinsdbview;
+    fs::path orig_current_path;
+    fs::path pathTemp;
     boost::thread_group threadGroup;
 
     TestingSetup();
@@ -41,8 +42,7 @@ struct TestingSetup: public JoinSplitTestingSetup {
 class CTxMemPoolEntry;
 class CTxMemPool;
 
-struct TestMemPoolEntryHelper
-{
+struct TestMemPoolEntryHelper {
     // Default values
     CAmount nFee;
     int64_t nTime;
@@ -52,20 +52,47 @@ struct TestMemPoolEntryHelper
     bool spendsCoinbase;
     uint32_t nBranchId;
 
-    TestMemPoolEntryHelper() :
-        nFee(0), nTime(0), dPriority(0.0), nHeight(1),
-        hadNoDependencies(false), spendsCoinbase(false),
-        nBranchId(SPROUT_BRANCH_ID) { }
+    TestMemPoolEntryHelper() : nFee(0), nTime(0), dPriority(0.0), nHeight(1),
+                               hadNoDependencies(false), spendsCoinbase(false),
+                               nBranchId(SPROUT_BRANCH_ID) {}
 
-    CTxMemPoolEntry FromTx(CMutableTransaction &tx, CTxMemPool *pool = NULL);
+    CTxMemPoolEntry FromTx(CMutableTransaction& tx, CTxMemPool* pool = NULL);
 
     // Change the default value
-    TestMemPoolEntryHelper &Fee(CAmount _fee) { nFee = _fee; return *this; }
-    TestMemPoolEntryHelper &Time(int64_t _time) { nTime = _time; return *this; }
-    TestMemPoolEntryHelper &Priority(double _priority) { dPriority = _priority; return *this; }
-    TestMemPoolEntryHelper &Height(unsigned int _height) { nHeight = _height; return *this; }
-    TestMemPoolEntryHelper &HadNoDependencies(bool _hnd) { hadNoDependencies = _hnd; return *this; }
-    TestMemPoolEntryHelper &SpendsCoinbase(bool _flag) { spendsCoinbase = _flag; return *this; }
-    TestMemPoolEntryHelper &BranchId(uint32_t _branchId) { nBranchId = _branchId; return *this; }
+    TestMemPoolEntryHelper& Fee(CAmount _fee)
+    {
+        nFee = _fee;
+        return *this;
+    }
+    TestMemPoolEntryHelper& Time(int64_t _time)
+    {
+        nTime = _time;
+        return *this;
+    }
+    TestMemPoolEntryHelper& Priority(double _priority)
+    {
+        dPriority = _priority;
+        return *this;
+    }
+    TestMemPoolEntryHelper& Height(unsigned int _height)
+    {
+        nHeight = _height;
+        return *this;
+    }
+    TestMemPoolEntryHelper& HadNoDependencies(bool _hnd)
+    {
+        hadNoDependencies = _hnd;
+        return *this;
+    }
+    TestMemPoolEntryHelper& SpendsCoinbase(bool _flag)
+    {
+        spendsCoinbase = _flag;
+        return *this;
+    }
+    TestMemPoolEntryHelper& BranchId(uint32_t _branchId)
+    {
+        nBranchId = _branchId;
+        return *this;
+    }
 };
 #endif

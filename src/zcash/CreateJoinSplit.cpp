@@ -11,7 +11,7 @@
 
 using namespace libzcash;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     libsnark::start_profiling();
 

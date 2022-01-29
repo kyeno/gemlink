@@ -1,23 +1,19 @@
-Security Warnings
-====================
+# Security Warnings
 
-Security Audit
---------------
+## Security Audit
 
-Snowgem has been subjected to a formal third-party security review. For security
+Gemlink has been subjected to a formal third-party security review. For security
 announcements, audit results and other general security information, see
-https://snowgem.org/support/security.html
+https://gemlink.org/support/security.html
 
-x86-64 Linux Only
------------------------
+## x86-64 Linux Only
 
 There are [known bugs](https://github.com/scipr-lab/libsnark/issues/26) which
 make proving keys generated on 64-bit systems unusable on 32-bit and big-endian
 systems. It's unclear if a warning will be issued in this case, or if the
 proving system will be silently compromised.
 
-Wallet Encryption
------------------
+## Wallet Encryption
 
 Wallet encryption is disabled, for several reasons:
 
@@ -36,20 +32,19 @@ Wallet encryption is disabled, for several reasons:
 
 - We were concerned about the resistance of the algorithm used to derive wallet
   encryption keys (inherited from [Bitcoin](https://bitcoin.org/en/secure-your-wallet))
-  to dictionary attacks by a powerful attacker. If and when we re-enable wallet 
-  encryption, it is likely to be with a modern passphrase-based key derivation 
+  to dictionary attacks by a powerful attacker. If and when we re-enable wallet
+  encryption, it is likely to be with a modern passphrase-based key derivation
   algorithm designed for greater resistance to dictionary attack, such as Argon2i.
 
 You should use full-disk encryption (or encryption of your home directory) to
 protect your wallet at rest, and should assume (even unprivileged) users who are
 runnng on your OS can read your wallet.dat file.
 
-Side-Channel Attacks
---------------------
+## Side-Channel Attacks
 
-This implementation of Snowgem is not resistant to side-channel attacks. You
+This implementation of Gemlink is not resistant to side-channel attacks. You
 should assume (even unprivileged) users who are running on the hardware, or who
-are physically near the hardware, that your `snowgemd` process is running on will
+are physically near the hardware, that your `gemlinkd` process is running on will
 be able to:
 
 - Determine the values of your secret spending keys, as well as which notes you
@@ -64,47 +59,42 @@ be able to:
   each note ciphertext on the blockchain.
 
 You should ensure no other users have the ability to execute code (even
-unprivileged) on the hardware your `snowgemd` process runs on until these
+unprivileged) on the hardware your `gemlinkd` process runs on until these
 vulnerabilities are fully analyzed and fixed.
 
-REST Interface
---------------
+## REST Interface
 
-The REST interface is a feature inherited from upstream Bitcoin.  By default,
+The REST interface is a feature inherited from upstream Bitcoin. By default,
 it is disabled. We do not recommend you enable it until it has undergone a
 security review.
 
-RPC Interface
----------------
+## RPC Interface
 
-Users should choose a strong RPC password. If no RPC username and password are set, snowgemd will not start and will print an error message with a suggestion for a strong random password. If the client knows the RPC password, they have at least full access to the node. In addition, certain RPC commands can be misused to overwrite files and/or take over the account that is running snowgemd. (In the future we may restrict these commands, but full node access – including the ability to spend from and export keys held by the wallet – would still be possible unless wallet methods are disabled.)
+Users should choose a strong RPC password. If no RPC username and password are set, gemlinkd will not start and will print an error message with a suggestion for a strong random password. If the client knows the RPC password, they have at least full access to the node. In addition, certain RPC commands can be misused to overwrite files and/or take over the account that is running gemlinkd. (In the future we may restrict these commands, but full node access – including the ability to spend from and export keys held by the wallet – would still be possible unless wallet methods are disabled.)
 
-Users should also refrain from changing the default setting that only allows RPC connections from localhost. Allowing connections from remote hosts would enable a MITM to execute arbitrary RPC commands, which could lead to compromise of the account running snowgemd and loss of funds. For multi-user services that use one or more snowgemd instances on the backend, the parameters passed in by users should be controlled to prevent confused-deputy attacks which could spend from any keys held by that snowgemd.
+Users should also refrain from changing the default setting that only allows RPC connections from localhost. Allowing connections from remote hosts would enable a MITM to execute arbitrary RPC commands, which could lead to compromise of the account running gemlinkd and loss of funds. For multi-user services that use one or more gemlinkd instances on the backend, the parameters passed in by users should be controlled to prevent confused-deputy attacks which could spend from any keys held by that gemlinkd.
 
-Block Chain Reorganization: Major Differences
--------------------------------------------------
+## Block Chain Reorganization: Major Differences
 
-Users should be aware of new behavior in Snowgem that differs significantly from Bitcoin: in the case of a block chain reorganization, Bitcoin's coinbase maturity rule helps to ensure that any reorganization shorter than the maturity interval will not invalidate any of the rolled-back transactions. Snowgem keeps Bitcoin's 100-block maturity interval for generation transactions, but because JoinSplits must be anchored within a block, this provides more limited protection against transactions becoming invalidated. In the case of a block chain reorganization for Snowgem, all JoinSplits which were anchored within the reorganization interval and any transactions that depend on them will become invalid, rolling back transactions and reverting funds to the original owner. The transaction rebroadcast mechanism inherited from Bitcoin will not successfully rebroadcast transactions depending on invalidated JoinSplits if the anchor needs to change. The creator of an invalidated JoinSplit, as well as the creators of all transactions dependent on it, must rebroadcast the transactions themselves.
+Users should be aware of new behavior in Gemlink that differs significantly from Bitcoin: in the case of a block chain reorganization, Bitcoin's coinbase maturity rule helps to ensure that any reorganization shorter than the maturity interval will not invalidate any of the rolled-back transactions. Gemlink keeps Bitcoin's 100-block maturity interval for generation transactions, but because JoinSplits must be anchored within a block, this provides more limited protection against transactions becoming invalidated. In the case of a block chain reorganization for Gemlink, all JoinSplits which were anchored within the reorganization interval and any transactions that depend on them will become invalid, rolling back transactions and reverting funds to the original owner. The transaction rebroadcast mechanism inherited from Bitcoin will not successfully rebroadcast transactions depending on invalidated JoinSplits if the anchor needs to change. The creator of an invalidated JoinSplit, as well as the creators of all transactions dependent on it, must rebroadcast the transactions themselves.
 
 Receivers of funds from a JoinSplit can mitigate the risk of relying on funds received from transactions that may be rolled back by using a higher minconf (minimum number of confirmations).
 
-Logging z_* RPC calls
----------------------
+## Logging z\_\* RPC calls
 
-The option `-debug=zrpc` covers logging of the z_* calls.  This will reveal information about private notes which you might prefer not to disclose.  For example, when calling `z_sendmany` to create a shielded transaction, input notes are consumed and new output notes are created.
+The option `-debug=zrpc` covers logging of the z\_\* calls. This will reveal information about private notes which you might prefer not to disclose. For example, when calling `z_sendmany` to create a shielded transaction, input notes are consumed and new output notes are created.
 
-The option `-debug=zrpcunsafe` covers logging of sensitive information in z_* calls which you would only need for debugging and audit purposes.  For example, if you want to examine the memo field of a note being spent.
+The option `-debug=zrpcunsafe` covers logging of sensitive information in z\_\* calls which you would only need for debugging and audit purposes. For example, if you want to examine the memo field of a note being spent.
 
 Private spending keys for z addresses are never logged.
 
-Potentially-Missing Required Modifications
-------------------------------------------
+## Potentially-Missing Required Modifications
 
 In addition to potential mistakes in code we added to Bitcoin Core, and
 potential mistakes in our modifications to Bitcoin Core, it is also possible
 that there were potential changes we were supposed to make to Bitcoin Core but
 didn't, either because we didn't even consider making those changes, or we ran
 out of time. We have brainstormed and documented a variety of such possibilities
-in [issue #826](https://github.com/snowgem/snowgem/issues/826), and believe that we
+in [issue #826](https://github.com/gemlink/gemlink/issues/826), and believe that we
 have changed or done everything that was necessary for the 1.0.0 launch. Users
 may want to review this list themselves.

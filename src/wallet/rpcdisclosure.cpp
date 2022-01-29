@@ -1,12 +1,12 @@
-// Copyright (c) 2017 The Snowgem developers
+// Copyright (c) 2017 The Gemlink developers
 // Copyright (c) 2017-2018 The SnowGem developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "rpc/server.h"
 #include "init.h"
 #include "key_io.h"
 #include "main.h"
+#include "rpc/server.h"
 #include "script/script.h"
 #include "script/standard.h"
 #include "sync.h"
@@ -49,12 +49,12 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
         strPaymentDisclosureDisabledMsg = experimentalDisabledHelpMsg("z_getpaymentdisclosure", enableArg);
     }
 
-    if (fHelp || params.size() < 3 || params.size() > 4 )
+    if (fHelp || params.size() < 3 || params.size() > 4)
         throw runtime_error(
             "z_getpaymentdisclosure \"txid\" \"js_index\" \"output_index\" (\"message\") \n"
             "\nGenerate a payment disclosure for a given joinsplit output.\n"
-            "\nEXPERIMENTAL FEATURE\n"
-            + strPaymentDisclosureDisabledMsg +
+            "\nEXPERIMENTAL FEATURE\n" +
+            strPaymentDisclosureDisabledMsg +
             "\nArguments:\n"
             "1. \"txid\"            (string, required) \n"
             "2. \"js_index\"        (string, required) \n"
@@ -62,10 +62,8 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
             "4. \"message\"         (string, optional) \n"
             "\nResult:\n"
             "\"paymentdisclosure\"  (string) Hex data string, with \"zpd:\" prefix.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("z_getpaymentdisclosure", "96f12882450429324d5f3b48630e3168220e49ab7b0f066e5c2935a6b88bb0f2 0 0 \"refund\"")
-            + HelpExampleRpc("z_getpaymentdisclosure", "\"96f12882450429324d5f3b48630e3168220e49ab7b0f066e5c2935a6b88bb0f2\", 0, 0, \"refund\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("z_getpaymentdisclosure", "96f12882450429324d5f3b48630e3168220e49ab7b0f066e5c2935a6b88bb0f2 0 0 \"refund\"") + HelpExampleRpc("z_getpaymentdisclosure", "\"96f12882450429324d5f3b48630e3168220e49ab7b0f066e5c2935a6b88bb0f2\", 0, 0, \"refund\""));
 
     if (!fEnablePaymentDisclosure) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: payment disclosure is disabled.");
@@ -84,7 +82,7 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
     uint256 hashBlock;
 
     // Check txid has been seen
-    if (!GetTransaction(hash, tx, hashBlock, true)) {
+    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock, true)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
     }
 
@@ -101,7 +99,7 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
 
     // Check if shielded tx
     if (wtx.vjoinsplit.empty()) {
-        throw JSONRPCError(RPC_MISC_ERROR, "Transaction is not a shielded transaction");        
+        throw JSONRPCError(RPC_MISC_ERROR, "Transaction is not a shielded transaction");
     }
 
     // Check js_index
@@ -123,7 +121,7 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
     }
 
     // Create PaymentDisclosureKey
-    PaymentDisclosureKey key = {hash, (size_t)js_index, (uint8_t)output_index };
+    PaymentDisclosureKey key = {hash, (size_t)js_index, (uint8_t)output_index};
 
     // TODO: In future, perhaps init the DB in init.cpp
     shared_ptr<PaymentDisclosureDB> db = PaymentDisclosureDB::sharedInstance();
@@ -132,13 +130,12 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_DATABASE_ERROR, "Could not find payment disclosure info for the given joinsplit output");
     }
 
-    PaymentDisclosure pd( wtx.joinSplitPubKey, key, info, msg );
+    PaymentDisclosure pd(wtx.joinSplitPubKey, key, info, msg);
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << pd;
     string strHex = HexStr(ss.begin(), ss.end());
     return PAYMENT_DISCLOSURE_BLOB_STRING_PREFIX + strHex;
 }
-
 
 
 /**
@@ -160,14 +157,12 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
         throw runtime_error(
             "z_validatepaymentdisclosure \"paymentdisclosure\"\n"
             "\nValidates a payment disclosure.\n"
-            "\nEXPERIMENTAL FEATURE\n"
-            + strPaymentDisclosureDisabledMsg +
+            "\nEXPERIMENTAL FEATURE\n" +
+            strPaymentDisclosureDisabledMsg +
             "\nArguments:\n"
             "1. \"paymentdisclosure\"     (string, required) Hex data string, with \"zpd:\" prefix.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("z_validatepaymentdisclosure", "\"zpd:706462ff004c561a0447ba2ec51184e6c204...\"")
-            + HelpExampleRpc("z_validatepaymentdisclosure", "\"zpd:706462ff004c561a0447ba2ec51184e6c204...\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("z_validatepaymentdisclosure", "\"zpd:706462ff004c561a0447ba2ec51184e6c204...\"") + HelpExampleRpc("z_validatepaymentdisclosure", "\"zpd:706462ff004c561a0447ba2ec51184e6c204...\""));
 
     if (!fEnablePaymentDisclosure) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Error: payment disclosure is disabled.");
@@ -184,8 +179,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, payment disclosure prefix not found.");
     }
     string hexInput = strInput.substr(strlen(PAYMENT_DISCLOSURE_BLOB_STRING_PREFIX));
-    if (!IsHex(hexInput))
-    {
+    if (!IsHex(hexInput)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected payment disclosure data in hexadecimal format.");
     }
 
@@ -196,8 +190,8 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
         ss >> pd;
         // too much data is ignored, but if not enough data, exception of type ios_base::failure is thrown,
         // CBaseDataStream::read(): end of data: iostream error
-    } catch (const std::exception &e) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, payment disclosure data is malformed.");        
+    } catch (const std::exception& e) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, payment disclosure data is malformed.");
     }
 
     if (pd.payload.marker != PAYMENT_DISCLOSURE_PAYLOAD_MAGIC_BYTES) {
@@ -212,7 +206,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
     CTransaction tx;
     uint256 hashBlock;
     // Check if we have seen the transaction
-    if (!GetTransaction(hash, tx, hashBlock, true)) {
+    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock, true)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
     }
 
@@ -223,7 +217,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
 
     // Check if shielded tx
     if (tx.vjoinsplit.empty()) {
-        throw JSONRPCError(RPC_MISC_ERROR, "Transaction is not a shielded transaction");        
+        throw JSONRPCError(RPC_MISC_ERROR, "Transaction is not a shielded transaction");
     }
 
     UniValue errs(UniValue::VARR);
@@ -248,13 +242,13 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
     // Verify the payment disclosure was signed using the same key as the transaction i.e. the joinSplitPrivKey.
     uint256 dataToBeSigned = SerializeHash(pd.payload, SER_GETHASH, 0);
     bool sigVerified = (crypto_sign_verify_detached(pd.payloadSig.data(),
-        dataToBeSigned.begin(), 32,
-        tx.joinSplitPubKey.begin()) == 0);
+                                                    dataToBeSigned.begin(), 32,
+                                                    tx.joinSplitPubKey.begin()) == 0);
     o.push_back(Pair("signatureVerified", sigVerified));
     if (!sigVerified) {
-        errs.push_back("Payment disclosure signature does not match transaction signature");        
+        errs.push_back("Payment disclosure signature does not match transaction signature");
     }
-   
+
     // Check the payment address is valid
     SproutPaymentAddress zaddr = pd.payload.zaddr;
     {
@@ -263,7 +257,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
         try {
             // Decrypt the note to get value and memo field
             JSDescription jsdesc = tx.vjoinsplit[pd.payload.js];
-            uint256 h_sig = jsdesc.h_sig(*psnowgemParams, tx.joinSplitPubKey);
+            uint256 h_sig = jsdesc.h_sig(*pgemlinkParams, tx.joinSplitPubKey);
 
             ZCPaymentDisclosureNoteDecryption decrypter;
 
@@ -280,9 +274,9 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
             string memoHexString = HexStr(npt.memo().data(), npt.memo().data() + npt.memo().size());
             o.push_back(Pair("memo", memoHexString));
             o.push_back(Pair("value", ValueFromAmount(npt.value())));
-            
+
             // Check the blockchain commitment matches decrypted note commitment
-            uint256 cm_blockchain =  jsdesc.commitments[pd.payload.n];
+            uint256 cm_blockchain = jsdesc.commitments[pd.payload.n];
             SproutNote note = npt.note(zaddr);
             uint256 cm_decrypted = note.cm();
             bool cm_match = (cm_decrypted == cm_blockchain);
@@ -290,8 +284,8 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
             if (!cm_match) {
                 errs.push_back("Commitment derived from payment disclosure does not match blockchain commitment");
             }
-        } catch (const std::exception &e) {
-            errs.push_back(string("Error while decrypting payment disclosure note: ") + string(e.what()) );
+        } catch (const std::exception& e) {
+            errs.push_back(string("Error while decrypting payment disclosure note: ") + string(e.what()));
         }
     }
 

@@ -6,7 +6,7 @@
 #ifndef BITCOIN_UNDO_H
 #define BITCOIN_UNDO_H
 
-#include "compressor.h" 
+#include "compressor.h"
 #include "primitives/transaction.h"
 #include "serialize.h"
 
@@ -25,18 +25,20 @@ public:
     int nVersion;         // if the outpoint was the last unspent: its version
 
     CTxInUndo() : txout(), fCoinBase(false), nHeight(0), nVersion(0) {}
-    CTxInUndo(const CTxOut &txoutIn, bool fCoinBaseIn = false, unsigned int nHeightIn = 0, int nVersionIn = 0) : txout(txoutIn), fCoinBase(fCoinBaseIn), nHeight(nHeightIn), nVersion(nVersionIn) { }
+    CTxInUndo(const CTxOut& txoutIn, bool fCoinBaseIn = false, unsigned int nHeightIn = 0, int nVersionIn = 0) : txout(txoutIn), fCoinBase(fCoinBaseIn), nHeight(nHeightIn), nVersion(nVersionIn) {}
 
-    template<typename Stream>
-    void Serialize(Stream &s) const {
-        ::Serialize(s, VARINT(nHeight*2+(fCoinBase ? 1 : 0)));
+    template <typename Stream>
+    void Serialize(Stream& s) const
+    {
+        ::Serialize(s, VARINT(nHeight * 2 + (fCoinBase ? 1 : 0)));
         if (nHeight > 0)
             ::Serialize(s, VARINT(this->nVersion));
         ::Serialize(s, CTxOutCompressor(REF(txout)));
     }
 
-    template<typename Stream>
-    void Unserialize(Stream &s) {
+    template <typename Stream>
+    void Unserialize(Stream& s)
+    {
         unsigned int nCode = 0;
         ::Unserialize(s, VARINT(nCode));
         nHeight = nCode / 2;
@@ -57,7 +59,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(vprevout);
     }
 };
@@ -72,7 +75,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(vtxundo);
         READWRITE(old_sprout_tree_root);
     }

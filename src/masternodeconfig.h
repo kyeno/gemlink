@@ -53,7 +53,7 @@ public:
             return outputIndex;
         }
 
-        bool castOutputIndex(int& n);
+        bool castOutputIndex(int& n) const;
 
         void setOutputIndex(const std::string& outputIndex)
         {
@@ -98,8 +98,9 @@ public:
 
     void clear();
     bool read(std::string& strErr);
-    void add(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex);
-
+    CMasternodeConfig::CMasternodeEntry* add(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex);
+    void remove(std::string alias);
+    
     std::vector<CMasternodeEntry>& getEntries()
     {
         return entries;
@@ -108,8 +109,9 @@ public:
     int getCount()
     {
         int c = -1;
-        BOOST_FOREACH (CMasternodeEntry e, entries) {
-            if (e.getAlias() != "") c++;
+        for (CMasternodeEntry e : entries) {
+            if (e.getAlias() != "")
+                c++;
         }
         return c;
     }

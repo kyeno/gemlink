@@ -6,10 +6,10 @@
 #include "amqpnotificationinterface.h"
 #include "amqppublishnotifier.h"
 
-#include "version.h"
 #include "main.h"
 #include "streams.h"
 #include "util.h"
+#include "version.h"
 
 // AMQP 1.0 Support
 //
@@ -40,7 +40,7 @@ AMQPNotificationInterface::~AMQPNotificationInterface()
     }
 }
 
-AMQPNotificationInterface* AMQPNotificationInterface::CreateWithArguments(const std::map<std::string, std::string> &args)
+AMQPNotificationInterface* AMQPNotificationInterface::CreateWithArguments(const std::map<std::string, std::string>& args)
 {
     AMQPNotificationInterface* notificationInterface = nullptr;
     std::map<std::string, AMQPNotifierFactory> factories;
@@ -51,12 +51,12 @@ AMQPNotificationInterface* AMQPNotificationInterface::CreateWithArguments(const 
     factories["pubrawblock"] = AMQPAbstractNotifier::Create<AMQPPublishRawBlockNotifier>;
     factories["pubrawtx"] = AMQPAbstractNotifier::Create<AMQPPublishRawTransactionNotifier>;
 
-    for (std::map<std::string, AMQPNotifierFactory>::const_iterator i=factories.begin(); i!=factories.end(); ++i) {
+    for (std::map<std::string, AMQPNotifierFactory>::const_iterator i = factories.begin(); i != factories.end(); ++i) {
         std::map<std::string, std::string>::const_iterator j = args.find("-amqp" + i->first);
-        if (j!=args.end()) {
+        if (j != args.end()) {
             AMQPNotifierFactory factory = i->second;
             std::string address = j->second;
-            AMQPAbstractNotifier *notifier = factory();
+            AMQPAbstractNotifier* notifier = factory();
             notifier->SetType(i->first);
             notifier->SetAddress(address);
             notifiers.push_back(notifier);
@@ -83,7 +83,7 @@ bool AMQPNotificationInterface::Initialize()
 
     std::list<AMQPAbstractNotifier*>::iterator i = notifiers.begin();
     for (; i != notifiers.end(); ++i) {
-        AMQPAbstractNotifier *notifier = *i;
+        AMQPAbstractNotifier* notifier = *i;
         if (notifier->Initialize()) {
             LogPrint("amqp", "amqp: Notifier %s ready (address = %s)\n", notifier->GetType(), notifier->GetAddress());
         } else {
@@ -105,15 +105,15 @@ void AMQPNotificationInterface::Shutdown()
     LogPrint("amqp", "amqp: Shutdown notification interface\n");
 
     for (std::list<AMQPAbstractNotifier*>::iterator i = notifiers.begin(); i != notifiers.end(); ++i) {
-        AMQPAbstractNotifier *notifier = *i;
+        AMQPAbstractNotifier* notifier = *i;
         notifier->Shutdown();
     }
 }
 
-void AMQPNotificationInterface::UpdatedBlockTip(const CBlockIndex *pindex)
+void AMQPNotificationInterface::UpdatedBlockTip(const CBlockIndex* pindex)
 {
-    for (std::list<AMQPAbstractNotifier*>::iterator i = notifiers.begin(); i != notifiers.end(); ) {
-        AMQPAbstractNotifier *notifier = *i;
+    for (std::list<AMQPAbstractNotifier*>::iterator i = notifiers.begin(); i != notifiers.end();) {
+        AMQPAbstractNotifier* notifier = *i;
         if (notifier->NotifyBlock(pindex)) {
             i++;
         } else {
@@ -123,10 +123,10 @@ void AMQPNotificationInterface::UpdatedBlockTip(const CBlockIndex *pindex)
     }
 }
 
-void AMQPNotificationInterface::SyncTransaction(const CTransaction &tx, const CBlock *pblock)
+void AMQPNotificationInterface::SyncTransaction(const CTransaction& tx, const CBlock* pblock)
 {
-    for (std::list<AMQPAbstractNotifier*>::iterator i = notifiers.begin(); i != notifiers.end(); ) {
-        AMQPAbstractNotifier *notifier = *i;
+    for (std::list<AMQPAbstractNotifier*>::iterator i = notifiers.begin(); i != notifiers.end();) {
+        AMQPAbstractNotifier* notifier = *i;
         if (notifier->NotifyTransaction(tx)) {
             i++;
         } else {

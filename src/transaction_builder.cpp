@@ -30,7 +30,8 @@ bool TransactionBuilderResult::IsTx() { return maybeTx != boost::none; }
 
 bool TransactionBuilderResult::IsError() { return maybeError != boost::none; }
 
-CTransaction TransactionBuilderResult::GetTxOrThrow() {
+CTransaction TransactionBuilderResult::GetTxOrThrow()
+{
     if (maybeTx) {
         return maybeTx.get();
     } else {
@@ -38,7 +39,8 @@ CTransaction TransactionBuilderResult::GetTxOrThrow() {
     }
 }
 
-std::string TransactionBuilderResult::GetError() {
+std::string TransactionBuilderResult::GetError()
+{
     if (maybeError) {
         return maybeError.get();
     } else {
@@ -48,9 +50,8 @@ std::string TransactionBuilderResult::GetError() {
 }
 
 // This exception is thrown in certain scenarios when building JoinSplits fails.
-struct JSDescException : public std::exception
-{
-    JSDescException (const std::string msg_) : msg(msg_) {}
+struct JSDescException : public std::exception {
+    JSDescException(const std::string msg_) : msg(msg_) {}
 
     const char* what() { return msg.c_str(); }
 
@@ -65,13 +66,12 @@ TransactionBuilder::TransactionBuilder(
     CKeyStore* keystore,
     ZCJoinSplit* sproutParams,
     CCoinsViewCache* coinsView,
-    CCriticalSection* cs_coinsView) :
-    consensusParams(consensusParams),
-    nHeight(nHeight),
-    keystore(keystore),
-    sproutParams(sproutParams),
-    coinsView(coinsView),
-    cs_coinsView(cs_coinsView)
+    CCriticalSection* cs_coinsView) : consensusParams(consensusParams),
+                                      nHeight(nHeight),
+                                      keystore(keystore),
+                                      sproutParams(sproutParams),
+                                      coinsView(coinsView),
+                                      cs_coinsView(cs_coinsView)
 {
     mtx = CreateNewContextualCMutableTransaction(consensusParams, nHeight);
 }
@@ -316,13 +316,19 @@ TransactionBuilderResult TransactionBuilder::Build()
         auto enc = res.get();
         auto encryptor = enc.second;
 
+        libzcash::SaplingPaymentAddress address(output.note.d, output.note.pk_d);
+        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+        ss << address;
+        std::vector<unsigned char> addressBytes(ss.begin(), ss.end());
+
+        uint256 rcm = output.note.r;
+
         OutputDescription odesc;
         if (!librustzcash_sapling_output_proof(
                 ctx,
                 encryptor.get_esk().begin(),
-                output.note.d.data(),
-                output.note.pk_d.begin(),
-                output.note.r.begin(),
+                addressBytes.data(),
+                rcm.begin(),
                 output.note.value(),
                 odesc.cv.begin(),
                 odesc.zkproof.begin())) {
@@ -397,19 +403,17 @@ TransactionBuilderResult TransactionBuilder::Build()
 
     // Create Sprout joinSplitSig
     if (crypto_sign_detached(
-        mtx.joinSplitSig.data(), NULL,
-        dataToBeSigned.begin(), 32,
-        joinSplitPrivKey) != 0)
-    {
+            mtx.joinSplitSig.data(), NULL,
+            dataToBeSigned.begin(), 32,
+            joinSplitPrivKey) != 0) {
         return TransactionBuilderResult("Failed to create Sprout joinSplitSig");
     }
 
     // Sanity check Sprout joinSplitSig
     if (crypto_sign_verify_detached(
-        mtx.joinSplitSig.data(),
-        dataToBeSigned.begin(), 32,
-        mtx.joinSplitPubKey.begin()) != 0)
-    {
+            mtx.joinSplitSig.data(),
+            dataToBeSigned.begin(), 32,
+            mtx.joinSplitPubKey.begin()) != 0) {
         return TransactionBuilderResult("Sprout joinSplitSig sanity check failed");
     }
 
@@ -685,27 +689,27 @@ void TransactionBuilder::CreateJSDescription(
     std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap)
 {
     LogPrint("zrpcunsafe", "CreateJSDescription: creating joinsplit at index %d (vpub_old=%s, vpub_new=%s, in[0]=%s, in[1]=%s, out[0]=%s, out[1]=%s)\n",
-        mtx.vjoinsplit.size(),
-        FormatMoney(vpub_old), FormatMoney(vpub_new),
-        FormatMoney(vjsin[0].note.value()), FormatMoney(vjsin[1].note.value()),
-        FormatMoney(vjsout[0].value), FormatMoney(vjsout[1].value));
+             mtx.vjoinsplit.size(),
+             FormatMoney(vpub_old), FormatMoney(vpub_new),
+             FormatMoney(vjsin[0].note.value()), FormatMoney(vjsin[1].note.value()),
+             FormatMoney(vjsout[0].value), FormatMoney(vjsout[1].value));
 
     uint256 esk; // payment disclosure - secret
 
     // Generate the proof, this can take over a minute.
     assert(mtx.fOverwintered && (mtx.nVersion >= SAPLING_TX_VERSION));
     JSDescription jsdesc = JSDescription::Randomized(
-            *sproutParams,
-            mtx.joinSplitPubKey,
-            vjsin[0].witness.root(),
-            vjsin,
-            vjsout,
-            inputMap,
-            outputMap,
-            vpub_old,
-            vpub_new,
-            true, //!this->testmode,
-            &esk); // parameter expects pointer to esk, so pass in address
+        *sproutParams,
+        mtx.joinSplitPubKey,
+        vjsin[0].witness.root(),
+        vjsin,
+        vjsout,
+        inputMap,
+        outputMap,
+        vpub_old,
+        vpub_new,
+        true,  //! this->testmode,
+        &esk); // parameter expects pointer to esk, so pass in address
 
     {
         auto verifier = libzcash::ProofVerifier::Strict();

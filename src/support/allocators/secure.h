@@ -1,12 +1,13 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2013 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #ifndef BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
 #define BITCOIN_SUPPORT_ALLOCATORS_SECURE_H
 
-#include "support/pagelocker.h"
+#include "support/cleanse.h"
+#include "support/lockedpool.h"
 
 #include <string>
 
@@ -39,24 +40,22 @@ struct secure_allocator : public std::allocator<T> {
 
     T* allocate(std::size_t n, const void* hint = 0)
     {
-        T* p;
-        p = std::allocator<T>::allocate(n, hint);
-        if (p != NULL)
-            LockedPageManager::Instance().LockRange(p, sizeof(T) * n);
-        return p;
+        T* allocation = static_cast<T*>(LockedPoolManager::Instance().alloc(sizeof(T) * n));
+        if (!allocation) {
+            throw std::bad_alloc();
+        }
+        return allocation;
     }
 
-    void deallocate(T* p, std::size_t n)
+    void deallocate(T* p, std::size_t n) noexcept
     {
-        if (p != NULL) {
-            memory_cleanse(p, sizeof(T) * n);
-            LockedPageManager::Instance().UnlockRange(p, sizeof(T) * n);
-        }
-        std::allocator<T>::deallocate(p, n);
+        assert(p != nullptr);
+        memory_cleanse(p, sizeof(T) * n);
+        LockedPoolManager::Instance().free(p);
     }
 };
 
 // This is exactly like std::string, but with a custom allocator.
-typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char> > SecureString;
+typedef std::basic_string<char, std::char_traits<char>, secure_allocator<char>> SecureString;
 
 #endif // BITCOIN_SUPPORT_ALLOCATORS_SECURE_H

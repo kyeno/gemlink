@@ -44,8 +44,8 @@ static void TestBlockSubsidyHalvings(int nSubsidySlowStartInterval, int nSubsidy
 BOOST_AUTO_TEST_CASE(block_subsidy_test)
 {
     TestBlockSubsidyHalvings(Params(CBaseChainParams::MAIN).GetConsensus()); // As in main
-    TestBlockSubsidyHalvings(50, 150); // As in regtest
-    TestBlockSubsidyHalvings(500, 1000); // Just another interval
+    TestBlockSubsidyHalvings(50, 150);                                       // As in regtest
+    TestBlockSubsidyHalvings(500, 1000);                                     // Just another interval
 }
 
 BOOST_AUTO_TEST_CASE(subsidy_limit_test)
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
     const Consensus::Params& consensusParams = Params(CBaseChainParams::MAIN).GetConsensus();
     CAmount nSum = 0;
     // Mining slow start
-    for (int nHeight = 0; nHeight < consensusParams.nSubsidySlowStartInterval; nHeight ++) {
+    for (int nHeight = 0; nHeight < consensusParams.nSubsidySlowStartInterval; nHeight++) {
         CAmount nSubsidy = GetBlockSubsidy(nHeight, consensusParams);
         BOOST_CHECK(nSubsidy <= 12.5 * COIN);
         nSum += nSubsidy;
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
     }
     BOOST_CHECK_EQUAL(nSum, 12500000000000ULL);
     // Remainder of first period
-    for (int nHeight = consensusParams.nSubsidySlowStartInterval; nHeight < consensusParams.nSubsidyHalvingInterval + consensusParams.SubsidySlowStartShift(); nHeight ++) {
+    for (int nHeight = consensusParams.nSubsidySlowStartInterval; nHeight < consensusParams.nSubsidyHalvingInterval + consensusParams.SubsidySlowStartShift(); nHeight++) {
         CAmount nSubsidy = GetBlockSubsidy(nHeight, consensusParams);
         BOOST_CHECK(nSubsidy <= 12.5 * COIN);
         nSum += nSubsidy;
@@ -77,10 +77,10 @@ BOOST_AUTO_TEST_CASE(subsidy_limit_test)
     }
     // Changing the block interval from 10 to 2.5 minutes causes truncation
     // effects to occur earlier (from the 9th halving interval instead of the
-    // 11th), decreasing the total monetary supply by 0.0693 TENT. If the
+    // 11th), decreasing the total monetary supply by 0.0693 GLINK. If the
     // transaction output field is widened, this discrepancy will become smaller
     // or disappear entirely.
-    //BOOST_CHECK_EQUAL(nSum, 2099999997690000ULL);
+    // BOOST_CHECK_EQUAL(nSum, 2099999997690000ULL);
     BOOST_CHECK_EQUAL(nSum, 2099999990760000ULL);
 }
 
@@ -89,7 +89,7 @@ bool ReturnTrue() { return true; }
 
 BOOST_AUTO_TEST_CASE(test_combiner_all)
 {
-    boost::signals2::signal<bool (), CombinerAll> Test;
+    boost::signals2::signal<bool(), CombinerAll> Test;
     BOOST_CHECK(Test());
     Test.connect(&ReturnFalse);
     BOOST_CHECK(!Test());

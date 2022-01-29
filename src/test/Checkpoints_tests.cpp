@@ -8,9 +8,9 @@
 
 #include "checkpoints.h"
 
-#include "uint256.h"
-#include "test/test_bitcoin.h"
 #include "chainparams.h"
+#include "test/test_bitcoin.h"
+#include "uint256.h"
 
 #include <boost/test/unit_test.hpp>
 

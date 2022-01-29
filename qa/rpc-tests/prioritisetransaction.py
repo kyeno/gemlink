@@ -1,12 +1,17 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # Copyright (c) 2017 The Zcash developers
-# Copyright (c) 2017-2018 The SnowGem developers
 # Distributed under the MIT software license, see the accompanying
-# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+# file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, initialize_chain_clean, \
-    start_node, connect_nodes
+from test_framework.util import (
+    assert_equal,
+    connect_nodes,
+    initialize_chain_clean,
+    start_node,
+    sync_blocks,
+    sync_mempools,
+)
 from test_framework.mininode import COIN
 
 import time
@@ -30,7 +35,7 @@ class PrioritiseTransactionTest (BitcoinTestFramework):
     def run_test (self):
         # tx priority is calculated: priority = sum(input_value_in_base_units * input_age)/size_in_bytes
 
-        print "Mining 11kb blocks..."
+        print("Mining 11kb blocks...")
         self.nodes[0].generate(501)
 
         base_fee = self.nodes[0].getnetworkinfo()['relayfee']
@@ -40,7 +45,11 @@ class PrioritiseTransactionTest (BitcoinTestFramework):
         for _ in range(900):
             self.nodes[0].sendtoaddress(taddr, 0.1)
         self.nodes[0].generate(1)
-        self.sync_all()
+        sync_blocks(self.nodes)
+        # With a rate of either 7tx/s or 14tx/s per peer (depending on whether
+        # the connection is inbound or outbound), syncing this many transactions
+        # could take up to 128s. So use a higher timeout on the mempool sync.
+        sync_mempools(self.nodes, timeout=200)
 
         # Create tx of lower value to be prioritized on node 0
         # Older transactions get mined first, so this lower value, newer tx is unlikely to be mined without prioritisation

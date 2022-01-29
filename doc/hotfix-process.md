@@ -1,5 +1,4 @@
-Hotfix Release Process
-======================
+# Hotfix Release Process
 
 Hotfix releases are versioned by incrementing the build number of the latest
 release. For example:
@@ -16,7 +15,7 @@ Create a hotfix branch from the previous release tag, and push it to the main
 repository:
 
     $ git branch hotfix-<RELEASE> <RELEASE_PREV>
-    $ git push 'git@github.com:snowgem/snowgem' hotfix-<RELEASE>
+    $ git push 'git@github.com:gemlink/gemlink' hotfix-<RELEASE>
 
 ## Implement hotfix changes
 
@@ -37,7 +36,7 @@ following process should be used to merge:
   pr-merge builder, clicking the "force" button, and entering the following
   values:
 
-  - Repository: https://github.com/<DevUser>/snowgem
+  - Repository: https://github.com/<DevUser>/gemlink
     - <DevUser> must be in the set of "safe" users as-specified in the CI
       config.
   - Branch: name of the hotfix PR branch (not the hotfix release branch).
@@ -53,11 +52,11 @@ However, there are a few notable differences:
 
 - When running the release script, use the `--hotfix` flag:
 
-    $ ./zcutil/make-release.py --hotfix <RELEASE> <RELEASE_PREV> <APPROX_RELEASE_HEIGHT>
+  $ ./zcutil/make-release.py --hotfix <RELEASE> <RELEASE_PREV> <APPROX_RELEASE_HEIGHT>
 
 - To review the automated changes in git:
 
-    $ git log hotfix-<RELEASE>..HEAD
+  $ git log hotfix-<RELEASE>..HEAD
 
 - After the standard review process, use the hotfix merge process outlined above
   instead of the regular merge process.

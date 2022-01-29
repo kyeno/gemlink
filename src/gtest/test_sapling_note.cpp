@@ -4,14 +4,14 @@
 #include "zcash/Note.hpp"
 
 #include "amount.h"
-#include "random.h"
 #include "librustzcash.h"
+#include "random.h"
 
 #include <array>
 
 using namespace libzcash;
 
-// Test data from https://github.com/snowgem-hackworks/snowgem-test-vectors/blob/master/sapling_key_components.py
+// Test data from https://github.com/gemlink-hackworks/gemlink-test-vectors/blob/master/sapling_key_components.py
 TEST(SaplingNote, TestVectors)
 {
     uint64_t v = 0;

@@ -6,8 +6,8 @@
 
 #include "crypto/common.h"
 
-#include <string.h>
 #include <stdexcept>
+#include <string.h>
 
 // Internal implementation code.
 namespace

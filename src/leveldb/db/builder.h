@@ -7,7 +7,8 @@
 
 #include "leveldb/status.h"
 
-namespace leveldb {
+namespace leveldb
+{
 
 struct Options;
 struct FileMetaData;
@@ -29,6 +30,6 @@ extern Status BuildTable(const std::string& dbname,
                          Iterator* iter,
                          FileMetaData* meta);
 
-}  // namespace leveldb
+} // namespace leveldb
 
-#endif  // STORAGE_LEVELDB_DB_BUILDER_H_
+#endif // STORAGE_LEVELDB_DB_BUILDER_H_

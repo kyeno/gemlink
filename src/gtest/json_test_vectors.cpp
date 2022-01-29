@@ -5,8 +5,7 @@ read_json(const std::string& jsondata)
 {
     UniValue v;
 
-    if (!(v.read(jsondata) && v.isArray()))
-    {
+    if (!(v.read(jsondata) && v.isArray())) {
         ADD_FAILURE();
         return UniValue(UniValue::VARR);
     }

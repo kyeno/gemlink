@@ -14,6 +14,8 @@
 #include <memenv.h>
 #include <stdint.h>
 
+#include <boost/scoped_ptr.hpp>
+
 static leveldb::Options GetOptions(size_t nCacheSize)
 {
     leveldb::Options options;
@@ -87,7 +89,8 @@ bool CDBIterator::Valid() { return piter->Valid(); }
 void CDBIterator::SeekToFirst() { piter->SeekToFirst(); }
 void CDBIterator::Next() { piter->Next(); }
 
-namespace dbwrapper_private {
+namespace dbwrapper_private
+{
 
 void HandleError(const leveldb::Status& status)
 {
@@ -103,4 +106,4 @@ void HandleError(const leveldb::Status& status)
     throw dbwrapper_error("Unknown database error");
 }
 
-};
+}; // namespace dbwrapper_private

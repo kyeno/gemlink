@@ -1,6 +1,6 @@
 ---
-- name: Configure a Buildbot worker for Snowgem CI
-  hosts: snowgem-ci-worker-unix
+- name: Configure a Buildbot worker for Gemlink CI
+  hosts: gemlink-ci-worker-unix
   become: true
   gather_facts: False
 
@@ -11,7 +11,7 @@
   vars_prompt:
     - name: "buildbot_worker_admin"
       prompt: "Admin details"
-      default: "Snowgem <sysadmin@snowgem.org>"
+      default: "Gemlink <sysadmin@gemlink.org>"
     - name: "buildbot_worker_name"
       prompt: "Buildbot worker name (provided by SNGC)"
       private: no

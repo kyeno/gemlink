@@ -5,5 +5,5 @@ int GenZero(int n)
 
 int GenMax(int n)
 {
-    return n-1;
+    return n - 1;
 }
