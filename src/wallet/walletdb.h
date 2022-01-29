@@ -11,7 +11,6 @@
 #include "keystore.h"
 #include "wallet/db.h"
 #include "zcash/Address.hpp"
-#include "zcash/zip32.h"
 
 #include <list>
 #include <stdint.h>
@@ -130,7 +129,7 @@ public:
     bool WritePurpose(const std::string& strAddress, const std::string& purpose);
     bool ErasePurpose(const std::string& strAddress);
 
-    bool WriteTx(uint256 hash, const CWalletTx& wtx);
+    bool WriteTx(const CWalletTx& wtx);
     bool EraseTx(uint256 hash);
 
     bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata& keyMeta);
@@ -200,6 +199,11 @@ public:
     bool WriteSproutViewingKey(const libzcash::SproutViewingKey& vk);
     bool EraseSproutViewingKey(const libzcash::SproutViewingKey& vk);
 
+    bool WriteSaplingExtendedFullViewingKey(const libzcash::SaplingExtendedFullViewingKey &extfvk);
+    bool EraseSaplingExtendedFullViewingKey(const libzcash::SaplingExtendedFullViewingKey &extfvk);
+
+    static void IncrementUpdateCounter();
+    static unsigned int GetUpdateCounter();
 private:
     CWalletDB(const CWalletDB&);
     void operator=(const CWalletDB&);

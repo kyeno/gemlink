@@ -28,6 +28,18 @@
 
 static EhSolverCancelledException solver_cancelled;
 
+#ifdef ENABLE_MINING
+void Update(const unsigned char *input, size_t inputLen)
+{
+    blake2b_update(inner.get(), input, inputLen);
+}
+
+void Finalize(unsigned char *hash, size_t hLen)
+{
+    blake2b_finalize(inner.get(), hash, hLen);
+}
+#endif
+
 template <unsigned int N, unsigned int K>
 int Equihash<N, K>::InitialiseState(eh_HashState& base_state)
 {

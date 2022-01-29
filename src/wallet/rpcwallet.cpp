@@ -25,7 +25,6 @@
 #include "zcbenchmarks.h"
 
 #include "script/interpreter.h"
-#include "zcash/zip32.h"
 
 // need to put it here
 #include "coincontrol.h"
@@ -3159,7 +3158,7 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
         vpub_new);
 
     {
-        auto verifier = libzcash::ProofVerifier::Strict();
+        auto verifier = ProofVerifier::Strict();
         assert(jsdesc.Verify(*pgemlinkParams, verifier, joinSplitPubKey));
     }
 
@@ -3387,17 +3386,22 @@ CAmount getBalanceTaddr(std::string transparentAddress, int minDepth, bool ignor
     return balance;
 }
 
-CAmount getBalanceZaddr(std::string address, int minDepth, bool ignoreUnspendable)
-{
+CAmount getBalanceZaddr(std::optional<libzcash::PaymentAddress> address, int minDepth, int maxDepth, bool ignoreUnspendable) {
     CAmount balance = 0;
     std::vector<SproutNoteEntry> sproutEntries;
     std::vector<SaplingNoteEntry> saplingEntries;
     LOCK2(cs_main, pwalletMain->cs_wallet);
-    pwalletMain->GetFilteredNotes(sproutEntries, saplingEntries, address, minDepth, true, ignoreUnspendable);
-    for (auto& entry : sproutEntries) {
+
+    std::optional<AddrSet> noteFilter = std::nullopt;
+    if (address.has_value()) {
+        noteFilter = AddrSet::ForPaymentAddresses(std::vector({address.value()}));
+    }
+
+    pwalletMain->GetFilteredNotes(sproutEntries, saplingEntries, noteFilter, minDepth, maxDepth, true, ignoreUnspendable);
+    for (auto & entry : sproutEntries) {
         balance += CAmount(entry.note.value());
     }
-    for (auto& entry : saplingEntries) {
+    for (auto & entry : saplingEntries) {
         balance += CAmount(entry.note.value());
     }
     return balance;

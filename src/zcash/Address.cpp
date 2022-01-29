@@ -1,140 +1,75 @@
 #include "Address.hpp"
-#include "NoteEncryption.hpp"
-#include "hash.h"
-#include "prf.h"
-#include "streams.h"
 
-#include <librustzcash.h>
+#include <algorithm>
 
-const unsigned char SNOWGEM_SAPLING_FVFP_PERSONALIZATION[crypto_generichash_blake2b_PERSONALBYTES] =
-    {'Z', 'c', 'a', 's', 'h', 'S', 'a', 'p', 'l', 'i', 'n', 'g', 'F', 'V', 'F', 'P'};
+using namespace std;
 
-namespace libzcash
-{
+const uint8_t ZCASH_UA_TYPECODE_P2PKH = 0x00;
+const uint8_t ZCASH_UA_TYPECODE_P2SH = 0x01;
+const uint8_t ZCASH_UA_TYPECODE_SAPLING = 0x02;
 
-uint256 SproutPaymentAddress::GetHash() const
-{
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << *this;
-    return Hash(ss.begin(), ss.end());
+namespace libzcash {
+
+std::vector<const Receiver*> UnifiedAddress::GetSorted() const {
+    std::vector<const libzcash::Receiver*> sorted;
+    for (const auto& receiver : receivers) {
+        sorted.push_back(&receiver);
+    }
+    // TODO: Check how pointers to variants are compared.
+    std::sort(sorted.begin(), sorted.end());
+    return sorted;
 }
 
-uint256 ReceivingKey::pk_enc() const
-{
-    return ZCNoteEncryption::generate_pubkey(*this);
-}
-
-SproutPaymentAddress SproutViewingKey::address() const
-{
-    return SproutPaymentAddress(a_pk, sk_enc.pk_enc());
-}
-
-ReceivingKey SproutSpendingKey::receiving_key() const
-{
-    return ReceivingKey(ZCNoteEncryption::generate_privkey(*this));
-}
-
-SproutViewingKey SproutSpendingKey::viewing_key() const
-{
-    return SproutViewingKey(PRF_addr_a_pk(*this), receiving_key());
-}
-
-SproutSpendingKey SproutSpendingKey::random()
-{
-    return SproutSpendingKey(random_uint252());
-}
-
-SproutPaymentAddress SproutSpendingKey::address() const
-{
-    return viewing_key().address();
-}
-
-//! Sapling
-uint256 SaplingPaymentAddress::GetHash() const
-{
-    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss << *this;
-    return Hash(ss.begin(), ss.end());
-}
-
-SaplingFullViewingKey SaplingExpandedSpendingKey::full_viewing_key() const
-{
-    uint256 ak;
-    uint256 nk;
-    librustzcash_ask_to_ak(ask.begin(), ak.begin());
-    librustzcash_nsk_to_nk(nsk.begin(), nk.begin());
-    return SaplingFullViewingKey(ak, nk, ovk);
-}
-
-SaplingExpandedSpendingKey SaplingSpendingKey::expanded_spending_key() const
-{
-    return SaplingExpandedSpendingKey(PRF_ask(*this), PRF_nsk(*this), PRF_ovk(*this));
-}
-
-SaplingFullViewingKey SaplingSpendingKey::full_viewing_key() const
-{
-    return expanded_spending_key().full_viewing_key();
-}
-
-SaplingIncomingViewingKey SaplingFullViewingKey::in_viewing_key() const
-{
-    uint256 ivk;
-    librustzcash_crh_ivk(ak.begin(), nk.begin(), ivk.begin());
-    return SaplingIncomingViewingKey(ivk);
-}
-
-bool SaplingFullViewingKey::is_valid() const
-{
-    uint256 ivk;
-    librustzcash_crh_ivk(ak.begin(), nk.begin(), ivk.begin());
-    return !ivk.IsNull();
-}
-
-uint256 SaplingFullViewingKey::GetFingerprint() const
-{
-    CBLAKE2bWriter ss(SER_GETHASH, 0, SNOWGEM_SAPLING_FVFP_PERSONALIZATION);
-    ss << *this;
-    return ss.GetHash();
-}
-
-
-SaplingSpendingKey SaplingSpendingKey::random()
-{
-    while (true) {
-        auto sk = SaplingSpendingKey(random_uint256());
-        if (sk.full_viewing_key().is_valid()) {
-            return sk;
+bool UnifiedAddress::AddReceiver(Receiver receiver) {
+    auto typecode = std::visit(TypecodeForReceiver(), receiver);
+    for (const auto& r : receivers) {
+        auto t = std::visit(TypecodeForReceiver(), r);
+        if (
+            (t == typecode) ||
+            (std::holds_alternative<CKeyID>(r) && std::holds_alternative<CScriptID>(receiver)) ||
+            (std::holds_alternative<CScriptID>(r) && std::holds_alternative<CKeyID>(receiver))
+        ) {
+            return false;
         }
     }
+
+    receivers.push_back(receiver);
+    return true;
 }
 
-boost::optional<SaplingPaymentAddress> SaplingIncomingViewingKey::address(diversifier_t d) const
-{
-    uint256 pk_d;
-    if (librustzcash_check_diversifier(d.data())) {
-        librustzcash_ivk_to_pkd(this->begin(), d.data(), pk_d.begin());
-        return SaplingPaymentAddress(d, pk_d);
-    } else {
-        return boost::none;
-    }
+std::pair<std::string, PaymentAddress> AddressInfoFromSpendingKey::operator()(const SproutSpendingKey &sk) const {
+    return std::make_pair("sprout", sk.address());
+}
+std::pair<std::string, PaymentAddress> AddressInfoFromSpendingKey::operator()(const SaplingExtendedSpendingKey &sk) const {
+    return std::make_pair("sapling", sk.DefaultAddress());
 }
 
-SaplingPaymentAddress SaplingSpendingKey::default_address() const
-{
-    // Iterates within default_diversifier to ensure a valid address is returned
-    auto addrOpt = full_viewing_key().in_viewing_key().address(default_diversifier(*this));
-    assert(addrOpt != boost::none);
-    return addrOpt.value();
+std::pair<std::string, PaymentAddress> AddressInfoFromViewingKey::operator()(const SproutViewingKey &sk) const {
+    return std::make_pair("sprout", sk.address());
+}
+std::pair<std::string, PaymentAddress> AddressInfoFromViewingKey::operator()(const SaplingExtendedFullViewingKey &sk) const {
+    return std::make_pair("sapling", sk.DefaultAddress());
 }
 
 } // namespace libzcash
 
-bool IsValidPaymentAddress(const libzcash::PaymentAddress& zaddr)
+uint32_t TypecodeForReceiver::operator()(
+    const libzcash::SaplingPaymentAddress &zaddr) const
 {
-    return zaddr.which() != 0;
+    return ZCASH_UA_TYPECODE_SAPLING;
 }
-
-bool IsValidViewingKey(const libzcash::ViewingKey& vk)
+uint32_t TypecodeForReceiver::operator()(
+    const CScriptID &p2sh) const
 {
-    return vk.which() != 0;
+    return ZCASH_UA_TYPECODE_P2SH;
+}
+uint32_t TypecodeForReceiver::operator()(
+    const CKeyID &p2sh) const
+{
+    return ZCASH_UA_TYPECODE_P2PKH;
+}
+uint32_t TypecodeForReceiver::operator()(
+    const libzcash::UnknownReceiver &unknown) const
+{
+    return unknown.typecode;
 }

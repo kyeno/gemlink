@@ -23,6 +23,7 @@ using namespace std;
 
 void budgetToJSON(const CBudgetProposal* pbudgetProposal, UniValue& bObj, int nCurrentHeight)
 {
+    KeyIO keyIO(Params());
     CTxDestination address1;
     ExtractDestination(pbudgetProposal->GetPayee(), address1);
 
@@ -34,7 +35,7 @@ void budgetToJSON(const CBudgetProposal* pbudgetProposal, UniValue& bObj, int nC
     bObj.push_back(Pair("BlockEnd", (int64_t)pbudgetProposal->GetBlockEnd()));
     bObj.push_back(Pair("TotalPaymentCount", (int64_t)pbudgetProposal->GetTotalPaymentCount()));
     bObj.push_back(Pair("RemainingPaymentCount", (int64_t)pbudgetProposal->GetRemainingPaymentCount(nCurrentHeight)));
-    bObj.push_back(Pair("PaymentAddress", EncodeDestination(address1)));
+    bObj.push_back(Pair("PaymentAddress", keyIO.EncodeDestination(address1)));
     bObj.push_back(Pair("Ratio", pbudgetProposal->GetRatio()));
     bObj.push_back(Pair("Yeas", (int64_t)pbudgetProposal->GetYeas()));
     bObj.push_back(Pair("Nays", (int64_t)pbudgetProposal->GetNays()));
@@ -202,7 +203,8 @@ UniValue preparebudget(const UniValue& params, bool fHelp)
         throw runtime_error("Invalid ending block, starting block + (payment_cycle*payments) must be more than current height.");
 
     std::string strAddress = params[4].get_str();
-    CTxDestination dest = DecodeDestination(strAddress);
+    KeyIO keyIO(Params());
+    CTxDestination dest = keyIO.DecodeDestination(strAddress);
     if (!IsValidDestination(dest))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SnowGem address");
 
@@ -296,9 +298,9 @@ UniValue submitbudget(const UniValue& params, bool fHelp)
 
     if (nBlockEnd < pindexPrev->nHeight)
         throw runtime_error("Invalid ending block, starting block + (payment_cycle*payments) must be more than current height.");
-
+    KeyIO keyIO(Params());
     std::string strAddress = params[4].get_str();
-    CTxDestination dest = DecodeDestination(strAddress);
+    CTxDestination dest = keyIO.DecodeDestination(strAddress);
     if (!IsValidDestination(dest))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid SnowGem address");
 

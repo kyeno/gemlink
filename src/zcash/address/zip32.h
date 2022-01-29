@@ -1,16 +1,18 @@
 // Copyright (c) 2018 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
-#ifndef SNOWGEM_ZIP32_H
-#define SNOWGEM_ZIP32_H
+#ifndef ZCASH_ZCASH_ADDRESS_ZIP32_H
+#define ZCASH_ZCASH_ADDRESS_ZIP32_H
 
 #include "serialize.h"
 #include "support/allocators/secure.h"
 #include "uint256.h"
-#include "zcash/Address.hpp"
+#include "zcash/address/sapling.hpp"
 
-#include <boost/optional.hpp>
+#include <optional>
+#include <string>
+#include <regex>
 
 const uint32_t ZIP32_HARDENED_KEY_LIMIT = 0x80000000;
 const size_t ZIP32_XFVK_SIZE = 169;
@@ -18,8 +20,7 @@ const size_t ZIP32_XSK_SIZE = 169;
 
 typedef std::vector<unsigned char, secure_allocator<unsigned char>> RawHDSeed;
 
-class HDSeed
-{
+class HDSeed {
 private:
     RawHDSeed seed;
 
@@ -46,8 +47,7 @@ public:
 // This is not part of ZIP 32, but is here because it's linked to the HD seed.
 uint256 ovkForShieldingFromTaddr(HDSeed& seed);
 
-namespace libzcash
-{
+namespace libzcash {
 
 typedef blob88 diversifier_index_t;
 
@@ -62,8 +62,7 @@ struct SaplingExtendedFullViewingKey {
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
+    inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(depth);
         READWRITE(parentFVKTag);
         READWRITE(childIndex);
@@ -72,18 +71,17 @@ struct SaplingExtendedFullViewingKey {
         READWRITE(dk);
     }
 
-    boost::optional<SaplingExtendedFullViewingKey> Derive(uint32_t i) const;
+    std::optional<SaplingExtendedFullViewingKey> Derive(uint32_t i) const;
 
     // Returns the first index starting from j that generates a valid
     // payment address, along with the corresponding address. Returns
     // an error if the diversifier space is exhausted.
-    boost::optional<std::pair<diversifier_index_t, libzcash::SaplingPaymentAddress>>
-    Address(diversifier_index_t j) const;
+    std::optional<std::pair<diversifier_index_t, libzcash::SaplingPaymentAddress>>
+        Address(diversifier_index_t j) const;
 
     libzcash::SaplingPaymentAddress DefaultAddress() const;
 
-    friend inline bool operator==(const SaplingExtendedFullViewingKey& a, const SaplingExtendedFullViewingKey& b)
-    {
+    friend inline bool operator==(const SaplingExtendedFullViewingKey& a, const SaplingExtendedFullViewingKey& b) {
         return (
             a.depth == b.depth &&
             a.parentFVKTag == b.parentFVKTag &&
@@ -92,11 +90,10 @@ struct SaplingExtendedFullViewingKey {
             a.fvk == b.fvk &&
             a.dk == b.dk);
     }
-    friend inline bool operator<(const SaplingExtendedFullViewingKey& a, const SaplingExtendedFullViewingKey& b)
-    {
+    friend inline bool operator<(const SaplingExtendedFullViewingKey& a, const SaplingExtendedFullViewingKey& b) {
         return (a.depth < b.depth ||
-                (a.depth == b.depth && a.childIndex < b.childIndex) ||
-                (a.depth == b.depth && a.childIndex == b.childIndex && a.fvk < b.fvk));
+            (a.depth == b.depth && a.childIndex < b.childIndex) ||
+            (a.depth == b.depth && a.childIndex == b.childIndex && a.fvk < b.fvk));
     }
 };
 
@@ -111,8 +108,7 @@ struct SaplingExtendedSpendingKey {
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
+    inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(depth);
         READWRITE(parentFVKTag);
         READWRITE(childIndex);
@@ -132,19 +128,16 @@ struct SaplingExtendedSpendingKey {
     friend bool operator==(const SaplingExtendedSpendingKey& a, const SaplingExtendedSpendingKey& b)
     {
         return a.depth == b.depth &&
-               a.parentFVKTag == b.parentFVKTag &&
-               a.childIndex == b.childIndex &&
-               a.chaincode == b.chaincode &&
-               a.expsk == b.expsk &&
-               a.dk == b.dk;
+            a.parentFVKTag == b.parentFVKTag &&
+            a.childIndex == b.childIndex &&
+            a.chaincode == b.chaincode &&
+            a.expsk == b.expsk &&
+            a.dk == b.dk;
     }
 };
 
-typedef boost::variant<InvalidEncoding, SproutSpendingKey, SaplingExtendedSpendingKey> SpendingKey;
+std::optional<unsigned long> ParseZip32KeypathAccount(const std::string& keyPath);
 
-} // namespace libzcash
+}
 
-/** Check whether a SpendingKey is not an InvalidEncoding. */
-bool IsValidSpendingKey(const libzcash::SpendingKey& zkey);
-
-#endif // SNOWGEM_ZIP32_H
+#endif // ZCASH_ZCASH_ADDRESS_ZIP32_H

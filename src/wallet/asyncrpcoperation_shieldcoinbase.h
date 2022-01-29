@@ -7,6 +7,7 @@
 
 #include "amount.h"
 #include "asyncrpcoperation.h"
+#include "policy/fees.h"
 #include "primitives/transaction.h"
 #include "transaction_builder.h"
 #include "wallet.h"
@@ -47,8 +48,8 @@ public:
         TransactionBuilder builder,
         CMutableTransaction contextualTx,
         std::vector<ShieldCoinbaseUTXO> inputs,
-        std::string toAddress,
-        CAmount fee = SHIELD_COINBASE_DEFAULT_MINERS_FEE,
+        PaymentAddress toAddress,
+        CAmount fee = DEFAULT_FEE,
         UniValue contextInfo = NullUniValue);
     virtual ~AsyncRPCOperation_shieldcoinbase();
 
@@ -75,8 +76,8 @@ private:
     CAmount fee_;
     PaymentAddress tozaddr_;
 
-    uint256 joinSplitPubKey_;
-    unsigned char joinSplitPrivKey_[crypto_sign_SECRETKEYBYTES];
+    Ed25519VerificationKey joinSplitPubKey_;
+    Ed25519SigningKey joinSplitPrivKey_;
 
     std::vector<ShieldCoinbaseUTXO> inputs_;
 
@@ -107,9 +108,11 @@ private:
 public:
     ShieldToAddress(AsyncRPCOperation_shieldcoinbase* op, CAmount sendAmount) : m_op(op), sendAmount(sendAmount) {}
 
-    bool operator()(const libzcash::SproutPaymentAddress& zaddr) const;
-    bool operator()(const libzcash::SaplingPaymentAddress& zaddr) const;
-    bool operator()(const libzcash::InvalidEncoding& no) const;
+    bool operator()(const CKeyID &zaddr) const;
+    bool operator()(const CScriptID &zaddr) const;
+    bool operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    bool operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    bool operator()(const libzcash::UnifiedAddress &uaddr) const;
 };
 
 

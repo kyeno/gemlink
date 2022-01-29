@@ -16,6 +16,8 @@ class CAutoFile;
 class CFeeRate;
 class CTxMemPoolEntry;
 
+static const CAmount DEFAULT_FEE = 1000;
+
 /** \class CBlockPolicyEstimator
  * The BlockPolicyEstimator is used for estimating the fee or priority needed
  * for a transaction to be included in a block within a certain number of

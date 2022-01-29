@@ -73,6 +73,7 @@ public:
 class TransactionBuilder
 {
 private:
+    std::optional<bool> usingSprout;
     Consensus::Params consensusParams;
     int nHeight;
     const CKeyStore* keystore;
@@ -98,7 +99,6 @@ public:
         const Consensus::Params& consensusParams,
         int nHeight,
         CKeyStore* keyStore = nullptr,
-        ZCJoinSplit* sproutParams = nullptr,
         CCoinsViewCache* coinsView = nullptr,
         CCriticalSection* cs_coinsView = nullptr);
 
@@ -143,6 +143,8 @@ public:
     TransactionBuilderResult Build();
 
 private:
+    void CheckOrSetUsingSprout();
+
     void CreateJSDescriptions();
 
     void CreateJSDescription(
@@ -152,6 +154,38 @@ private:
         std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> vjsout,
         std::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
         std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap);
+};
+
+
+struct JSDescriptionInfo {
+    Ed25519VerificationKey joinSplitPubKey;
+    uint256 anchor;
+    // We store references to these so they are correctly randomised for the caller.
+    std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs;
+    std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs;
+    CAmount vpub_old;
+    CAmount vpub_new;
+
+    JSDescriptionInfo(
+        Ed25519VerificationKey joinSplitPubKey,
+        uint256 anchor,
+        std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
+        std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+        CAmount vpub_old,
+        CAmount vpub_new) : joinSplitPubKey(joinSplitPubKey), anchor(anchor), inputs(inputs), outputs(outputs), vpub_old(vpub_old), vpub_new(vpub_new) {}
+
+    JSDescription BuildDeterministic(
+        bool computeProof = true, // Set to false in some tests
+        uint256* esk = nullptr    // payment disclosure
+    );
+
+    JSDescription BuildRandomized(
+        std::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
+        std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
+        bool computeProof = true, // Set to false in some tests
+        uint256* esk = nullptr,   // payment disclosure
+        std::function<int(int)> gen = GetRandInt
+    );
 };
 
 #endif /* TRANSACTION_BUILDER_H */

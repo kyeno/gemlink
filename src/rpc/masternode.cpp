@@ -101,9 +101,10 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
         CMasternode* mn = mnodeman.Find(s.second.vin);
 
         if (mn != NULL) {
+            KeyIO keyIO(Params());
             if (strFilter != "" && strTxHash.find(strFilter) == string::npos &&
                 mn->Status().find(strFilter) == string::npos &&
-                EncodeDestination(mn->pubKeyCollateralAddress.GetID()).find(strFilter) == string::npos)
+                keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID()).find(strFilter) == string::npos)
                 continue;
 
             std::string strStatus = mn->Status();
@@ -119,7 +120,7 @@ UniValue listmasternodes(const UniValue& params, bool fHelp)
             obj.push_back(Pair("txhash", strTxHash));
             obj.push_back(Pair("outidx", (uint64_t)oIdx));
             obj.push_back(Pair("status", strStatus));
-            obj.push_back(Pair("addr", EncodeDestination(mn->pubKeyCollateralAddress.GetID())));
+            obj.push_back(Pair("addr", keyIO.EncodeDestination(mn->pubKeyCollateralAddress.GetID())));
             obj.push_back(Pair("version", mn->protocolVersion));
             obj.push_back(Pair("lastseen", (int64_t)mn->lastPing.sigTime));
             obj.push_back(Pair("activetime", (int64_t)(mn->lastPing.sigTime - mn->sigTime)));
@@ -265,10 +266,10 @@ UniValue masternodecurrent(const UniValue& params, bool fHelp)
     CMasternode* winner = mnodeman.GetCurrentMasterNode(1);
     if (winner) {
         UniValue obj(UniValue::VOBJ);
-
+        KeyIO keyIO(Params());
         obj.push_back(Pair("protocol", (int64_t)winner->protocolVersion));
         obj.push_back(Pair("txhash", winner->vin.prevout.hash.ToString()));
-        obj.push_back(Pair("pubkey", EncodeDestination(winner->pubKeyCollateralAddress.GetID())));
+        obj.push_back(Pair("pubkey", keyIO.EncodeDestination(winner->pubKeyCollateralAddress.GetID())));
         obj.push_back(Pair("lastseen", (winner->lastPing == CMasternodePing()) ? winner->sigTime : (int64_t)winner->lastPing.sigTime));
         obj.push_back(Pair("activeseconds", (winner->lastPing == CMasternodePing()) ? 0 : (int64_t)(winner->lastPing.sigTime - winner->sigTime)));
         return obj;
@@ -523,8 +524,8 @@ UniValue createmasternodekey(const UniValue& params, bool fHelp)
 
     CKey secret;
     secret.MakeNewKey(false);
-
-    return EncodeSecret(secret);
+    KeyIO keyIO(Params());
+    return keyIO.EncodeSecret(secret);
 }
 
 UniValue getmasternodeoutputs(const UniValue& params, bool fHelp)
@@ -651,11 +652,12 @@ UniValue getmasternodestatus(const UniValue& params, bool fHelp)
     CMasternode* pmn = mnodeman.Find(activeMasternode.vin);
 
     if (pmn) {
+        KeyIO keyIO(Params());
         UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("txhash", activeMasternode.vin.prevout.hash.ToString()));
         obj.push_back(Pair("outputidx", (uint64_t)activeMasternode.vin.prevout.n));
         obj.push_back(Pair("netaddr", activeMasternode.service.ToString()));
-        obj.push_back(Pair("addr", EncodeDestination(pmn->pubKeyCollateralAddress.GetID())));
+        obj.push_back(Pair("addr", keyIO.EncodeDestination(pmn->pubKeyCollateralAddress.GetID())));
         obj.push_back(Pair("status", activeMasternode.GetStatus()));
         obj.push_back(Pair("message", activeMasternode.GetStatusMessage()));
         return obj;
@@ -978,11 +980,11 @@ UniValue decodemasternodebroadcast(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Masternode broadcast message decode failed");
 
     UniValue resultObj(UniValue::VOBJ);
-
+    KeyIO keyIO(Params());
     resultObj.push_back(Pair("vin", mnb.vin.prevout.ToString()));
     resultObj.push_back(Pair("addr", mnb.addr.ToString()));
-    resultObj.push_back(Pair("pubkeycollateral", EncodeDestination(mnb.pubKeyCollateralAddress.GetID())));
-    resultObj.push_back(Pair("pubkeymasternode", EncodeDestination(mnb.pubKeyMasternode.GetID())));
+    resultObj.push_back(Pair("pubkeycollateral", keyIO.EncodeDestination(mnb.pubKeyCollateralAddress.GetID())));
+    resultObj.push_back(Pair("pubkeymasternode", keyIO.EncodeDestination(mnb.pubKeyMasternode.GetID())));
     resultObj.push_back(Pair("vchsig", mnb.GetSignatureBase64()));
     resultObj.push_back(Pair("sigtime", mnb.sigTime));
     resultObj.push_back(Pair("sigvalid", mnb.CheckSignature() ? "true" : "false"));

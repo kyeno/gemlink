@@ -23,6 +23,7 @@ class CKeyID : public uint160
 public:
     CKeyID() : uint160() {}
     CKeyID(const uint160& in) : uint160(in) {}
+    explicit CKeyID(const std::vector<unsigned char>& vch) : uint160(vch) {}
 };
 
 typedef uint256 ChainCode;
@@ -70,6 +71,9 @@ private:
     }
 
 public:
+    bool static ValidSize(const std::vector<unsigned char> &vch) {
+      return vch.size() > 0 && GetLen(vch[0]) == vch.size();
+    }
     //! Construct an invalid public key.
     CPubKey()
     {

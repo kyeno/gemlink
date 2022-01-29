@@ -241,7 +241,8 @@ static void MutateTxAddOutAddr(CMutableTransaction& tx, const std::string& strIn
 
     // extract and validate ADDRESS
     std::string strAddr = strInput.substr(pos + 1, std::string::npos);
-    CTxDestination destination = DecodeDestination(strAddr);
+    KeyIO keyIO(Params());
+    CTxDestination destination = keyIO.DecodeDestination(strAddr);
     if (!IsValidDestination(destination)) {
         throw std::runtime_error("invalid TX output address");
     }

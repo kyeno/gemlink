@@ -6,12 +6,15 @@
 
 #include "main.h"
 #include "pubkey.h"
+#include "proof_verifier.h"
 #include "rpc/protocol.h"
 #include "script/sign.h"
 #include "utilmoneystr.h"
 
 #include <boost/variant.hpp>
 #include <librustzcash.h>
+
+#include <rust/ed25519.h>
 
 SpendDescriptionInfo::SpendDescriptionInfo(
     libzcash::SaplingExpandedSpendingKey expsk,
@@ -64,14 +67,14 @@ TransactionBuilder::TransactionBuilder(
     const Consensus::Params& consensusParams,
     int nHeight,
     CKeyStore* keystore,
-    ZCJoinSplit* sproutParams,
     CCoinsViewCache* coinsView,
-    CCriticalSection* cs_coinsView) : consensusParams(consensusParams),
-                                      nHeight(nHeight),
-                                      keystore(keystore),
-                                      sproutParams(sproutParams),
-                                      coinsView(coinsView),
-                                      cs_coinsView(cs_coinsView)
+    CCriticalSection* cs_coinsView) :
+    usingSprout(std::nullopt),
+    consensusParams(consensusParams),
+    nHeight(nHeight),
+    keystore(keystore),
+    coinsView(coinsView),
+    cs_coinsView(cs_coinsView)
 {
     mtx = CreateNewContextualCMutableTransaction(consensusParams, nHeight);
 }
@@ -129,9 +132,7 @@ void TransactionBuilder::AddSproutInput(
     libzcash::SproutNote note,
     SproutWitness witness)
 {
-    if (sproutParams == nullptr) {
-        throw std::runtime_error("Cannot add Sprout inputs to a TransactionBuilder without Sprout params");
-    }
+    CheckOrSetUsingSprout();
 
     // Consistency check: all anchors must equal the first one
     if (!jsInputs.empty()) {
@@ -148,14 +149,13 @@ void TransactionBuilder::AddSproutOutput(
     CAmount value,
     std::array<unsigned char, ZC_MEMO_SIZE> memo)
 {
-    if (sproutParams == nullptr) {
-        throw std::runtime_error("Cannot add Sprout outputs to a TransactionBuilder without Sprout params");
-    }
+    CheckOrSetUsingSprout();
 
     libzcash::JSOutput jsOutput(to, value);
     jsOutput.memo = memo;
     jsOutputs.push_back(jsOutput);
 }
+
 
 void TransactionBuilder::AddTransparentInput(COutPoint utxo, CScript scriptPubKey, CAmount value)
 {
@@ -353,8 +353,8 @@ TransactionBuilderResult TransactionBuilder::Build()
     // Sprout JoinSplits
     //
 
-    unsigned char joinSplitPrivKey[crypto_sign_SECRETKEYBYTES];
-    crypto_sign_keypair(mtx.joinSplitPubKey.begin(), joinSplitPrivKey);
+    Ed25519SigningKey joinSplitPrivKey;
+    ed25519_generate_keypair(&joinSplitPrivKey, &mtx.joinSplitPubKey);
 
     // Create Sprout JSDescriptions
     if (!jsInputs.empty() || !jsOutputs.empty()) {
@@ -402,18 +402,20 @@ TransactionBuilderResult TransactionBuilder::Build()
     librustzcash_sapling_proving_ctx_free(ctx);
 
     // Create Sprout joinSplitSig
-    if (crypto_sign_detached(
-            mtx.joinSplitSig.data(), NULL,
-            dataToBeSigned.begin(), 32,
-            joinSplitPrivKey) != 0) {
+    if (!ed25519_sign(
+        &joinSplitPrivKey,
+        dataToBeSigned.begin(), 32,
+        &mtx.joinSplitSig))
+    {
         return TransactionBuilderResult("Failed to create Sprout joinSplitSig");
     }
 
     // Sanity check Sprout joinSplitSig
-    if (crypto_sign_verify_detached(
-            mtx.joinSplitSig.data(),
-            dataToBeSigned.begin(), 32,
-            mtx.joinSplitPubKey.begin()) != 0) {
+    if (!ed25519_verify(
+        &mtx.joinSplitPubKey,
+        &mtx.joinSplitSig,
+        dataToBeSigned.begin(), 32))
+    {
         return TransactionBuilderResult("Sprout joinSplitSig sanity check failed");
     }
 
@@ -435,6 +437,23 @@ TransactionBuilderResult TransactionBuilder::Build()
     }
 
     return TransactionBuilderResult(CTransaction(mtx));
+}
+
+void TransactionBuilder::CheckOrSetUsingSprout()
+{
+    if (usingSprout.has_value()) {
+        if (!usingSprout.value()) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Can't use Sprout with a v5 transaction.");
+        }
+    } else {
+        usingSprout = true;
+
+        // Switch if necessary to a Sprout-supporting transaction format.
+        auto txVersionInfo = CurrentTxVersionInfo(consensusParams, nHeight, usingSprout.value());
+        mtx.nVersionGroupId = txVersionInfo.nVersionGroupId;
+        mtx.nVersion        = txVersionInfo.nVersion;
+        mtx.nConsensusBranchId = std::nullopt;
+    }
 }
 
 void TransactionBuilder::CreateJSDescriptions()
@@ -496,7 +515,7 @@ void TransactionBuilder::CreateJSDescriptions()
     CAmount vpubNewTarget = valueOut > 0 ? valueOut : 0;
 
     // Keep track of treestate within this transaction
-    boost::unordered_map<uint256, SproutMerkleTree, CCoinsKeyHasher> intermediates;
+    boost::unordered_map<uint256, SproutMerkleTree, SaltedTxidHasher> intermediates;
     std::vector<uint256> previousCommitments;
 
     while (!vpubNewProcessed) {
@@ -550,7 +569,7 @@ void TransactionBuilder::CreateJSDescriptions()
 
             assert(changeOutputIndex != -1);
             assert(changeOutputIndex < prevJoinSplit.commitments.size());
-            boost::optional<SproutWitness> changeWitness;
+            std::optional<SproutWitness> changeWitness;
             int n = 0;
             for (const uint256& commitment : prevJoinSplit.commitments) {
                 tree.append(commitment);
@@ -558,7 +577,7 @@ void TransactionBuilder::CreateJSDescriptions()
                 if (!changeWitness && changeOutputIndex == n++) {
                     changeWitness = tree.witness();
                 } else if (changeWitness) {
-                    changeWitness.get().append(commitment);
+                    changeWitness.value().append(commitment);
                 }
             }
             assert(changeWitness.has_value());
@@ -567,7 +586,10 @@ void TransactionBuilder::CreateJSDescriptions()
 
             // Decrypt the change note's ciphertext to retrieve some data we need
             ZCNoteDecryption decryptor(changeKey.receiving_key());
-            auto hSig = prevJoinSplit.h_sig(*sproutParams, mtx.joinSplitPubKey);
+            auto hSig = ZCJoinSplit::h_sig(
+                prevJoinSplit.randomSeed,
+                prevJoinSplit.nullifiers,
+                mtx.joinSplitPubKey);
             try {
                 auto plaintext = libzcash::SproutNotePlaintext::decrypt(
                     decryptor,
@@ -577,7 +599,7 @@ void TransactionBuilder::CreateJSDescriptions()
                     (unsigned char)changeOutputIndex);
 
                 auto note = plaintext.note(changeAddress);
-                vjsin[0] = libzcash::JSInput(changeWitness.get(), note, changeKey);
+                vjsin[0] = libzcash::JSInput(changeWitness.value(), note, changeKey);
 
                 jsInputValue += plaintext.value();
 
@@ -664,8 +686,8 @@ void TransactionBuilder::CreateJSDescriptions()
             LogPrint("zrpcunsafe", "generating note for change (amount=%s)\n", FormatMoney(jsChange));
         }
 
-        std::array<uint64_t, ZC_NUM_JS_INPUTS> inputMap;
-        std::array<uint64_t, ZC_NUM_JS_OUTPUTS> outputMap;
+        std::array<size_t, ZC_NUM_JS_INPUTS> inputMap;
+        std::array<size_t, ZC_NUM_JS_OUTPUTS> outputMap;
         CreateJSDescription(vpub_old, vpub_new, vjsin, vjsout, inputMap, outputMap);
 
         if (jsChange > 0) {
@@ -685,35 +707,35 @@ void TransactionBuilder::CreateJSDescription(
     uint64_t vpub_new,
     std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS> vjsin,
     std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> vjsout,
-    std::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
-    std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap)
+    std::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
+    std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap)
 {
     LogPrint("zrpcunsafe", "CreateJSDescription: creating joinsplit at index %d (vpub_old=%s, vpub_new=%s, in[0]=%s, in[1]=%s, out[0]=%s, out[1]=%s)\n",
-             mtx.vjoinsplit.size(),
-             FormatMoney(vpub_old), FormatMoney(vpub_new),
-             FormatMoney(vjsin[0].note.value()), FormatMoney(vjsin[1].note.value()),
-             FormatMoney(vjsout[0].value), FormatMoney(vjsout[1].value));
+        mtx.vjoinsplit.size(),
+        FormatMoney(vpub_old), FormatMoney(vpub_new),
+        FormatMoney(vjsin[0].note.value()), FormatMoney(vjsin[1].note.value()),
+        FormatMoney(vjsout[0].value), FormatMoney(vjsout[1].value));
 
     uint256 esk; // payment disclosure - secret
 
     // Generate the proof, this can take over a minute.
     assert(mtx.fOverwintered && (mtx.nVersion >= SAPLING_TX_VERSION));
-    JSDescription jsdesc = JSDescription::Randomized(
-        *sproutParams,
-        mtx.joinSplitPubKey,
-        vjsin[0].witness.root(),
-        vjsin,
-        vjsout,
-        inputMap,
-        outputMap,
-        vpub_old,
-        vpub_new,
-        true,  //! this->testmode,
-        &esk); // parameter expects pointer to esk, so pass in address
+    JSDescription jsdesc = JSDescriptionInfo(
+            mtx.joinSplitPubKey,
+            vjsin[0].witness.root(),
+            vjsin,
+            vjsout,
+            vpub_old,
+            vpub_new
+    ).BuildRandomized(
+            inputMap,
+            outputMap,
+            true, //!this->testmode,
+            &esk); // parameter expects pointer to esk, so pass in address
 
     {
-        auto verifier = libzcash::ProofVerifier::Strict();
-        if (!jsdesc.Verify(*sproutParams, verifier, mtx.joinSplitPubKey)) {
+        auto verifier = ProofVerifier::Strict();
+        if (!verifier.VerifySprout(jsdesc, mtx.joinSplitPubKey)) {
             throw std::runtime_error("error verifying joinsplit");
         }
     }
@@ -721,4 +743,56 @@ void TransactionBuilder::CreateJSDescription(
     mtx.vjoinsplit.push_back(jsdesc);
 
     // TODO: Sprout payment disclosure
+}
+
+
+JSDescription JSDescriptionInfo::BuildDeterministic(
+    bool computeProof,
+    uint256 *esk // payment disclosure
+) {
+    JSDescription jsdesc;
+    jsdesc.vpub_old = vpub_old;
+    jsdesc.vpub_new = vpub_new;
+    jsdesc.anchor = anchor;
+
+    std::array<libzcash::SproutNote, ZC_NUM_JS_OUTPUTS> notes;
+    jsdesc.proof = ZCJoinSplit::prove(
+        inputs,
+        outputs,
+        notes,
+        jsdesc.ciphertexts,
+        jsdesc.ephemeralKey,
+        joinSplitPubKey,
+        jsdesc.randomSeed,
+        jsdesc.macs,
+        jsdesc.nullifiers,
+        jsdesc.commitments,
+        vpub_old,
+        vpub_new,
+        anchor,
+        computeProof,
+        esk // payment disclosure
+    );
+
+    return jsdesc;
+}
+
+JSDescription JSDescriptionInfo::BuildRandomized(
+    std::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
+    std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
+    bool computeProof,
+    uint256 *esk, // payment disclosure
+    std::function<int(int)> gen
+)
+{
+    // Randomize the order of the inputs and outputs
+    inputMap = {0, 1};
+    outputMap = {0, 1};
+
+    assert(gen);
+
+    MappedShuffle(inputs.begin(), inputMap.begin(), ZC_NUM_JS_INPUTS, gen);
+    MappedShuffle(outputs.begin(), outputMap.begin(), ZC_NUM_JS_OUTPUTS, gen);
+
+    return BuildDeterministic(computeProof, esk);
 }

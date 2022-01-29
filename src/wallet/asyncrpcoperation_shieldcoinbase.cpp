@@ -7,12 +7,14 @@
 #include "asyncrpcqueue.h"
 #include "consensus/upgrades.h"
 #include "core_io.h"
+#include "experimental_features.h"
 #include "init.h"
 #include "key_io.h"
 #include "main.h"
 #include "miner.h"
 #include "net.h"
 #include "netbase.h"
+#include "proof_verifier.h"
 #include "rpc/protocol.h"
 #include "rpc/server.h"
 #include "script/interpreter.h"
@@ -23,6 +25,7 @@
 #include "utiltime.h"
 #include "wallet.h"
 #include "walletdb.h"
+#include "util/match.h"
 #include "zcash/IncrementalMerkleTree.hpp"
 
 #include <array>
@@ -35,6 +38,8 @@
 
 #include "paymentdisclosure.h"
 #include "paymentdisclosuredb.h"
+
+#include <rust/ed25519.h>
 
 using namespace libzcash;
 
@@ -56,15 +61,17 @@ static int find_output(UniValue obj, int n)
     throw std::logic_error("n is not present in outputmap");
 }
 
+
 AsyncRPCOperation_shieldcoinbase::AsyncRPCOperation_shieldcoinbase(
-    TransactionBuilder builder,
-    CMutableTransaction contextualTx,
-    std::vector<ShieldCoinbaseUTXO> inputs,
-    std::string toAddress,
-    CAmount fee,
-    UniValue contextInfo) : builder_(builder), tx_(contextualTx), inputs_(inputs), fee_(fee), contextinfo_(contextInfo)
+        TransactionBuilder builder,
+        CMutableTransaction contextualTx,
+        std::vector<ShieldCoinbaseUTXO> inputs,
+        PaymentAddress toAddress,
+        CAmount fee,
+        UniValue contextInfo) :
+        builder_(builder), tx_(contextualTx), inputs_(inputs), fee_(fee), contextinfo_(contextInfo)
 {
-    assert(contextualTx.nVersion >= 2); // transaction format version must support vjoinsplit
+    assert(contextualTx.nVersion >= 2);  // transaction format version must support vJoinSplit
 
     if (fee < 0 || fee > MAX_MONEY) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is out of range");
@@ -75,12 +82,23 @@ AsyncRPCOperation_shieldcoinbase::AsyncRPCOperation_shieldcoinbase(
     }
 
     //  Check the destination address is valid for this network i.e. not testnet being used on mainnet
-    auto address = DecodePaymentAddress(toAddress);
-    if (IsValidPaymentAddress(address)) {
-        tozaddr_ = address;
-    } else {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid to address");
-    }
+    std::visit(match {
+        [&](CKeyID addr) {
+            throw JSONRPCError(RPC_VERIFY_REJECTED, "Cannot shield coinbase output to a p2pkh address.");
+        },
+        [&](CScriptID addr) {
+            throw JSONRPCError(RPC_VERIFY_REJECTED, "Cannot shield coinbase output to a p2sh address.");
+        },
+        [&](libzcash::SaplingPaymentAddress addr) {
+            tozaddr_ = addr;
+        },
+        [&](libzcash::SproutPaymentAddress addr) {
+            tozaddr_ = addr;
+        },
+        [&](libzcash::UnifiedAddress) {
+            throw JSONRPCError(RPC_VERIFY_REJECTED, "Cannot shield coinbase output to a unified address.");
+        }
+    }, toAddress);
 
     // Log the context info
     if (LogAcceptCategory("zrpcunsafe")) {
@@ -93,8 +111,9 @@ AsyncRPCOperation_shieldcoinbase::AsyncRPCOperation_shieldcoinbase(
     lock_utxos();
 
     // Enable payment disclosure if requested
-    paymentDisclosureMode = fExperimentalMode && GetBoolArg("-paymentdisclosure", false);
+    paymentDisclosureMode = fExperimentalPaymentDisclosure;
 }
+
 
 AsyncRPCOperation_shieldcoinbase::~AsyncRPCOperation_shieldcoinbase()
 {
@@ -221,11 +240,10 @@ bool AsyncRPCOperation_shieldcoinbase::main_impl()
     return boost::apply_visitor(ShieldToAddress(this, sendAmount), tozaddr_);
 }
 
-bool ShieldToAddress::operator()(const libzcash::SproutPaymentAddress& zaddr) const
-{
+bool ShieldToAddress::operator()(const libzcash::SproutPaymentAddress &zaddr) const {
     // update the transaction with these inputs
     CMutableTransaction rawTx(m_op->tx_);
-    for (ShieldCoinbaseUTXO& t : m_op->inputs_) {
+    for (ShieldCoinbaseUTXO & t : m_op->inputs_) {
         CTxIn in(COutPoint(t.txid, t.vout));
         rawTx.vin.push_back(in);
     }
@@ -233,20 +251,21 @@ bool ShieldToAddress::operator()(const libzcash::SproutPaymentAddress& zaddr) co
 
     // Prepare raw transaction to handle JoinSplits
     CMutableTransaction mtx(m_op->tx_);
-    crypto_sign_keypair(m_op->joinSplitPubKey_.begin(), m_op->joinSplitPrivKey_);
+    ed25519_generate_keypair(&m_op->joinSplitPrivKey_, &m_op->joinSplitPubKey_);
     mtx.joinSplitPubKey = m_op->joinSplitPubKey_;
     m_op->tx_ = CTransaction(mtx);
 
     // Create joinsplit
-    UniValue obj(UniValue::VOBJ);
     ShieldCoinbaseJSInfo info;
     info.vpub_old = sendAmount;
     info.vpub_new = 0;
     JSOutput jso = JSOutput(zaddr, sendAmount);
     info.vjsout.push_back(jso);
-    obj = m_op->perform_joinsplit(info);
+    UniValue obj = m_op->perform_joinsplit(info);
 
-    m_op->sign_send_raw_transaction(obj);
+    auto txAndResult = SignSendRawTransaction(obj, std::nullopt, m_op->testmode);
+    m_op->tx_ = txAndResult.first;
+    m_op->set_result(txAndResult.second);
     return true;
 }
 
@@ -282,8 +301,11 @@ bool ShieldToAddress::operator()(const libzcash::SaplingPaymentAddress& zaddr) c
     return true;
 }
 
-bool ShieldToAddress::operator()(const libzcash::InvalidEncoding& no) const
-{
+bool ShieldToAddress::operator()(const CKeyID &addr) const {
+    return false;
+}
+
+bool ShieldToAddress::operator()(const CScriptID &addr) const {
     return false;
 }
 
@@ -400,21 +422,21 @@ UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInf
 
     uint256 esk; // payment disclosure - secret
 
-    JSDescription jsdesc = JSDescription::Randomized(
-        *pgemlinkParams,
-        joinSplitPubKey_,
-        anchor,
-        inputs,
-        outputs,
-        inputMap,
-        outputMap,
-        info.vpub_old,
-        info.vpub_new,
-        !this->testmode,
-        &esk); // parameter expects pointer to esk, so pass in address
+    JSDescription jsdesc = JSDescriptionInfo(
+            joinSplitPubKey_,
+            anchor,
+            inputs,
+            outputs,
+            info.vpub_old,
+            info.vpub_new
+    ).BuildRandomized(
+            inputMap,
+            outputMap,
+            !this->testmode,
+            &esk); // parameter expects pointer to esk, so pass in address
     {
-        auto verifier = libzcash::ProofVerifier::Strict();
-        if (!(jsdesc.Verify(*pgemlinkParams, verifier, joinSplitPubKey_))) {
+        auto verifier = ProofVerifier::Strict();
+        if (!(verifier.VerifySprout(jsdesc, joinSplitPubKey_))) {
             throw std::runtime_error("error verifying joinsplit");
         }
     }
@@ -427,17 +449,21 @@ UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInf
     uint256 dataToBeSigned = SignatureHash(scriptCode, signTx, NOT_AN_INPUT, SIGHASH_ALL, 0, consensusBranchId);
 
     // Add the signature
-    if (!(crypto_sign_detached(&mtx.joinSplitSig[0], NULL,
-                               dataToBeSigned.begin(), 32,
-                               joinSplitPrivKey_) == 0)) {
-        throw std::runtime_error("crypto_sign_detached failed");
+    if (!ed25519_sign(
+        &joinSplitPrivKey_,
+        dataToBeSigned.begin(), 32,
+        &mtx.joinSplitSig))
+    {
+        throw std::runtime_error("ed25519_sign failed");
     }
 
     // Sanity check
-    if (!(crypto_sign_verify_detached(&mtx.joinSplitSig[0],
-                                      dataToBeSigned.begin(), 32,
-                                      mtx.joinSplitPubKey.begin()) == 0)) {
-        throw std::runtime_error("crypto_sign_verify_detached failed");
+    if (!ed25519_verify(
+        &mtx.joinSplitPubKey,
+        &mtx.joinSplitSig,
+        dataToBeSigned.begin(), 32))
+    {
+        throw std::runtime_error("ed25519_verify failed");
     }
 
     CTransaction rawTx(mtx);
@@ -450,19 +476,19 @@ UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInf
     std::string encryptedNote2;
     {
         CDataStream ss2(SER_NETWORK, PROTOCOL_VERSION);
-        ss2 << ((unsigned char)0x00);
+        ss2 << ((unsigned char) 0x00);
         ss2 << jsdesc.ephemeralKey;
         ss2 << jsdesc.ciphertexts[0];
-        ss2 << jsdesc.h_sig(*pgemlinkParams, joinSplitPubKey_);
+        ss2 << ZCJoinSplit::h_sig(jsdesc.randomSeed, jsdesc.nullifiers, joinSplitPubKey_);
 
         encryptedNote1 = HexStr(ss2.begin(), ss2.end());
     }
     {
         CDataStream ss2(SER_NETWORK, PROTOCOL_VERSION);
-        ss2 << ((unsigned char)0x01);
+        ss2 << ((unsigned char) 0x01);
         ss2 << jsdesc.ephemeralKey;
         ss2 << jsdesc.ciphertexts[1];
-        ss2 << jsdesc.h_sig(*pgemlinkParams, joinSplitPubKey_);
+        ss2 << ZCJoinSplit::h_sig(jsdesc.randomSeed, jsdesc.nullifiers, joinSplitPubKey_);
 
         encryptedNote2 = HexStr(ss2.begin(), ss2.end());
     }
@@ -475,12 +501,8 @@ UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInf
     for (size_t i = 0; i < ZC_NUM_JS_OUTPUTS; i++) {
         arrOutputMap.push_back(static_cast<uint64_t>(outputMap[i]));
     }
-
+    KeyIO keyIO(Params());
     // !!! Payment disclosure START
-    unsigned char buffer[32] = {0};
-    memcpy(&buffer[0], &joinSplitPrivKey_[0], 32); // private key in first half of 64 byte buffer
-    std::vector<unsigned char> vch(&buffer[0], &buffer[0] + 32);
-    uint256 joinSplitPrivKey = uint256(vch);
     size_t js_index = tx_.vjoinsplit.size() - 1;
     uint256 placeholder;
     for (int i = 0; i < ZC_NUM_JS_OUTPUTS; i++) {
@@ -488,11 +510,11 @@ UniValue AsyncRPCOperation_shieldcoinbase::perform_joinsplit(ShieldCoinbaseJSInf
         // placeholder for txid will be filled in later when tx has been finalized and signed.
         PaymentDisclosureKey pdKey = {placeholder, js_index, mapped_index};
         JSOutput output = outputs[mapped_index];
-        libzcash::SproutPaymentAddress zaddr = output.addr; // randomized output
-        PaymentDisclosureInfo pdInfo = {PAYMENT_DISCLOSURE_VERSION_EXPERIMENTAL, esk, joinSplitPrivKey, zaddr};
+        libzcash::SproutPaymentAddress zaddr = output.addr;  // randomized output
+        PaymentDisclosureInfo pdInfo = {PAYMENT_DISCLOSURE_VERSION_EXPERIMENTAL, esk, joinSplitPrivKey_, zaddr};
         paymentDisclosureData_.push_back(PaymentDisclosureKeyInfo(pdKey, pdInfo));
 
-        LogPrint("paymentdisclosure", "%s: Payment Disclosure: js=%d, n=%d, zaddr=%s\n", getId(), js_index, int(mapped_index), EncodePaymentAddress(zaddr));
+        LogPrint("paymentdisclosure", "%s: Payment Disclosure: js=%d, n=%d, zaddr=%s\n", getId(), js_index, int(mapped_index), keyIO.EncodePaymentAddress(zaddr));
     }
     // !!! Payment disclosure END
 

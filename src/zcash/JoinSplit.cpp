@@ -1,42 +1,32 @@
 #include "JoinSplit.hpp"
 #include "prf.h"
-#include "sodium.h"
 
 #include "zcash/util.h"
 
 #include <memory>
 
-#include "amount.h"
-#include "sync.h"
-#include "tinyformat.h"
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
-#include <boost/optional.hpp>
 #include <fstream>
+#include "tinyformat.h"
+#include "sync.h"
+#include "amount.h"
 
 #include "librustzcash.h"
 #include "streams.h"
 #include "version.h"
 
-namespace libzcash
-{
+#include <rust/blake2b.h>
 
-static CCriticalSection cs_ParamsIO;
+namespace libzcash {
 
-template <size_t NumInputs, size_t NumOutputs>
-class JoinSplitCircuit : public JoinSplit<NumInputs, NumOutputs>
-{
-public:
-    JoinSplitCircuit() {}
-    ~JoinSplitCircuit() {}
-
-    SproutProof prove(
+    template<size_t NumInputs, size_t NumOutputs>
+    SproutProof JoinSplit<NumInputs, NumOutputs>::prove(
         const std::array<JSInput, NumInputs>& inputs,
         const std::array<JSOutput, NumOutputs>& outputs,
         std::array<SproutNote, NumOutputs>& out_notes,
         std::array<ZCNoteEncryption::Ciphertext, NumOutputs>& out_ciphertexts,
         uint256& out_ephemeralKey,
-        const uint256& joinSplitPubKey,
+        const Ed25519VerificationKey& joinSplitPubKey,
         uint256& out_randomSeed,
         std::array<uint256, NumInputs>& out_macs,
         std::array<uint256, NumInputs>& out_nullifiers,
@@ -45,9 +35,8 @@ public:
         uint64_t vpub_new,
         const uint256& rt,
         bool computeProof,
-        uint256* out_esk // Payment disclosure
-    )
-    {
+        uint256 *out_esk // Payment disclosure
+    ) {
         if (vpub_old > MAX_MONEY) {
             throw std::invalid_argument("nonsensical vpub_old value");
         }
@@ -100,7 +89,8 @@ public:
         out_randomSeed = random_uint256();
 
         // Compute h_sig
-        uint256 h_sig = this->h_sig(out_randomSeed, out_nullifiers, joinSplitPubKey);
+        uint256 h_sig = JoinSplit<NumInputs, NumOutputs>::h_sig(
+            out_randomSeed, out_nullifiers, joinSplitPubKey);
 
         // Sample phi
         uint252 phi = random_uint252();
@@ -204,25 +194,20 @@ public:
             out_notes[1].r.begin(),
 
             vpub_old,
-            vpub_new);
+            vpub_new
+        );
 
         return proof;
     }
-};
 
-template <size_t NumInputs, size_t NumOutputs>
-JoinSplit<NumInputs, NumOutputs>* JoinSplit<NumInputs, NumOutputs>::Prepared()
-{
-    return new JoinSplitCircuit<NumInputs, NumOutputs>();
-}
-
-template <size_t NumInputs, size_t NumOutputs>
+template<size_t NumInputs, size_t NumOutputs>
 uint256 JoinSplit<NumInputs, NumOutputs>::h_sig(
     const uint256& randomSeed,
     const std::array<uint256, NumInputs>& nullifiers,
-    const uint256& joinSplitPubKey)
-{
-    const unsigned char personalization[crypto_generichash_blake2b_PERSONALBYTES] = {'Z', 'c', 'a', 's', 'h', 'C', 'o', 'm', 'p', 'u', 't', 'e', 'h', 'S', 'i', 'g'};
+    const Ed25519VerificationKey& joinSplitPubKey
+) {
+    const unsigned char personalization[BLAKE2bPersonalBytes]
+        = {'Z','c','a','s','h','C','o','m','p','u','t','e','h','S','i','g'};
 
     std::vector<unsigned char> block(randomSeed.begin(), randomSeed.end());
 
@@ -230,37 +215,31 @@ uint256 JoinSplit<NumInputs, NumOutputs>::h_sig(
         block.insert(block.end(), nullifiers[i].begin(), nullifiers[i].end());
     }
 
-    block.insert(block.end(), joinSplitPubKey.begin(), joinSplitPubKey.end());
+    block.insert(block.end(), joinSplitPubKey.bytes, joinSplitPubKey.bytes + ED25519_VERIFICATION_KEY_LEN);
 
     uint256 output;
 
-    if (crypto_generichash_blake2b_salt_personal(output.begin(), 32,
-                                                 &block[0], block.size(),
-                                                 NULL, 0, // No key.
-                                                 NULL,    // No salt.
-                                                 personalization) != 0) {
-        throw std::logic_error("hash function failure");
-    }
+    auto state = blake2b_init(32, personalization);
+    blake2b_update(state, &block[0], block.size());
+    blake2b_finalize(state, output.begin(), 32);
+    blake2b_free(state);
 
     return output;
 }
 
-SproutNote JSOutput::note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig) const
-{
+SproutNote JSOutput::note(const uint252& phi, const uint256& r, size_t i, const uint256& h_sig) const {
     uint256 rho = PRF_rho(phi, i, h_sig);
 
     return SproutNote(addr.a_pk, value, rho, r);
 }
 
-JSOutput::JSOutput() : addr(uint256(), uint256()), value(0)
-{
+JSOutput::JSOutput() : addr(uint256(), uint256()), value(0) {
     SproutSpendingKey a_sk = SproutSpendingKey::random();
     addr = a_sk.address();
 }
 
 JSInput::JSInput() : witness(SproutMerkleTree().witness()),
-                     key(SproutSpendingKey::random())
-{
+                     key(SproutSpendingKey::random()) {
     note = SproutNote(key.address().a_pk, 0, random_uint256(), random_uint256());
     SproutMerkleTree dummy_tree;
     dummy_tree.append(note.cm());
@@ -270,4 +249,4 @@ JSInput::JSInput() : witness(SproutMerkleTree().witness()),
 template class JoinSplit<ZC_NUM_JS_INPUTS,
                          ZC_NUM_JS_OUTPUTS>;
 
-} // namespace libzcash
+}

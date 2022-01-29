@@ -100,13 +100,15 @@ LIBZCASH_H = \
   zcash/IncrementalMerkleTree.hpp \
   zcash/NoteEncryption.hpp \
   zcash/Address.hpp \
+  zcash/address/sapling.hpp \
+  zcash/address/sprout.hpp \
+  zcash/address/zip32.h \
   zcash/JoinSplit.hpp \
   zcash/Note.hpp \
   zcash/prf.h \
   zcash/Proof.hpp \
   zcash/util.h \
-  zcash/Zcash.h \
-  zcash/zip32.h
+  zcash/Zcash.h
 
 .PHONY: FORCE cargo-build check-symbols check-security
 # bitcoin core #
@@ -149,6 +151,7 @@ BITCOIN_CORE_H = \
   core_io.h \
   core_memusage.h \
   deprecation.h \
+  experimental_features.h \
   fs.h \
   hash.h \
   httprpc.h \
@@ -156,6 +159,7 @@ BITCOIN_CORE_H = \
   init.h \
   swifttx.h \
   key.h \
+  key_constants.h \
   key_io.h \
   keystore.h \
   dbwrapper.h \
@@ -185,6 +189,7 @@ BITCOIN_CORE_H = \
   prevector.h \
   primitives/block.h \
   primitives/transaction.h \
+  proof_verifier.h \
   protocol.h \
   pubkey.h \
   random.h \
@@ -269,6 +274,7 @@ libbitcoin_server_a_SOURCES = \
   chain.cpp \
   checkpoints.cpp \
   deprecation.cpp \
+  experimental_features.cpp \
   httprpc.cpp \
   httpserver.cpp \
   init.cpp \
@@ -407,6 +413,8 @@ libbitcoin_common_a_SOURCES = \
   netbase.cpp \
   primitives/block.cpp \
   primitives/transaction.cpp \
+  primitives/tx_version_info.cpp \
+  proof_verifier.cpp \
   protocol.cpp \
   pubkey.cpp \
   scheduler.cpp \
@@ -549,12 +557,13 @@ libzcash_a_SOURCES = \
   zcash/IncrementalMerkleTree.cpp \
   zcash/NoteEncryption.cpp \
   zcash/Address.cpp \
+  zcash/address/sapling.cpp \
+  zcash/address/sprout.cpp \
+  zcash/address/zip32.cpp \
   zcash/JoinSplit.cpp \
-  zcash/Proof.cpp \
   zcash/Note.cpp \
   zcash/prf.cpp \
   zcash/util.cpp \
-  zcash/zip32.cpp \
   zcash/circuit/commitment.tcc \
   zcash/circuit/gadget.tcc \
   zcash/circuit/merkle.tcc \
@@ -578,6 +587,7 @@ libzcash_script_la_SOURCES = \
   crypto/sha512.cpp \
   hash.cpp \
   primitives/transaction.cpp \
+  primitives/tx_version_info.cpp \
   pubkey.cpp \
   script/zcash_script.cpp \
   script/interpreter.cpp \

@@ -731,8 +731,8 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
     if (pblock->payee != CScript()) {
         CTxDestination address1;
         ExtractDestination(pblock->payee, address1);
-
-        result.push_back(Pair("payee", EncodeDestination(address1)));
+        KeyIO keyIO(Params());
+        result.push_back(Pair("payee", keyIO.EncodeDestination(address1)));
         CAmount val = pblock->vtx[0].vout[pblock->vtx[0].vout.size() - 1].nValue;
         result.push_back(Pair("payee_amount", (int64_t)val));
     } else {

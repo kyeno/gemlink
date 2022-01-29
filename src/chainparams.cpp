@@ -72,7 +72,7 @@ class CMainParams : public CChainParams
 public:
     CMainParams()
     {
-        strNetworkID = "main";
+        keyConstants.strNetworkID = "main";
         strCurrencyUnits = "GLINK";
         bip44CoinType = 407; // As registered in https://github.com/satoshilabs/slips/blob/master/slip-0044.md
         consensus.fCoinbaseMustBeProtected = true;
@@ -162,25 +162,25 @@ public:
         vSeeds.push_back(CDNSSeedData("dnsseed3.gemlink.org", "dnsseed3.gemlink.org"));   // Gemlink seed node
 
         // guarantees the first 2 characters, when base58 encoded, are "s1"
-        base58Prefixes[PUBKEY_ADDRESS] = {0x1C, 0x28};
+        keyConstants.base58Prefixes[PUBKEY_ADDRESS] = {0x1C, 0x28};
         // guarantees the first 2 characters, when base58 encoded, are "s3"
-        base58Prefixes[SCRIPT_ADDRESS] = {0x1C, 0x2D};
+        keyConstants.base58Prefixes[SCRIPT_ADDRESS] = {0x1C, 0x2D};
         // the first character, when base58 encoded, is "5" or "K" or "L" (as in Bitcoin)
-        base58Prefixes[SECRET_KEY] = {0x80};
+        keyConstants.base58Prefixes[SECRET_KEY] = {0x80};
         // do not rely on these BIP32 prefixes; they are not specified and may change
-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
+        keyConstants.base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
+        keyConstants.base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
         // guarantees the first 2 characters, when base58 encoded, are "zc"
-        base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16, 0x9A};
+        // keyConstants.base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16, 0x9A};
         // guarantees the first 4 characters, when base58 encoded, are "ZiVK"
-        base58Prefixes[ZCVIEWING_KEY] = {0xA8, 0xAB, 0xD3};
+        keyConstants.base58Prefixes[ZCVIEWING_KEY] = {0xA8, 0xAB, 0xD3};
         // guarantees the first 2 characters, when base58 encoded, are "SK"
-        base58Prefixes[ZCSPENDING_KEY] = {0xAB, 0x36};
+        keyConstants.base58Prefixes[ZCSPENDING_KEY] = {0xAB, 0x36};
 
-        bech32HRPs[SAPLING_PAYMENT_ADDRESS] = "zs";
-        bech32HRPs[SAPLING_FULL_VIEWING_KEY] = "zviews";
-        bech32HRPs[SAPLING_INCOMING_VIEWING_KEY] = "zivks";
-        bech32HRPs[SAPLING_EXTENDED_SPEND_KEY] = "secret-extended-key-main";
+        keyConstants.bech32HRPs[SAPLING_PAYMENT_ADDRESS] = "zs";
+        keyConstants.bech32HRPs[SAPLING_FULL_VIEWING_KEY] = "zviews";
+        keyConstants.bech32HRPs[SAPLING_INCOMING_VIEWING_KEY] = "zivks";
+        keyConstants.bech32HRPs[SAPLING_EXTENDED_SPEND_KEY] = "secret-extended-key-main";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 
@@ -318,7 +318,7 @@ class CTestNetParams : public CChainParams
 public:
     CTestNetParams()
     {
-        strNetworkID = "test";
+        keyConstants.strNetworkID = "test";
         strCurrencyUnits = "SNGT";
         bip44CoinType = 1;
         consensus.fCoinbaseMustBeProtected = true;
@@ -397,25 +397,25 @@ public:
         vSeeds.push_back(CDNSSeedData("gemlink.org", "testnet.explorer.gemlink.org"));    // Gemlink
 
         // guarantees the first 2 characters, when base58 encoded, are "tm"
-        base58Prefixes[PUBKEY_ADDRESS] = {0x1D, 0x25};
+        keyConstants.base58Prefixes[PUBKEY_ADDRESS] = {0x1D, 0x25};
         // guarantees the first 2 characters, when base58 encoded, are "t2"
-        base58Prefixes[SCRIPT_ADDRESS] = {0x1C, 0xBA};
+        keyConstants.base58Prefixes[SCRIPT_ADDRESS] = {0x1C, 0xBA};
         // the first character, when base58 encoded, is "9" or "c" (as in Bitcoin)
-        base58Prefixes[SECRET_KEY] = {0xEF};
+        keyConstants.base58Prefixes[SECRET_KEY] = {0xEF};
         // do not rely on these BIP32 prefixes; they are not specified and may change
-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+        keyConstants.base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        keyConstants.base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
         // guarantees the first 2 characters, when base58 encoded, are "zt"
-        base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16, 0xB6};
+        // keyConstants.base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16, 0xB6};
         // guarantees the first 4 characters, when base58 encoded, are "ZiVt"
-        base58Prefixes[ZCVIEWING_KEY] = {0xA8, 0xAC, 0x0C};
+        keyConstants.base58Prefixes[ZCVIEWING_KEY] = {0xA8, 0xAC, 0x0C};
         // guarantees the first 2 characters, when base58 encoded, are "ST"
-        base58Prefixes[ZCSPENDING_KEY] = {0xAC, 0x08};
+        keyConstants.base58Prefixes[ZCSPENDING_KEY] = {0xAC, 0x08};
 
-        bech32HRPs[SAPLING_PAYMENT_ADDRESS] = "ztestsapling";
-        bech32HRPs[SAPLING_FULL_VIEWING_KEY] = "zviewtestsapling";
-        bech32HRPs[SAPLING_INCOMING_VIEWING_KEY] = "zivktestsapling";
-        bech32HRPs[SAPLING_EXTENDED_SPEND_KEY] = "secret-extended-key-test";
+        keyConstants.bech32HRPs[SAPLING_PAYMENT_ADDRESS] = "ztestsapling";
+        keyConstants.bech32HRPs[SAPLING_FULL_VIEWING_KEY] = "zviewtestsapling";
+        keyConstants.bech32HRPs[SAPLING_INCOMING_VIEWING_KEY] = "zivktestsapling";
+        keyConstants.bech32HRPs[SAPLING_EXTENDED_SPEND_KEY] = "secret-extended-key-test";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
@@ -466,7 +466,7 @@ class CRegTestParams : public CChainParams
 public:
     CRegTestParams()
     {
-        strNetworkID = "regtest";
+        keyConstants.strNetworkID = "regtest";
         strCurrencyUnits = "REG";
         bip44CoinType = 1;
         consensus.fCoinbaseMustBeProtected = false;
@@ -537,20 +537,20 @@ public:
             0,
             0};
         // These prefixes are the same as the testnet prefixes
-        base58Prefixes[PUBKEY_ADDRESS] = {0x1D, 0x25};
-        base58Prefixes[SCRIPT_ADDRESS] = {0x1C, 0xBA};
-        base58Prefixes[SECRET_KEY] = {0xEF};
+        keyConstants.base58Prefixes[PUBKEY_ADDRESS] = {0x1D, 0x25};
+        keyConstants.base58Prefixes[SCRIPT_ADDRESS] = {0x1C, 0xBA};
+        keyConstants.base58Prefixes[SECRET_KEY] = {0xEF};
         // do not rely on these BIP32 prefixes; they are not specified and may change
-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
-        base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16, 0xB6};
-        base58Prefixes[ZCVIEWING_KEY] = {0xA8, 0xAC, 0x0C};
-        base58Prefixes[ZCSPENDING_KEY] = {0xAC, 0x08};
+        keyConstants.base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+        keyConstants.base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+        // keyConstants.base58Prefixes[ZCPAYMENT_ADDRRESS] = {0x16, 0xB6};
+        keyConstants.base58Prefixes[ZCVIEWING_KEY] = {0xA8, 0xAC, 0x0C};
+        keyConstants.base58Prefixes[ZCSPENDING_KEY] = {0xAC, 0x08};
 
-        bech32HRPs[SAPLING_PAYMENT_ADDRESS] = "zregtestsapling";
-        bech32HRPs[SAPLING_FULL_VIEWING_KEY] = "zviewregtestsapling";
-        bech32HRPs[SAPLING_INCOMING_VIEWING_KEY] = "zivkregtestsapling";
-        bech32HRPs[SAPLING_EXTENDED_SPEND_KEY] = "secret-extended-key-regtest";
+        keyConstants.bech32HRPs[SAPLING_PAYMENT_ADDRESS] = "zregtestsapling";
+        keyConstants.bech32HRPs[SAPLING_FULL_VIEWING_KEY] = "zviewregtestsapling";
+        keyConstants.bech32HRPs[SAPLING_INCOMING_VIEWING_KEY] = "zivkregtestsapling";
+        keyConstants.bech32HRPs[SAPLING_EXTENDED_SPEND_KEY] = "secret-extended-key-regtest";
 
         // Founders reward script expects a vector of 2-of-3 multisig addresses
         vFoundersRewardAddress = {"t2f9nkUG1Xe2TrQ4StHKcxUgLGuYszo8iS4"};
@@ -650,8 +650,8 @@ std::string CChainParams::GetFoundersRewardAddressAtHeight(int nHeight) const
 CScript CChainParams::GetFoundersRewardScriptAtHeight(int nHeight) const
 {
     assert(nHeight > 0 && nHeight <= consensus.GetLastFoundersRewardBlockHeight());
-
-    CTxDestination address = DecodeDestination(GetFoundersRewardAddressAtHeight(nHeight).c_str());
+    KeyIO keyIO(Params());
+    CTxDestination address = keyIO.DecodeDestination(GetFoundersRewardAddressAtHeight(nHeight).c_str());
     assert(IsValidDestination(address));
     assert(boost::get<CScriptID>(&address) != nullptr);
     CScriptID scriptID = boost::get<CScriptID>(address); // address is a boost variant
@@ -681,7 +681,8 @@ std::string CChainParams::GetTreasuryRewardAddressAtHeight(int nHeight) const
 // The treasury reward address is expected to be a multisig (P2SH) address
 CScript CChainParams::GetTreasuryRewardScriptAtHeight(int nHeight) const
 {
-    CTxDestination address = DecodeDestination(GetTreasuryRewardAddressAtHeight(nHeight).c_str());
+    KeyIO keyIO(Params());
+    CTxDestination address = keyIO.DecodeDestination(GetTreasuryRewardAddressAtHeight(nHeight).c_str());
     assert(IsValidDestination(address));
     assert(boost::get<CScriptID>(&address) != nullptr);
     CScriptID scriptID = boost::get<CScriptID>(address); // address is a boost variant
@@ -712,7 +713,8 @@ std::string CChainParams::GetDevelopersRewardAddressAtHeight(int nHeight) const
 // The developers reward address is expected to be a multisig (P2SH) address
 CScript CChainParams::GetDevelopersRewardScriptAtHeight(int nHeight) const
 {
-    CTxDestination address = DecodeDestination(GetDevelopersRewardAddressAtHeight(nHeight).c_str());
+    KeyIO keyIO(Params());
+    CTxDestination address = keyIO.DecodeDestination(GetDevelopersRewardAddressAtHeight(nHeight).c_str());
     assert(IsValidDestination(address));
     assert(boost::get<CScriptID>(&address) != nullptr);
     CScriptID scriptID = boost::get<CScriptID>(address); // address is a boost variant

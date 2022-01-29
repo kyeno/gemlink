@@ -34,7 +34,7 @@ typedef std::tuple<JSOutPoint, SproutNote, CAmount, SproutSpendingKey> MergeToAd
 typedef std::tuple<SaplingOutPoint, SaplingNote, CAmount, SaplingExpandedSpendingKey> MergeToAddressInputSaplingNote;
 
 // A recipient is a tuple of address, memo (optional if zaddr)
-typedef std::tuple<std::string, std::string> MergeToAddressRecipient;
+typedef std::pair<libzcash::PaymentAddress, std::string> MergeToAddressRecipient;
 
 // Package of info which is passed to perform_joinsplit methods.
 struct MergeToAddressJSInfo {
@@ -48,7 +48,7 @@ struct MergeToAddressJSInfo {
 
 // A struct to help us track the witness and anchor for a given JSOutPoint
 struct MergeToAddressWitnessAnchorData {
-    boost::optional<SproutWitness> witness;
+    std::optional<SproutWitness> witness;
     uint256 anchor;
 };
 
@@ -89,14 +89,14 @@ private:
     uint32_t consensusBranchId_;
     CAmount fee_;
     int mindepth_;
-    MergeToAddressRecipient recipient_;
     bool isToTaddr_;
     bool isToZaddr_;
     CTxDestination toTaddr_;
     PaymentAddress toPaymentAddress_;
+    std::string memo_;
 
-    uint256 joinSplitPubKey_;
-    unsigned char joinSplitPrivKey_[crypto_sign_SECRETKEYBYTES];
+    Ed25519VerificationKey joinSplitPubKey_;
+    Ed25519SigningKey joinSplitPrivKey_;
 
     // The key is the result string from calling JSOutPoint::ToString()
     std::unordered_map<std::string, MergeToAddressWitnessAnchorData> jsopWitnessAnchorMap;
@@ -120,7 +120,7 @@ private:
     // JoinSplit where you have the witnesses and anchor
     UniValue perform_joinsplit(
         MergeToAddressJSInfo& info,
-        std::vector<boost::optional<SproutWitness>> witnesses,
+        std::vector<std::optional<SproutWitness>> witnesses,
         uint256 anchor);
 
     void sign_send_raw_transaction(UniValue obj); // throws exception if there was an error
@@ -180,7 +180,7 @@ public:
 
     UniValue perform_joinsplit(
         MergeToAddressJSInfo& info,
-        std::vector<boost::optional<SproutWitness>> witnesses,
+        std::vector<std::optional<SproutWitness>> witnesses,
         uint256 anchor)
     {
         return delegate->perform_joinsplit(info, witnesses, anchor);

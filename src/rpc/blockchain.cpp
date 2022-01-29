@@ -165,10 +165,11 @@ UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex)
                 CSpentIndexKey spentKey(input.prevout.hash, input.prevout.n);
 
                 if (GetSpentIndex(spentKey, spentInfo)) {
+                    KeyIO keyIO(Params());
                     if (spentInfo.addressType == 1) {
-                        delta.push_back(Pair("address", EncodeDestination(CKeyID(spentInfo.addressHash))));
+                        delta.push_back(Pair("address", keyIO.EncodeDestination(CKeyID(spentInfo.addressHash))));
                     } else if (spentInfo.addressType == 2) {
-                        delta.push_back(Pair("address", EncodeDestination(CScriptID(spentInfo.addressHash))));
+                        delta.push_back(Pair("address", keyIO.EncodeDestination(CScriptID(spentInfo.addressHash))));
                     } else {
                         continue;
                     }
@@ -192,13 +193,13 @@ UniValue blockToDeltasJSON(const CBlock& block, const CBlockIndex* blockindex)
             const CTxOut& out = tx.vout[k];
 
             UniValue delta(UniValue::VOBJ);
-
+            KeyIO keyIO(Params());
             if (out.scriptPubKey.IsPayToScriptHash()) {
                 vector<unsigned char> hashBytes(out.scriptPubKey.begin() + 2, out.scriptPubKey.begin() + 22);
-                delta.push_back(Pair("address", EncodeDestination(CScriptID(uint160(hashBytes)))));
+                delta.push_back(Pair("address", keyIO.EncodeDestination(CScriptID(uint160(hashBytes)))));
             } else if (out.scriptPubKey.IsPayToPublicKeyHash()) {
                 vector<unsigned char> hashBytes(out.scriptPubKey.begin() + 3, out.scriptPubKey.begin() + 23);
-                delta.push_back(Pair("address", EncodeDestination(CKeyID(uint160(hashBytes)))));
+                delta.push_back(Pair("address", keyIO.EncodeDestination(CKeyID(uint160(hashBytes)))));
             } else {
                 continue;
             }

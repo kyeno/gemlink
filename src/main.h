@@ -19,6 +19,7 @@
 #include "net.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
+#include "proof_verifier.h"
 #include "script/script.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
@@ -105,6 +106,24 @@ static const bool DEFAULT_TIMESTAMPINDEX = false;
 static const bool DEFAULT_SPENTINDEX = false;
 static const bool DEFAULT_DB_COMPRESSION = true;
 static const int64_t DEFAULT_MAX_TIP_AGE = 24 * 60 * 60;
+
+/**
+ * Standard script verification flags that standard transactions will comply
+ * with. However scripts violating these flags may still be present in valid
+ * blocks and we must accept those blocks.
+ */
+static const unsigned int STANDARD_SCRIPT_VERIFY_FLAGS = MANDATORY_SCRIPT_VERIFY_FLAGS |
+                                                         // SCRIPT_VERIFY_DERSIG is always enforced
+                                                         SCRIPT_VERIFY_STRICTENC |
+                                                         SCRIPT_VERIFY_MINIMALDATA |
+                                                         SCRIPT_VERIFY_NULLDUMMY |
+                                                         SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS |
+                                                         SCRIPT_VERIFY_CLEANSTACK |
+                                                         SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY |
+                                                         SCRIPT_VERIFY_LOW_S;
+
+/** For convenience, standard but not mandatory verify flags. */
+static const unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS = STANDARD_SCRIPT_VERIFY_FLAGS & ~MANDATORY_SCRIPT_VERIFY_FLAGS;
 
 // Sanity check the magic numbers when we change them
 // BOOST_STATIC_ASSERT(DEFAULT_BLOCK_MAX_SIZE <= MAX_BLOCK_SIZE(10000000));
@@ -754,7 +773,7 @@ void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, int nHeight);
 /** Transaction validation functions */
 
 /** Context-independent validity checks */
-bool CheckTransaction(const CTransaction& tx, CValidationState& state, libzcash::ProofVerifier& verifier);
+bool CheckTransaction(const CTransaction& tx, CValidationState& state, ProofVerifier& verifier);
 bool CheckTransactionWithoutProofVerification(const CTransaction& tx, CValidationState& state);
 
 /** Check for standard transaction types
@@ -869,7 +888,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
 /** Context-independent validity checks */
 bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, bool fCheckPOW = true);
-bool CheckBlock(const CBlock& block, CValidationState& state, const CChainParams& chainparams, libzcash::ProofVerifier& verifier, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
+bool CheckBlock(const CBlock& block, CValidationState& state, const CChainParams& chainparams, ProofVerifier& verifier, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
 
 /** Context-dependent validity checks */
 bool ContextualCheckBlockHeader(const CBlockHeader& block, const CChainParams& chainparams, CValidationState& state, CBlockIndex* pindexPrev);

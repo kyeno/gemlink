@@ -1,258 +1,174 @@
 #ifndef ZC_ADDRESS_H_
 #define ZC_ADDRESS_H_
 
-#include "Zcash.h"
-#include "serialize.h"
-#include "uint252.h"
 #include "uint256.h"
+#include "pubkey.h"
+#include "script/script.h"
+#include "zcash/address/sapling.hpp"
+#include "zcash/address/sprout.hpp"
+#include "zcash/address/zip32.h"
 
-#include <boost/variant.hpp>
+#include <variant>
 
-namespace libzcash
-{
-class InvalidEncoding
-{
+namespace libzcash {
+
+class UnknownReceiver {
 public:
-    friend bool operator==(const InvalidEncoding& a, const InvalidEncoding& b) { return true; }
-    friend bool operator<(const InvalidEncoding& a, const InvalidEncoding& b) { return true; }
-};
+    uint32_t typecode;
+    std::vector<uint8_t> data;
 
-const size_t SerializedSproutPaymentAddressSize = 64;
-const size_t SerializedSproutViewingKeySize = 64;
-const size_t SerializedSproutSpendingKeySize = 32;
+    UnknownReceiver(uint32_t typecode, std::vector<uint8_t> data) :
+        typecode(typecode), data(data) {}
 
-const size_t SerializedSaplingPaymentAddressSize = 43;
-const size_t SerializedSaplingFullViewingKeySize = 96;
-const size_t SerializedSaplingExpandedSpendingKeySize = 96;
-const size_t SerializedSaplingSpendingKeySize = 32;
-
-typedef std::array<unsigned char, ZC_DIVERSIFIER_SIZE> diversifier_t;
-
-class SproutPaymentAddress
-{
-public:
-    uint256 a_pk;
-    uint256 pk_enc;
-
-    SproutPaymentAddress() : a_pk(), pk_enc() {}
-    SproutPaymentAddress(uint256 a_pk, uint256 pk_enc) : a_pk(a_pk), pk_enc(pk_enc) {}
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
-        READWRITE(a_pk);
-        READWRITE(pk_enc);
+    friend inline bool operator==(const UnknownReceiver& a, const UnknownReceiver& b) {
+        return a.typecode == b.typecode && a.data == b.data;
     }
-
-    //! Get the 256-bit SHA256d hash of this payment address.
-    uint256 GetHash() const;
-
-    friend inline bool operator==(const SproutPaymentAddress& a, const SproutPaymentAddress& b)
-    {
-        return a.a_pk == b.a_pk && a.pk_enc == b.pk_enc;
-    }
-    friend inline bool operator<(const SproutPaymentAddress& a, const SproutPaymentAddress& b)
-    {
-        return (a.a_pk < b.a_pk ||
-                (a.a_pk == b.a_pk && a.pk_enc < b.pk_enc));
+    friend inline bool operator<(const UnknownReceiver& a, const UnknownReceiver& b) {
+        // We don't know for certain the preference order of unknown receivers, but it is
+        // _likely_ that the higher typecode has higher preference. The exact sort order
+        // doesn't really matter, as unknown receivers have lower preference than known
+        // receivers.
+        return (a.typecode > b.typecode ||
+                (a.typecode == b.typecode && a.data < b.data));
     }
 };
 
-class ReceivingKey : public uint256
-{
-public:
-    ReceivingKey() {}
-    ReceivingKey(uint256 sk_enc) : uint256(sk_enc) {}
+/**
+ * Receivers that can appear in a Unified Address.
+ *
+ * These types are given in order of preference (as defined in ZIP 316), so that sorting
+ * variants by `operator<` is equivalent to sorting by preference.
+ */
+typedef std::variant<
+    SaplingPaymentAddress,
+    CScriptID,
+    CKeyID,
+    UnknownReceiver> Receiver;
 
-    uint256 pk_enc() const;
+struct ReceiverIterator {
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type   = std::ptrdiff_t;
+    using value_type        = const Receiver;
+    using pointer           = const Receiver*;
+    using reference         = const Receiver&;
+
+    ReceiverIterator(std::vector<const Receiver*> sorted, size_t cur) :
+        sortedReceivers(sorted), cur(cur) {}
+
+    reference operator*() const { return *sortedReceivers[cur]; }
+    pointer operator->() { return sortedReceivers[cur]; }
+
+    ReceiverIterator& operator++() { cur++; return *this; }
+    ReceiverIterator operator++(int) {
+        ReceiverIterator tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    friend bool operator==(const ReceiverIterator& a, const ReceiverIterator& b) {
+        return a.sortedReceivers == b.sortedReceivers && a.cur == b.cur;
+    }
+    friend bool operator!=(const ReceiverIterator& a, const ReceiverIterator& b) {
+        return !(a == b);
+    }
+
+private:
+    std::vector<const Receiver*> sortedReceivers;
+    size_t cur;
 };
 
-class SproutViewingKey
-{
+class UnifiedAddress {
+    std::vector<Receiver> receivers;
+
+    std::vector<const Receiver*> GetSorted() const;
+
 public:
-    uint256 a_pk;
-    ReceivingKey sk_enc;
+    UnifiedAddress() {}
 
-    SproutViewingKey() : a_pk(), sk_enc() {}
-    SproutViewingKey(uint256 a_pk, ReceivingKey sk_enc) : a_pk(a_pk), sk_enc(sk_enc) {}
+    /**
+     * Adds the given receiver to this unified address.
+     *
+     * Receivers are stored in the unified address (and its encoding) in the order they
+     * are added. When generating a new UA, call this method in preference order.
+     *
+     * Returns false if adding this receiver would result in an invalid unified address:
+     * - The UA already contains this receiver type.
+     * - The UA would contain both P2PKH and P2SH receivers.
+     */
+    bool AddReceiver(Receiver receiver);
 
-    ADD_SERIALIZE_METHODS;
+    const std::vector<Receiver>& GetReceiversAsParsed() const { return receivers; }
 
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
-        READWRITE(a_pk);
-        READWRITE(sk_enc);
+    ReceiverIterator begin() const {
+        return ReceiverIterator(GetSorted(), 0);
+    }
+    ReceiverIterator end() const {
+        return ReceiverIterator(GetSorted(), receivers.size());
+    }
+    size_t size() const {
+        return receivers.size();
     }
 
-    SproutPaymentAddress address() const;
-
-    friend inline bool operator==(const SproutViewingKey& a, const SproutViewingKey& b)
-    {
-        return a.a_pk == b.a_pk && a.sk_enc == b.sk_enc;
+    friend inline bool operator==(const UnifiedAddress& a, const UnifiedAddress& b) {
+        return a.receivers == b.receivers;
     }
-    friend inline bool operator<(const SproutViewingKey& a, const SproutViewingKey& b)
-    {
-        return (a.a_pk < b.a_pk ||
-                (a.a_pk == b.a_pk && a.sk_enc < b.sk_enc));
-    }
-};
-
-class SproutSpendingKey : public uint252
-{
-public:
-    SproutSpendingKey() : uint252() {}
-    SproutSpendingKey(uint252 a_sk) : uint252(a_sk) {}
-
-    static SproutSpendingKey random();
-
-    ReceivingKey receiving_key() const;
-    SproutViewingKey viewing_key() const;
-    SproutPaymentAddress address() const;
-};
-
-//! Sapling functions.
-class SaplingPaymentAddress
-{
-public:
-    diversifier_t d;
-    uint256 pk_d;
-
-    SaplingPaymentAddress() : d(), pk_d() {}
-    SaplingPaymentAddress(diversifier_t d, uint256 pk_d) : d(d), pk_d(pk_d) {}
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
-        READWRITE(d);
-        READWRITE(pk_d);
-    }
-
-    //! Get the 256-bit SHA256d hash of this payment address.
-    uint256 GetHash() const;
-
-    friend inline bool operator==(const SaplingPaymentAddress& a, const SaplingPaymentAddress& b)
-    {
-        return a.d == b.d && a.pk_d == b.pk_d;
-    }
-    friend inline bool operator<(const SaplingPaymentAddress& a, const SaplingPaymentAddress& b)
-    {
-        return (a.d < b.d ||
-                (a.d == b.d && a.pk_d < b.pk_d));
-    }
-};
-
-class SaplingIncomingViewingKey : public uint256
-{
-public:
-    SaplingIncomingViewingKey() : uint256() {}
-    SaplingIncomingViewingKey(uint256 ivk) : uint256(ivk) {}
-
-    // Can pass in diversifier for Sapling addr
-    boost::optional<SaplingPaymentAddress> address(diversifier_t d) const;
-};
-
-class SaplingFullViewingKey
-{
-public:
-    uint256 ak;
-    uint256 nk;
-    uint256 ovk;
-
-    SaplingFullViewingKey() : ak(), nk(), ovk() {}
-    SaplingFullViewingKey(uint256 ak, uint256 nk, uint256 ovk) : ak(ak), nk(nk), ovk(ovk) {}
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
-        READWRITE(ak);
-        READWRITE(nk);
-        READWRITE(ovk);
-    }
-
-    //! Get the fingerprint of this full viewing key (as defined in ZIP 32).
-    uint256 GetFingerprint() const;
-
-    SaplingIncomingViewingKey in_viewing_key() const;
-    bool is_valid() const;
-
-    friend inline bool operator==(const SaplingFullViewingKey& a, const SaplingFullViewingKey& b)
-    {
-        return a.ak == b.ak && a.nk == b.nk && a.ovk == b.ovk;
-    }
-    friend inline bool operator<(const SaplingFullViewingKey& a, const SaplingFullViewingKey& b)
-    {
-        return (a.ak < b.ak ||
-                (a.ak == b.ak && a.nk < b.nk) ||
-                (a.ak == b.ak && a.nk == b.nk && a.ovk < b.ovk));
+    friend inline bool operator<(const UnifiedAddress& a, const UnifiedAddress& b) {
+        return a.receivers < b.receivers;
     }
 };
 
+/** Addresses that can appear in a string encoding. */
+typedef std::variant<
+    CKeyID,
+    CScriptID,
+    SproutPaymentAddress,
+    SaplingPaymentAddress,
+    UnifiedAddress> PaymentAddress;
+/** Viewing keys that can be decoded from a string representation. */
+typedef std::variant<
+    SproutViewingKey,
+    SaplingExtendedFullViewingKey> ViewingKey;
+/** Spending keys that can have a string encoding. */
+typedef std::variant<
+    SproutSpendingKey,
+    SaplingExtendedSpendingKey> SpendingKey;
 
-class SaplingExpandedSpendingKey
-{
+class HasShieldedRecipient {
 public:
-    uint256 ask;
-    uint256 nsk;
-    uint256 ovk;
-
-    SaplingExpandedSpendingKey() : ask(), nsk(), ovk() {}
-    SaplingExpandedSpendingKey(uint256 ask, uint256 nsk, uint256 ovk) : ask(ask), nsk(nsk), ovk(ovk) {}
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action)
-    {
-        READWRITE(ask);
-        READWRITE(nsk);
-        READWRITE(ovk);
-    }
-
-    SaplingFullViewingKey full_viewing_key() const;
-
-    friend inline bool operator==(const SaplingExpandedSpendingKey& a, const SaplingExpandedSpendingKey& b)
-    {
-        return a.ask == b.ask && a.nsk == b.nsk && a.ovk == b.ovk;
-    }
-    friend inline bool operator<(const SaplingExpandedSpendingKey& a, const SaplingExpandedSpendingKey& b)
-    {
-        return (a.ask < b.ask ||
-                (a.ask == b.ask && a.nsk < b.nsk) ||
-                (a.ask == b.ask && a.nsk == b.nsk && a.ovk < b.ovk));
-    }
+    bool operator()(const CKeyID& p2pkh) { return false; }
+    bool operator()(const CScriptID& p2sh) { return false; }
+    bool operator()(const SproutPaymentAddress& addr) { return true; }
+    bool operator()(const SaplingPaymentAddress& addr) { return true; }
+    // unified addresses must contain a shielded receiver, so we
+    // consider this to be safe by construction
+    bool operator()(const UnifiedAddress& addr) { return true; }
 };
 
-class SaplingSpendingKey : public uint256
-{
+class AddressInfoFromSpendingKey {
 public:
-    SaplingSpendingKey() : uint256() {}
-    SaplingSpendingKey(uint256 sk) : uint256(sk) {}
-
-    static SaplingSpendingKey random();
-
-    SaplingExpandedSpendingKey expanded_spending_key() const;
-    SaplingFullViewingKey full_viewing_key() const;
-
-    // Can derive Sapling addr from default diversifier
-    SaplingPaymentAddress default_address() const;
+    std::pair<std::string, PaymentAddress> operator()(const SproutSpendingKey&) const;
+    std::pair<std::string, PaymentAddress> operator()(const struct SaplingExtendedSpendingKey&) const;
 };
 
-typedef boost::variant<InvalidEncoding, SproutPaymentAddress, SaplingPaymentAddress> PaymentAddress;
-typedef boost::variant<InvalidEncoding, SproutViewingKey> ViewingKey;
+class AddressInfoFromViewingKey {
+public:
+    std::pair<std::string, PaymentAddress> operator()(const SproutViewingKey&) const;
+    std::pair<std::string, PaymentAddress> operator()(const struct SaplingExtendedFullViewingKey&) const;
+};
 
-} // namespace libzcash
+}
 
-/** Check whether a PaymentAddress is not an InvalidEncoding. */
-bool IsValidPaymentAddress(const libzcash::PaymentAddress& zaddr);
+/**
+ * Gets the typecode for the given UA receiver.
+ */
+class TypecodeForReceiver {
+public:
+    TypecodeForReceiver() {}
 
-/** Check whether a ViewingKey is not an InvalidEncoding. */
-bool IsValidViewingKey(const libzcash::ViewingKey& vk);
+    uint32_t operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    uint32_t operator()(const CScriptID &p2sh) const;
+    uint32_t operator()(const CKeyID &p2pkh) const;
+    uint32_t operator()(const libzcash::UnknownReceiver &p2pkh) const;
+};
 
 #endif // ZC_ADDRESS_H_

@@ -14,6 +14,8 @@
 #include "uint256.h"
 
 #include "consensus/consensus.h"
+#include "consensus/params.h"
+#include "consensus/upgrades.h"
 
 #include <array>
 
@@ -24,6 +26,8 @@
 
 #include "zcash/JoinSplit.hpp"
 #include "zcash/Proof.hpp"
+
+#include <rust/ed25519/types.h>
 
 static const int32_t OVERWINTER_TX_VERSION = 3;
 static_assert(OVERWINTER_TX_VERSION >= OVERWINTER_MIN_TX_VERSION,
@@ -37,6 +41,19 @@ static_assert(SAPLING_TX_VERSION >= SAPLING_MIN_TX_VERSION,
               "Sapling tx version must not be lower than minimum");
 static_assert(SAPLING_TX_VERSION <= SAPLING_MAX_TX_VERSION,
               "Sapling tx version must not be higher than maximum");
+
+struct TxVersionInfo {
+    bool fOverwintered;
+    uint32_t nVersionGroupId;
+    int32_t nVersion;
+};
+
+/**
+ * Returns the current transaction version and version group id,
+ * based upon the specified activation height and active features.
+ */
+TxVersionInfo CurrentTxVersionInfo(
+    const Consensus::Params& consensus, int nHeight, bool requireSprout);
 
 /**
  * A shielded input to a transaction. It contains data that describes a Spend transfer.
@@ -160,7 +177,7 @@ template <typename Stream, typename T>
 inline void SerReadWriteSproutProof(Stream& s, const T& proof, bool useGroth, CSerActionSerialize ser_action)
 {
     auto ps = SproutProofSerializer<Stream>(s, useGroth);
-    boost::apply_visitor(ps, proof);
+    std::visit(ps, proof);
 }
 
 template <typename Stream, typename T>
@@ -226,41 +243,6 @@ public:
     libzcash::SproutProof proof;
 
     JSDescription() : vpub_old(0), vpub_new(0) {}
-
-    JSDescription(
-        ZCJoinSplit& params,
-        const uint256& joinSplitPubKey,
-        const uint256& rt,
-        const std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-        const std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-        CAmount vpub_old,
-        CAmount vpub_new,
-        bool computeProof = true, // Set to false in some tests
-        uint256* esk = nullptr    // payment disclosure
-    );
-
-    static JSDescription Randomized(
-        ZCJoinSplit& params,
-        const uint256& joinSplitPubKey,
-        const uint256& rt,
-        std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-        std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-        std::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
-        std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap,
-        CAmount vpub_old,
-        CAmount vpub_new,
-        bool computeProof = true, // Set to false in some tests
-        uint256* esk = nullptr,   // payment disclosure
-        std::function<int(int)> gen = GetRandInt);
-
-    // Verifies that the JoinSplit proof is correct.
-    bool Verify(
-        ZCJoinSplit& params,
-        libzcash::ProofVerifier& verifier,
-        const uint256& joinSplitPubKey) const;
-
-    // Returns the calculated h_sig
-    uint256 h_sig(ZCJoinSplit& params, const uint256& joinSplitPubKey) const;
 
     ADD_SERIALIZE_METHODS;
 
@@ -571,9 +553,9 @@ public:
     const std::vector<SpendDescription> vShieldedSpend;
     const std::vector<OutputDescription> vShieldedOutput;
     const std::vector<JSDescription> vjoinsplit;
-    const uint256 joinSplitPubKey;
-    const joinsplit_sig_t joinSplitSig = {{0}};
-    const binding_sig_t bindingSig = {{0}};
+    Ed25519VerificationKey joinSplitPubKey;
+    Ed25519Signature joinSplitSig;
+    CTransaction::binding_sig_t bindingSig = {{0}};
 
     /** Construct a CTransaction that qualifies as IsNull() */
     CTransaction();
@@ -630,8 +612,8 @@ public:
             auto os = WithVersion(&s, static_cast<int>(header));
             ::SerReadWrite(os, *const_cast<std::vector<JSDescription>*>(&vjoinsplit), ser_action);
             if (vjoinsplit.size() > 0) {
-                READWRITE(*const_cast<uint256*>(&joinSplitPubKey));
-                READWRITE(*const_cast<joinsplit_sig_t*>(&joinSplitSig));
+                    READWRITE(*const_cast<Ed25519VerificationKey*>(&joinSplitPubKey));
+                    READWRITE(*const_cast<Ed25519Signature*>(&joinSplitSig));
             }
         }
         if (isSaplingV4 && !(vShieldedSpend.empty() && vShieldedOutput.empty())) {
@@ -723,8 +705,8 @@ struct CMutableTransaction {
     std::vector<SpendDescription> vShieldedSpend;
     std::vector<OutputDescription> vShieldedOutput;
     std::vector<JSDescription> vjoinsplit;
-    uint256 joinSplitPubKey;
-    CTransaction::joinsplit_sig_t joinSplitSig = {{0}};
+    Ed25519VerificationKey joinSplitPubKey;
+    Ed25519Signature joinSplitSig;
     CTransaction::binding_sig_t bindingSig = {{0}};
 
     CMutableTransaction();

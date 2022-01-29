@@ -5,7 +5,7 @@
 #include "consensus/validation.h"
 #include "main.h"
 #include "primitives/transaction.h"
-
+#include <rust/ed25519.h>
 extern ZCJoinSplit* params;
 
 TEST(checktransaction_tests, check_vpub_not_both_nonzero)
@@ -70,13 +70,10 @@ CMutableTransaction GetValidTransaction()
     return mtx;
 }
 
-void CreateJoinSplitSignature(CMutableTransaction& mtx, uint32_t consensusBranchId)
-{
+void CreateJoinSplitSignature(CMutableTransaction& mtx, uint32_t consensusBranchId) {
     // Generate an ephemeral keypair.
-    uint256 joinSplitPubKey;
-    unsigned char joinSplitPrivKey[crypto_sign_SECRETKEYBYTES];
-    crypto_sign_keypair(joinSplitPubKey.begin(), joinSplitPrivKey);
-    mtx.joinSplitPubKey = joinSplitPubKey;
+    Ed25519SigningKey joinSplitPrivKey;
+    ed25519_generate_keypair(&joinSplitPrivKey, &mtx.joinSplitPubKey);
 
     // Compute the correct hSig.
     // TODO: #966.
@@ -90,9 +87,10 @@ void CreateJoinSplitSignature(CMutableTransaction& mtx, uint32_t consensusBranch
     }
 
     // Add the signature
-    assert(crypto_sign_detached(&mtx.joinSplitSig[0], NULL,
-                                dataToBeSigned.begin(), 32,
-                                joinSplitPrivKey) == 0);
+    assert(ed25519_sign(
+        &joinSplitPrivKey,
+        dataToBeSigned.begin(), 32,
+        &mtx.joinSplitSig));
 }
 
 TEST(checktransaction_tests, valid_transaction)
@@ -539,41 +537,48 @@ TEST(checktransaction_tests, bad_txns_invalid_joinsplit_signature)
     ContextualCheckTransaction(tx, state, chainparams, 0, 100, [](const Consensus::Params&) { return false; });
 }
 
-TEST(checktransaction_tests, non_canonical_ed25519_signature)
-{
+TEST(ChecktransactionTests, NonCanonicalEd25519Signature) {
     SelectParams(CBaseChainParams::REGTEST);
-    const auto chainparams = Params();
+    auto chainparams = Params();
+
     CMutableTransaction mtx = GetValidTransaction();
 
     // Check that the signature is valid before we add L
     {
         CTransaction tx(mtx);
         MockCValidationState state;
-        EXPECT_TRUE(ContextualCheckTransaction(tx, state, chainparams, 0, 100));
+        EXPECT_TRUE(ContextualCheckTransaction(tx, state, chainparams, 0, true));
     }
 
     // Copied from libsodium/crypto_sign/ed25519/ref10/open.c
     static const unsigned char L[32] =
-        {0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58,
-         0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14,
-         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10};
+      { 0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58,
+        0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 };
 
     // Add L to S, which starts at mtx.joinSplitSig[32].
     unsigned int s = 0;
     for (size_t i = 0; i < 32; i++) {
-        s = mtx.joinSplitSig[32 + i] + L[i] + (s >> 8);
-        mtx.joinSplitSig[32 + i] = s & 0xff;
+        s = mtx.joinSplitSig.bytes[32 + i] + L[i] + (s >> 8);
+        mtx.joinSplitSig.bytes[32 + i] = s & 0xff;
     }
 
     CTransaction tx(mtx);
 
     MockCValidationState state;
-    // during initial block download, DoS ban score should be zero, else 100
-    EXPECT_CALL(state, DoS(0, false, REJECT_INVALID, "bad-txns-invalid-joinsplit-signature", false)).Times(1);
-    ContextualCheckTransaction(tx, state, chainparams, 0, 100, [](const Consensus::Params&) { return true; });
-    EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-txns-invalid-joinsplit-signature", false)).Times(1);
-    ContextualCheckTransaction(tx, state, chainparams, 0, 100, [](const Consensus::Params&) { return false; });
+    // during initial block download, for transactions being accepted into the
+    // mempool (and thus not mined), DoS ban score should be zero, else 10
+    EXPECT_CALL(state, DoS(0, false, REJECT_INVALID, "bad-txns-invalid-joinsplit-signature", false, "")).Times(1);
+    ContextualCheckTransaction(tx, state, chainparams, 0, false, [](const Consensus::Params&) { return true; });
+    EXPECT_CALL(state, DoS(10, false, REJECT_INVALID, "bad-txns-invalid-joinsplit-signature", false, "")).Times(1);
+    ContextualCheckTransaction(tx, state, chainparams, 0, false, [](const Consensus::Params&) { return false; });
+    // for transactions that have been mined in a block, DoS ban score should
+    // always be 100.
+    EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-txns-invalid-joinsplit-signature", false, "")).Times(1);
+    ContextualCheckTransaction(tx, state, chainparams, 0, true, [](const Consensus::Params&) { return true; });
+    EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-txns-invalid-joinsplit-signature", false, "")).Times(1);
+    ContextualCheckTransaction(tx, state, chainparams, 0, true, [](const Consensus::Params&) { return false; });
 }
 
 TEST(checktransaction_tests, OverwinterConstructors)
@@ -751,10 +756,9 @@ public:
     UNSAFE_CTransaction(const CMutableTransaction& tx) : CTransaction(tx, true) {}
 };
 
-TEST(checktransaction_tests, SaplingSproutInputSumsTooLarge)
-{
+TEST(ChecktransactionTests, SaplingSproutInputSumsTooLarge) {
     CMutableTransaction mtx = GetValidTransaction();
-    mtx.vjoinsplit.resize(0);
+    mtx.vJoinSplit.resize(0);
     mtx.fOverwintered = true;
     mtx.nVersion = SAPLING_TX_VERSION;
     mtx.nVersionGroupId = SAPLING_VERSION_GROUP_ID;
@@ -763,28 +767,32 @@ TEST(checktransaction_tests, SaplingSproutInputSumsTooLarge)
     {
         // create JSDescription
         uint256 rt;
-        uint256 joinSplitPubKey;
+        Ed25519VerificationKey joinSplitPubKey;
         std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS> inputs = {
             libzcash::JSInput(),
-            libzcash::JSInput()};
+            libzcash::JSInput()
+        };
         std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS> outputs = {
             libzcash::JSOutput(),
-            libzcash::JSOutput()};
-        std::array<uint64_t, ZC_NUM_JS_INPUTS> inputMap;
-        std::array<uint64_t, ZC_NUM_JS_OUTPUTS> outputMap;
+            libzcash::JSOutput()
+        };
+        std::array<size_t, ZC_NUM_JS_INPUTS> inputMap;
+        std::array<size_t, ZC_NUM_JS_OUTPUTS> outputMap;
 
-        auto jsdesc = JSDescription::Randomized(
-            *params, joinSplitPubKey, rt,
+        auto jsdesc = JSDescriptionInfo(
+            joinSplitPubKey, rt,
             inputs, outputs,
+            0, 0
+        ).BuildRandomized(
             inputMap, outputMap,
-            0, 0, false);
+            false);
 
-        mtx.vjoinsplit.push_back(jsdesc);
+        mtx.vJoinSplit.push_back(jsdesc);
     }
 
     mtx.vShieldedSpend.push_back(SpendDescription());
 
-    mtx.vjoinsplit[0].vpub_new = (MAX_MONEY / 2) + 10;
+    mtx.vJoinSplit[0].vpub_new = (MAX_MONEY / 2) + 10;
 
     {
         UNSAFE_CTransaction tx(mtx);
@@ -792,12 +800,12 @@ TEST(checktransaction_tests, SaplingSproutInputSumsTooLarge)
         EXPECT_TRUE(CheckTransactionWithoutProofVerification(tx, state));
     }
 
-    mtx.valueBalance = (MAX_MONEY / 2) + 10;
+    mtx.valueBalanceSapling = (MAX_MONEY / 2) + 10;
 
     {
         UNSAFE_CTransaction tx(mtx);
         MockCValidationState state;
-        EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-txns-txintotal-toolarge", false)).Times(1);
+        EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-txns-txintotal-toolarge", false, "")).Times(1);
         CheckTransactionWithoutProofVerification(tx, state);
     }
 }

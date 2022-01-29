@@ -1,37 +1,32 @@
 // Copyright (c) 2017 The Zcash developers
-// Copyright (c) 2017-2018 The SnowGem developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #include "paymentdisclosuredb.h"
 
-#include "dbwrapper.h"
+#include "fs.h"
 #include "util.h"
-
-#include <boost/filesystem.hpp>
+#include "dbwrapper.h"
 
 using namespace std;
 
-static boost::filesystem::path emptyPath;
+static fs::path emptyPath;
 
 /**
  * Static method to return the shared/default payment disclosure database.
  */
-shared_ptr<PaymentDisclosureDB> PaymentDisclosureDB::sharedInstance()
-{
+shared_ptr<PaymentDisclosureDB> PaymentDisclosureDB::sharedInstance() {
     // Thread-safe in C++11 and gcc 4.3
     static shared_ptr<PaymentDisclosureDB> ptr = std::make_shared<PaymentDisclosureDB>();
     return ptr;
 }
 
 // C++11 delegated constructor
-PaymentDisclosureDB::PaymentDisclosureDB() : PaymentDisclosureDB(emptyPath)
-{
+PaymentDisclosureDB::PaymentDisclosureDB() : PaymentDisclosureDB(emptyPath) {
 }
 
-PaymentDisclosureDB::PaymentDisclosureDB(const boost::filesystem::path& dbPath)
-{
-    boost::filesystem::path path(dbPath);
+PaymentDisclosureDB::PaymentDisclosureDB(const fs::path& dbPath) {
+    fs::path path(dbPath);
     if (path.empty()) {
         path = GetDataDir() / "paymentdisclosure";
         LogPrintf("PaymentDisclosure: using default path for database: %s\n", path.string());
@@ -46,8 +41,7 @@ PaymentDisclosureDB::PaymentDisclosureDB(const boost::filesystem::path& dbPath)
     LogPrintf("PaymentDisclosure: Opened LevelDB successfully\n");
 }
 
-PaymentDisclosureDB::~PaymentDisclosureDB()
-{
+PaymentDisclosureDB::~PaymentDisclosureDB() {
     if (db != nullptr) {
         delete db;
     }

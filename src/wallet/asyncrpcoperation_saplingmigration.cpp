@@ -112,7 +112,7 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
     CCoinsViewCache coinsView(pcoinsTip);
     do {
         CAmount amountToSend = chooseAmount(availableFunds);
-        auto builder = TransactionBuilder(consensusParams, targetHeight_, pwalletMain, pgemlinkParams, &coinsView, &cs_main);
+        auto builder = TransactionBuilder(consensusParams, targetHeight_, pwalletMain, &coinsView, &cs_main);
         builder.SetExpiryHeight(targetHeight_ + MIGRATION_EXPIRY_DELTA);
         LogPrint("zrpcunsafe", "%s: Beginning creating transaction with Sapling output amount=%s\n", getId(), FormatMoney(amountToSend - FEE));
         std::vector<SproutNoteEntry> fromNotes;
@@ -139,9 +139,9 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
             // for each Sprout JoinSplit description
             // TODO: the above functionality (in comment) is not implemented in zcashd
             uint256 inputAnchor;
-            std::vector<boost::optional<SproutWitness>> vInputWitnesses;
+            std::vector<std::optional<SproutWitness>> vInputWitnesses;
             pwalletMain->GetSproutNoteWitnesses(vOutPoints, vInputWitnesses, inputAnchor);
-            builder.AddSproutInput(sproutSk, sproutEntry.note, vInputWitnesses[0].get());
+            builder.AddSproutInput(sproutSk, sproutEntry.note, vInputWitnesses[0].value());
         }
         // The amount chosen *includes* the 0.0001 ZEC fee for this transaction, i.e.
         // the value of the Sapling output will be 0.0001 ZEC less.
@@ -197,9 +197,11 @@ CAmount AsyncRPCOperation_saplingmigration::chooseAmount(const CAmount& availabl
 libzcash::SaplingPaymentAddress AsyncRPCOperation_saplingmigration::getMigrationDestAddress(const HDSeed& seed)
 {
     if (mapArgs.count("-migrationdestaddress")) {
+        KeyIO keyIO(Params());
         std::string migrationDestAddress = mapArgs["-migrationdestaddress"];
-        auto address = DecodePaymentAddress(migrationDestAddress);
-        auto saplingAddress = boost::get<libzcash::SaplingPaymentAddress>(&address);
+        auto address = keyIO.DecodePaymentAddress(migrationDestAddress);
+        assert(address.has_value()); // This is checked in init.cpp
+        auto saplingAddress = std::get_if<libzcash::SaplingPaymentAddress>(&address.value());
         assert(saplingAddress != nullptr); // This is checked in init.cpp
         return *saplingAddress;
     }
@@ -218,14 +220,9 @@ libzcash::SaplingPaymentAddress AsyncRPCOperation_saplingmigration::getMigration
 
     libzcash::SaplingPaymentAddress toAddress = xsk.DefaultAddress();
 
-    // Refactor: this is similar logic as in the visitor HaveSpendingKeyForPaymentAddress and is used elsewhere
-    libzcash::SaplingIncomingViewingKey ivk;
-    libzcash::SaplingFullViewingKey fvk;
-    if (!(pwalletMain->GetSaplingIncomingViewingKey(toAddress, ivk) &&
-          pwalletMain->GetSaplingFullViewingKey(ivk, fvk) &&
-          pwalletMain->HaveSaplingSpendingKey(fvk))) {
+    if (!HaveSpendingKeyForPaymentAddress(pwalletMain)(toAddress)) {
         // Sapling account 0 must be the first address returned by GenerateNewSaplingZKey
-        assert(pwalletMain->GenerateNewSaplingZKey(true) == toAddress);
+        assert(pwalletMain->GenerateNewSaplingZKey() == toAddress);
     }
 
     return toAddress;
