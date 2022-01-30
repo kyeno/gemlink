@@ -527,6 +527,8 @@ pub extern "C" fn librustzcash_eh_isvalid(
     nonce_len: size_t,
     soln: *const c_uchar,
     soln_len: size_t,
+    pers: *const c_uchar,
+    pers_len: size_t
 ) -> bool {
     if (k >= n) || (n % 8 != 0) || (soln_len != (1 << k) * ((n / (k + 1)) as usize + 1) / 8) {
         return false;
@@ -534,7 +536,8 @@ pub extern "C" fn librustzcash_eh_isvalid(
     let rs_input = unsafe { slice::from_raw_parts(input, input_len) };
     let rs_nonce = unsafe { slice::from_raw_parts(nonce, nonce_len) };
     let rs_soln = unsafe { slice::from_raw_parts(soln, soln_len) };
-    equihash::is_valid_solution(n, k, rs_input, rs_nonce, rs_soln).is_ok()
+    let rs_pers = unsafe { slice::from_raw_parts(pers, pers_len) };
+    equihash::is_valid_solution(n, k, rs_input, rs_nonce, rs_soln, rs_pers).is_ok()
 }
 
 /// Creates a Sapling verification context. Please free this when you're done.

@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 
+#define PERS_SIZE 8U
+
 inline constexpr size_t equihash_solution_size(unsigned int N, unsigned int K)
 {
     return (1 << K) * (N / (K + 1) + 1) / 8;

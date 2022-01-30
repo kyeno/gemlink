@@ -186,12 +186,15 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
 bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& params)
 {
     unsigned int n, k;
+    unsigned char personalization[PERS_SIZE] = {};
     if (pblock->nTime <= params.eh_epoch_1_end()) {
         n = params.eh_epoch_1_params().n;
         k = params.eh_epoch_1_params().k;
+        memcpy(personalization, params.eh_epoch_1_params().pers, PERS_SIZE);
     } else {
         n = params.eh_epoch_2_params().n;
         k = params.eh_epoch_2_params().k;
+        memcpy(personalization, params.eh_epoch_2_params().pers, PERS_SIZE);
     }
 
     // I = the block header minus nonce and solution.
@@ -200,11 +203,14 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << I;
 
+    LogPrint("pow", "Equihash sol: n %d k %d solsize %d pers %s\n", n, k, pblock->nSolution.size(), params.eh_epoch_1_params().pers);
     return librustzcash_eh_isvalid(
         n, k,
         (unsigned char*)&ss[0], ss.size(),
         pblock->nNonce.begin(), pblock->nNonce.size(),
-        pblock->nSolution.data(), pblock->nSolution.size());
+        pblock->nSolution.data(), pblock->nSolution.size(),
+        personalization, sizeof(personalization)
+        );
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
