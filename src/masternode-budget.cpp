@@ -560,8 +560,8 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CScript& payee)
 
         CTxDestination address1;
         ExtractDestination(payee, address1);
-
-        LogPrintf("Masternode payment to %s\n", EncodeDestination(address1));
+        KeyIO keyIO(Params());
+        LogPrintf("Masternode payment to %s\n", keyIO.EncodeDestination(address1));
     }
 }
 
@@ -2119,9 +2119,9 @@ TrxValidationStatus CFinalizedBudget::IsTransactionValid(const CTransaction& txN
     if (transactionStatus == TrxValidationStatus::InValid) {
         CTxDestination address1;
         ExtractDestination(vecBudgetPayments[nCurrentBudgetPayment].payee, address1);
-
+        KeyIO keyIO(Params());
         LogPrint("masternode", "CFinalizedBudget::IsTransactionValid - Missing required payment - %s: %d c: %d\n",
-                 EncodeDestination(address1), vecBudgetPayments[nCurrentBudgetPayment].nAmount, nCurrentBudgetPayment);
+                 keyIO.EncodeDestination(address1), vecBudgetPayments[nCurrentBudgetPayment].nAmount, nCurrentBudgetPayment);
     }
 
     return transactionStatus;

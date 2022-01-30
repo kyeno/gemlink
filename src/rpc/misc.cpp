@@ -551,30 +551,11 @@ UniValue validateaddress(const UniValue& params, bool fHelp)
 }
 
 
+
 class DescribePaymentAddressVisitor
 {
 public:
-    UniValue operator()(const CKeyID &addr) const {
-        UniValue obj(UniValue::VOBJ);
-        obj.pushKV("type", "p2pkh");
-#ifdef ENABLE_WALLET
-        if (pwalletMain) {
-            obj.pushKV("ismine", pwalletMain->HaveKey(addr));
-        }
-#endif
-        return obj;
-    }
-
-    UniValue operator()(const CScriptID &addr) const {
-        UniValue obj(UniValue::VOBJ);
-        obj.pushKV("type", "p2sh");
-#ifdef ENABLE_WALLET
-        if (pwalletMain) {
-            obj.pushKV("ismine", pwalletMain->HaveCScript(addr));
-        }
-#endif
-        return obj;
-    }
+    UniValue operator()(const libzcash::InvalidEncoding &zaddr) const { return UniValue(UniValue::VOBJ); }
 
     UniValue operator()(const libzcash::SproutPaymentAddress &zaddr) const {
         UniValue obj(UniValue::VOBJ);
@@ -583,7 +564,7 @@ public:
         obj.pushKV("transmissionkey", zaddr.pk_enc.GetHex());
 #ifdef ENABLE_WALLET
         if (pwalletMain) {
-            obj.pushKV("ismine", pwalletMain->HaveSproutSpendingKey(zaddr));
+            obj.pushKV("ismine", HaveSpendingKeyForPaymentAddress(pwalletMain)(zaddr));
         }
 #endif
         return obj;
@@ -596,7 +577,7 @@ public:
         obj.pushKV("diversifiedtransmissionkey", zaddr.pk_d.GetHex());
 #ifdef ENABLE_WALLET
         if (pwalletMain) {
-            obj.pushKV("ismine", pwalletMain->HaveSaplingSpendingKeyForAddress(zaddr));
+            obj.pushKV("ismine", HaveSpendingKeyForPaymentAddress(pwalletMain)(zaddr));
         }
 #endif
         return obj;
@@ -609,7 +590,6 @@ public:
         return obj;
     }
 };
-
 
 UniValue z_validateaddress(const UniValue& params, bool fHelp)
 {
@@ -643,13 +623,13 @@ UniValue z_validateaddress(const UniValue& params, bool fHelp)
 
     string strAddress = params[0].get_str();
     auto address = keyIO.DecodePaymentAddress(strAddress);
-    bool isValid = address.has_value();
+    bool isValid = IsValidPaymentAddress(address);
 
     UniValue ret(UniValue::VOBJ);
     ret.push_back(Pair("isvalid", isValid));
     if (isValid) {
         ret.push_back(Pair("address", strAddress));
-        UniValue detail = std::visit(DescribePaymentAddressVisitor(), address.value());
+        UniValue detail = std::visit(DescribePaymentAddressVisitor(), address);
         ret.pushKVs(detail);
     }
     return ret;

@@ -2,8 +2,6 @@
 #define ZC_ADDRESS_H_
 
 #include "uint256.h"
-#include "pubkey.h"
-#include "script/script.h"
 #include "zcash/address/sapling.hpp"
 #include "zcash/address/sprout.hpp"
 #include "zcash/address/zip32.h"
@@ -11,6 +9,26 @@
 #include <variant>
 
 namespace libzcash {
+// We use new classes here instead of CKeyID and CScriptID to prevent a cyclic dependency.
+class P2PKHAddress: public uint160 {
+public:
+    P2PKHAddress() {}
+    explicit P2PKHAddress(const std::vector<unsigned char>& vch) : uint160(vch) {}
+};
+class P2SHAddress: public uint160 {
+public:
+    P2SHAddress() {}
+    explicit P2SHAddress(const std::vector<unsigned char>& vch) : uint160(vch) {}
+};
+
+/** Protocol addresses that can receive funds in a transaction. */
+typedef std::variant<SproutPaymentAddress, SaplingPaymentAddress> RawAddress;
+
+class InvalidEncoding {
+public:
+    friend bool operator==(const InvalidEncoding &a, const InvalidEncoding &b) { return true; }
+    friend bool operator<(const InvalidEncoding &a, const InvalidEncoding &b) { return true; }
+};
 
 class UnknownReceiver {
 public:
@@ -41,8 +59,8 @@ public:
  */
 typedef std::variant<
     SaplingPaymentAddress,
-    CScriptID,
-    CKeyID,
+    P2SHAddress,
+    P2PKHAddress,
     UnknownReceiver> Receiver;
 
 struct ReceiverIterator {
@@ -119,44 +137,37 @@ public:
 
 /** Addresses that can appear in a string encoding. */
 typedef std::variant<
-    CKeyID,
-    CScriptID,
+    InvalidEncoding,
     SproutPaymentAddress,
     SaplingPaymentAddress,
     UnifiedAddress> PaymentAddress;
-/** Viewing keys that can be decoded from a string representation. */
-typedef std::variant<
-    SproutViewingKey,
-    SaplingExtendedFullViewingKey> ViewingKey;
-/** Spending keys that can have a string encoding. */
-typedef std::variant<
-    SproutSpendingKey,
-    SaplingExtendedSpendingKey> SpendingKey;
-
-class HasShieldedRecipient {
-public:
-    bool operator()(const CKeyID& p2pkh) { return false; }
-    bool operator()(const CScriptID& p2sh) { return false; }
-    bool operator()(const SproutPaymentAddress& addr) { return true; }
-    bool operator()(const SaplingPaymentAddress& addr) { return true; }
-    // unified addresses must contain a shielded receiver, so we
-    // consider this to be safe by construction
-    bool operator()(const UnifiedAddress& addr) { return true; }
-};
+typedef std::variant<InvalidEncoding, SproutViewingKey, SaplingExtendedFullViewingKey> ViewingKey;
+typedef std::variant<InvalidEncoding, SproutSpendingKey, SaplingExtendedSpendingKey> SpendingKey;
 
 class AddressInfoFromSpendingKey {
 public:
     std::pair<std::string, PaymentAddress> operator()(const SproutSpendingKey&) const;
     std::pair<std::string, PaymentAddress> operator()(const struct SaplingExtendedSpendingKey&) const;
+    std::pair<std::string, PaymentAddress> operator()(const InvalidEncoding&) const;
 };
 
 class AddressInfoFromViewingKey {
 public:
     std::pair<std::string, PaymentAddress> operator()(const SproutViewingKey&) const;
     std::pair<std::string, PaymentAddress> operator()(const struct SaplingExtendedFullViewingKey&) const;
+    std::pair<std::string, PaymentAddress> operator()(const InvalidEncoding&) const;
 };
 
 }
+
+/** Check whether a PaymentAddress is not an InvalidEncoding. */
+bool IsValidPaymentAddress(const libzcash::PaymentAddress& zaddr);
+
+/** Check whether a ViewingKey is not an InvalidEncoding. */
+bool IsValidViewingKey(const libzcash::ViewingKey& vk);
+
+/** Check whether a SpendingKey is not an InvalidEncoding. */
+bool IsValidSpendingKey(const libzcash::SpendingKey& zkey);
 
 /**
  * Gets the typecode for the given UA receiver.
@@ -166,9 +177,48 @@ public:
     TypecodeForReceiver() {}
 
     uint32_t operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
-    uint32_t operator()(const CScriptID &p2sh) const;
-    uint32_t operator()(const CKeyID &p2pkh) const;
+    uint32_t operator()(const libzcash::P2SHAddress &p2sh) const;
+    uint32_t operator()(const libzcash::P2PKHAddress &p2pkh) const;
     uint32_t operator()(const libzcash::UnknownReceiver &p2pkh) const;
+};
+
+/**
+ * Converts the given UA receiver to a protocol address, if it is a shielded receiver.
+ */
+class ReceiverToRawAddress {
+public:
+    ReceiverToRawAddress() {}
+
+    std::optional<libzcash::RawAddress> operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    std::optional<libzcash::RawAddress> operator()(const libzcash::P2SHAddress &p2sh) const;
+    std::optional<libzcash::RawAddress> operator()(const libzcash::P2PKHAddress &p2pkh) const;
+    std::optional<libzcash::RawAddress> operator()(const libzcash::UnknownReceiver &p2pkh) const;
+};
+
+/**
+ * Returns the protocol address that should be used in transaction outputs.
+ */
+class RecipientForPaymentAddress {
+public:
+    RecipientForPaymentAddress() {}
+
+    std::optional<libzcash::RawAddress> operator()(const libzcash::InvalidEncoding& no) const;
+    std::optional<libzcash::RawAddress> operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    std::optional<libzcash::RawAddress> operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    std::optional<libzcash::RawAddress> operator()(const libzcash::UnifiedAddress &uaddr) const;
+};
+
+/**
+ * Returns all protocol addresses contained within the given payment address.
+ */
+class GetRawAddresses {
+public:
+    GetRawAddresses() {}
+
+    std::set<libzcash::RawAddress> operator()(const libzcash::InvalidEncoding& no) const;
+    std::set<libzcash::RawAddress> operator()(const libzcash::SproutPaymentAddress &zaddr) const;
+    std::set<libzcash::RawAddress> operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
+    std::set<libzcash::RawAddress> operator()(const libzcash::UnifiedAddress &uaddr) const;
 };
 
 #endif // ZC_ADDRESS_H_

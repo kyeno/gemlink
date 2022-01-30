@@ -599,6 +599,9 @@ public:
         P2PKH = 1,
         P2SH = 2,
     };
+
+    bool IsNormalPaymentScript() const;
+
     bool IsPayToPublicKeyHash() const;
     bool IsPayToScriptHash() const;
     ScriptType GetType() const;

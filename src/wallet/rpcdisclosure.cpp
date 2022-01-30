@@ -100,13 +100,13 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
     const CWalletTx& wtx = pwalletMain->mapWallet[hash];
 
     // Check if shielded tx
-    if (wtx.vJoinSplit.empty()) {
+    if (wtx.vjoinsplit.empty()) {
         throw JSONRPCError(RPC_MISC_ERROR, "Transaction is not a shielded transaction");        
     }
 
     // Check js_index
     int js_index = params[1].get_int();
-    if (js_index < 0 || js_index >= wtx.vJoinSplit.size()) {
+    if (js_index < 0 || js_index >= wtx.vjoinsplit.size()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid js_index");
     }
 
@@ -220,7 +220,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
     }
 
     // Check if shielded tx
-    if (tx.vJoinSplit.empty()) {
+    if (tx.vjoinsplit.empty()) {
         throw JSONRPCError(RPC_MISC_ERROR, "Transaction is not a shielded transaction");        
     }
 
@@ -229,7 +229,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
     o.pushKV("txid", pd.payload.txid.ToString());
 
     // Check js_index
-    if (pd.payload.js >= tx.vJoinSplit.size()) {
+    if (pd.payload.js >= tx.vjoinsplit.size()) {
         errs.push_back("Payment disclosure refers to an invalid joinsplit index");
     }
     o.pushKV("jsIndex", pd.payload.js);

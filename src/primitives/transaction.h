@@ -501,6 +501,7 @@ private:
     /** Memory only. */
     const uint256 hash;
     void UpdateHash() const;
+    CAmount valueBalanceSapling;
 
 protected:
     /** Developer testing only.  Set evilDeveloperFlag to true.
@@ -647,6 +648,14 @@ public:
             header |= 1 << 31;
         }
         return header;
+    }
+
+    
+    /**
+     * Returns the Sapling value balance for the transaction.
+     */
+    const CAmount& GetValueBalanceSapling() const {
+        return valueBalanceSapling;
     }
 
     /*

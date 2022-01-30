@@ -45,7 +45,6 @@
 #include "utilmoneystr.h"
 #include "validationinterface.h"
 #ifdef ENABLE_WALLET
-#include "wallet/asyncrpcoperation_saplingconsolidation.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #endif
@@ -427,7 +426,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-keypool=<n>", strprintf(_("Set key pool size to <n> (default: %u)"), 100));
     strUsage += HelpMessageOpt("-consolidation", _("Enable auto Sapling note consolidation"));
     strUsage += HelpMessageOpt("-consolidatesaplingaddress=<zaddr>", _("Specify Sapling Address to Consolidate. (default: all)"));
-    strUsage += HelpMessageOpt("-consolidationtxfee", strprintf(_("Fee amount in Satoshis used send consolidation transactions. (default %i)"), DEFAULT_CONSOLIDATION_FEE));
+    // strUsage += HelpMessageOpt("-consolidationtxfee", strprintf(_("Fee amount in Satoshis used send consolidation transactions. (default %i)"), DEFAULT_CONSOLIDATION_FEE));
     strUsage += HelpMessageOpt("-deletetx", _("Enable Old Transaction Deletion"));
     strUsage += HelpMessageOpt("-deleteinterval", strprintf(_("Delete transaction every <n> blocks during inital block download (default: %i)"), DEFAULT_TX_DELETE_INTERVAL));
     strUsage += HelpMessageOpt("-keeptxnum", strprintf(_("Keep the last <n> transactions (default: %i)"), DEFAULT_TX_RETENTION_LASTTX));
@@ -1708,12 +1707,15 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #ifdef ENABLE_WALLET
         bool minerAddressInLocalWallet = false;
         if (pwalletMain) {
-            auto zaddr = keyIO.DecodePaymentAddress(mapArgs["-mineraddress"]);
-            if (!zaddr.has_value()) {
-                return InitError(_("-mineraddress is not a valid " PACKAGE_NAME " address."));
+            CTxDestination addr = keyIO.DecodeDestination(mapArgs["-mineraddress"]);
+            if (IsValidDestination(addr)) {
+                CKeyID keyID = std::get<CKeyID>(addr);
+                minerAddressInLocalWallet = pwalletMain->HaveKey(keyID);
+            } else {
+                auto zaddr = keyIO.DecodePaymentAddress(mapArgs["-mineraddress"]);
+                minerAddressInLocalWallet = std::visit(
+                    HaveSpendingKeyForPaymentAddress(pwalletMain), zaddr);
             }
-            minerAddressInLocalWallet = std::visit(
-                HaveSpendingKeyForPaymentAddress(pwalletMain), zaddr.value());
         }
         if (GetBoolArg("-minetolocalwallet", true) && !minerAddressInLocalWallet) {
             return InitError(_("-mineraddress is not in the local wallet. Either use a local address, or set -minetolocalwallet=0"));
