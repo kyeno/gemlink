@@ -13,121 +13,6 @@
 
 #include "key_io.h"
 
-JSDescription::JSDescription(
-    ZCJoinSplit& params,
-    const uint256& joinSplitPubKey,
-    const uint256& anchor,
-    const std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-    const std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-    CAmount vpub_old,
-    CAmount vpub_new,
-    bool computeProof,
-    uint256* esk // payment disclosure
-    ) : vpub_old(vpub_old), vpub_new(vpub_new), anchor(anchor)
-{
-    std::array<libzcash::SproutNote, ZC_NUM_JS_OUTPUTS> notes;
-
-    proof = params.prove(
-        inputs,
-        outputs,
-        notes,
-        ciphertexts,
-        ephemeralKey,
-        joinSplitPubKey,
-        randomSeed,
-        macs,
-        nullifiers,
-        commitments,
-        vpub_old,
-        vpub_new,
-        anchor,
-        computeProof,
-        esk // payment disclosure
-    );
-}
-
-JSDescription JSDescription::Randomized(
-    ZCJoinSplit& params,
-    const uint256& joinSplitPubKey,
-    const uint256& anchor,
-    std::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-    std::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
-    std::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
-    std::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap,
-    CAmount vpub_old,
-    CAmount vpub_new,
-    bool computeProof,
-    uint256* esk, // payment disclosure
-    std::function<int(int)> gen)
-{
-    // Randomize the order of the inputs and outputs
-    inputMap = {0, 1};
-    outputMap = {0, 1};
-
-    assert(gen);
-
-    MappedShuffle(inputs.begin(), inputMap.begin(), ZC_NUM_JS_INPUTS, gen);
-    MappedShuffle(outputs.begin(), outputMap.begin(), ZC_NUM_JS_OUTPUTS, gen);
-
-    return JSDescription(
-        params, joinSplitPubKey, anchor, inputs, outputs,
-        vpub_old, vpub_new, computeProof,
-        esk // payment disclosure
-    );
-}
-
-class SproutProofVerifier : public boost::static_visitor<bool>
-{
-    ZCJoinSplit& params;
-    ProofVerifier& verifier;
-    const uint256& joinSplitPubKey;
-    const JSDescription& jsdesc;
-
-public:
-    SproutProofVerifier(
-        ZCJoinSplit& params,
-        ProofVerifier& verifier,
-        const uint256& joinSplitPubKey,
-        const JSDescription& jsdesc) : params(params), jsdesc(jsdesc), verifier(verifier), joinSplitPubKey(joinSplitPubKey) {}
-
-    bool operator()(const libzcash::PHGRProof& proof) const
-    {
-        return true;
-    }
-
-    bool operator()(const libzcash::GrothProof& proof) const
-    {
-        uint256 h_sig = params.h_sig(jsdesc.randomSeed, jsdesc.nullifiers, joinSplitPubKey);
-
-        return librustzcash_sprout_verify(
-            proof.begin(),
-            jsdesc.anchor.begin(),
-            h_sig.begin(),
-            jsdesc.macs[0].begin(),
-            jsdesc.macs[1].begin(),
-            jsdesc.nullifiers[0].begin(),
-            jsdesc.nullifiers[1].begin(),
-            jsdesc.commitments[0].begin(),
-            jsdesc.commitments[1].begin(),
-            jsdesc.vpub_old,
-            jsdesc.vpub_new);
-    }
-};
-
-bool JSDescription::Verify(
-    ZCJoinSplit& params,
-    ProofVerifier& verifier,
-    const uint256& joinSplitPubKey) const
-{
-    auto pv = SproutProofVerifier(params, verifier, joinSplitPubKey, *this);
-    return boost::apply_visitor(pv, proof);
-}
-
-uint256 JSDescription::h_sig(ZCJoinSplit& params, const uint256& joinSplitPubKey) const
-{
-    return params.h_sig(randomSeed, nullifiers, joinSplitPubKey);
-}
-
 std::string COutPoint::ToString() const
 {
     return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0, 10), n);
@@ -193,7 +78,8 @@ std::string CTxOut::ToString() const
 {
     CTxDestination address1;
     ExtractDestination(scriptPubKey, address1);
-    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s, address=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey).substr(0, 30), EncodeDestination(address1));
+    KeyIO keyIO(Params());
+    return strprintf("CTxOut(nValue=%d.%08d, scriptPubKey=%s, address=%s)", nValue / COIN, nValue % COIN, HexStr(scriptPubKey).substr(0, 30), keyIO.EncodeDestination(address1));
 }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::SPROUT_MIN_CURRENT_VERSION), fOverwintered(false), nVersionGroupId(0), nExpiryHeight(0), nLockTime(0), valueBalance(0) {}
@@ -262,8 +148,8 @@ CTransaction& CTransaction::operator=(const CTransaction& tx)
     *const_cast<std::vector<SpendDescription>*>(&vShieldedSpend) = tx.vShieldedSpend;
     *const_cast<std::vector<OutputDescription>*>(&vShieldedOutput) = tx.vShieldedOutput;
     *const_cast<std::vector<JSDescription>*>(&vjoinsplit) = tx.vjoinsplit;
-    *const_cast<uint256*>(&joinSplitPubKey) = tx.joinSplitPubKey;
-    *const_cast<joinsplit_sig_t*>(&joinSplitSig) = tx.joinSplitSig;
+    *const_cast<Ed25519VerificationKey*>(&joinSplitPubKey) = tx.joinSplitPubKey;
+    *const_cast<Ed25519Signature*>(&joinSplitSig) = tx.joinSplitSig;
     *const_cast<binding_sig_t*>(&bindingSig) = tx.bindingSig;
     *const_cast<uint256*>(&hash) = tx.hash;
     return *this;

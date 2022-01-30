@@ -175,7 +175,7 @@ static void WriteOrderPos(const int64_t& nOrderPos, mapValue_t& mapValue)
 }
 
 CAmount getBalanceTaddr(std::string transparentAddress, int minDepth = 1, bool ignoreUnspendable = true);
-CAmount getBalanceZaddr(std::string address, int minDepth = 1, bool ignoreUnspendable = true);
+CAmount getBalanceZaddr(std::optional<libzcash::RawAddress> address, int minDepth = 1, int maxDepth = INT_MAX, bool ignoreUnspendable = true);
 void AcentryToJSON(const CAccountingEntry& acentry, const std::string& strAccount, UniValue& ret);
 void ListTransactions(const CWalletTx& wtx, const std::string& strAccount, int nMinDepth, bool fLong, UniValue& ret, const isminefilter& filter);
 
@@ -1257,7 +1257,7 @@ public:
     bool FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosRet, std::string& strFailReason);
     bool CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int& nChangePosRet, std::string& strFailReason, const CCoinControl* coinControl = NULL, bool sign = true, AvailableCoinsType coin_type = ALL_COINS, bool useIX = false, CAmount nFeePay = 0);
     bool CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, std::string& strFailReason, const CCoinControl* coinControl = NULL, AvailableCoinsType coin_type = ALL_COINS, bool useIX = false, CAmount nFeePay = 0);
-    bool CommitTransaction(CWalletTx& wtxNew, boost::optional<CReserveKey&> reservekey, std::string strCommand = "tx");
+    bool CommitTransaction(CWalletTx& wtxNew, std::optional<std::reference_wrapper<CReserveKey>>, std::string strCommand = "tx");
 
     static CFeeRate minTxFee;
     static CAmount GetMinimumFee(unsigned int nTxBytes, unsigned int nConfirmTarget, const CTxMemPool& pool);

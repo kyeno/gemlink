@@ -10,6 +10,7 @@
 #include "primitives/transaction.h"
 #include "script/standard.h"
 #include "uint256.h"
+#include "main.h"
 
 #include <boost/foreach.hpp>
 

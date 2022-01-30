@@ -17,6 +17,8 @@
 
 #include "sodium.h"
 
+#include <librustzcash.h>
+
 bool CheckBlockTimestamp(const CBlockIndex* pindexLast, const CBlockHeader* pblock)
 {
     const CChainParams& chainParams = Params();
@@ -48,8 +50,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     {
         // Comparing to pindexLast->nHeight with >= because this function
         // returns the work required for the block after pindexLast.
-        if (params.nPowAllowMinDifficultyBlocksAfterHeight != boost::none &&
-            pindexLast->nHeight >= params.nPowAllowMinDifficultyBlocksAfterHeight.get()) {
+        if (params.nPowAllowMinDifficultyBlocksAfterHeight != std::nullopt &&
+            pindexLast->nHeight >= params.nPowAllowMinDifficultyBlocksAfterHeight.value()) {
             // Special difficulty rule for testnet:
             // If the new block's timestamp is more than 6 * 2.5 minutes
             // then allow mining of a min-difficulty block.
@@ -181,22 +183,9 @@ unsigned int Lwma3CalculateNextWorkRequired(const CBlockIndex* pindexLast, const
     return nextTarget.GetCompact();
 }
 
-bool CheckEquihashSolution(const CBlockHeader* pblock, const Consensus::Params& params)
+bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& params)
 {
-    // Set parameters N,K from solution size. Filtering of valid parameters
-    // for the givenblock height will be carried out in main.cpp/ContextualCheckBlockHeader
     unsigned int n, k;
-    size_t nSolSize = pblock->nSolution.size();
-    switch (nSolSize) {
-    case 1344:
-    case 100:
-    case 68:
-    case 36:
-        break;
-    default:
-        return error("CheckEquihashSolution: Unsupported solution size of %d", nSolSize);
-    }
-
     if (pblock->nTime <= params.eh_epoch_1_end()) {
         n = params.eh_epoch_1_params().n;
         k = params.eh_epoch_1_params().k;
@@ -204,30 +193,18 @@ bool CheckEquihashSolution(const CBlockHeader* pblock, const Consensus::Params& 
         n = params.eh_epoch_2_params().n;
         k = params.eh_epoch_2_params().k;
     }
-    // LogPrint("pow", "selected n,k : %d, %d \n", n,k);
-
-    // need to put block height param switching code here
-
-    // Hash state
-    crypto_generichash_blake2b_state state;
-    EhInitialiseState(n, k, state);
 
     // I = the block header minus nonce and solution.
     CEquihashInput I{*pblock};
     // I||V
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << I;
-    ss << pblock->nNonce;
 
-    // H(I||V||...
-    crypto_generichash_blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
-
-    bool isValid;
-    EhIsValidSolution(n, k, state, pblock->nSolution, isValid);
-    if (!isValid)
-        return error("CheckEquihashSolution(): invalid solution");
-
-    return true;
+    return librustzcash_eh_isvalid(
+        n, k,
+        (unsigned char*)&ss[0], ss.size(),
+        pblock->nNonce.begin(), pblock->nNonce.size(),
+        pblock->nSolution.data(), pblock->nSolution.size());
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)

@@ -239,7 +239,7 @@ bool CBitcoinAddress::Set(const CScriptID& id)
 
 bool CBitcoinAddress::Set(const CTxDestination& dest, const CChainParams::Base58Type addrType)
 {
-    return boost::apply_visitor(CBitcoinAddressVisitor(this, addrType), dest);
+    return std::visit(CBitcoinAddressVisitor(this, addrType), dest);
 }
 
 bool CBitcoinAddress::IsValid() const

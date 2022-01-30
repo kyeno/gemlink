@@ -108,7 +108,7 @@ void UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, 
     // }
 
     // Updating time can change work required on testnet:
-    if (consensusParams.nPowAllowMinDifficultyBlocksAfterHeight != boost::none) {
+    if (consensusParams.nPowAllowMinDifficultyBlocksAfterHeight != std::nullopt) {
         pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams);
     }
 }
@@ -398,9 +398,9 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
 }
 
 #ifdef ENABLE_WALLET
-boost::optional<CScript> GetMinerScriptPubKey(CReserveKey& reservekey)
+std::optional<CScript> GetMinerScriptPubKey(CReserveKey& reservekey)
 #else
-boost::optional<CScript> GetMinerScriptPubKey()
+std::optional<CScript> GetMinerScriptPubKey()
 #endif
 {
     CKeyID keyID;
@@ -412,11 +412,11 @@ boost::optional<CScript> GetMinerScriptPubKey()
 #ifdef ENABLE_WALLET
         CPubKey pubkey;
         if (!reservekey.GetReservedKey(pubkey)) {
-            return boost::optional<CScript>();
+            return std::optional<CScript>();
         }
         keyID = pubkey.GetID();
 #else
-        return boost::optional<CScript>();
+        return std::optional<CScript>();
 #endif
     }
 
@@ -427,11 +427,11 @@ boost::optional<CScript> GetMinerScriptPubKey()
 #ifdef ENABLE_WALLET
 CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams, CReserveKey& reservekey)
 {
-    boost::optional<CScript> scriptPubKey = GetMinerScriptPubKey(reservekey);
+    std::optional<CScript> scriptPubKey = GetMinerScriptPubKey(reservekey);
 #else
 CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams)
 {
-    boost::optional<CScript> scriptPubKey = GetMinerScriptPubKey();
+    std::optional<CScript> scriptPubKey = GetMinerScriptPubKey();
 #endif
 
     if (!scriptPubKey) {
@@ -611,7 +611,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
 
             while (true) {
                 // Hash state
-                crypto_generichash_blake2b_state state;
+                eh_HashState state;
                 EhInitialiseState(n, k, state);
 
                 // I = the block header minus nonce and solution.
@@ -620,14 +620,12 @@ void static BitcoinMiner(const CChainParams& chainparams)
                 ss << I;
 
                 // H(I||...
-                crypto_generichash_blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
+                state.Update((unsigned char*)&ss[0], ss.size());
 
                 // H(I||V||...
-                crypto_generichash_blake2b_state curr_state;
+                eh_HashState curr_state;
                 curr_state = state;
-                crypto_generichash_blake2b_update(&curr_state,
-                                                  pblock->nNonce.begin(),
-                                                  pblock->nNonce.size());
+                curr_state.Update(pblock->nNonce.begin(), pblock->nNonce.size());
 
                 // (x_1, x_2, ...) = A(I, V, n, k)
                 LogPrint("pow", "Running Equihash solver \"%s\" with nNonce = %s\n",
@@ -682,7 +680,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
                 if (solver == "tromp") {
                     // Create solver and initialize it.
                     equi eq(1);
-                    eq.setstate(&curr_state);
+                    eq.setstate(curr_state.inner.get());
 
                     // Intialization done, start algo driver.
                     eq.digit0(0);
@@ -741,7 +739,7 @@ void static BitcoinMiner(const CChainParams& chainparams)
                 // Update nNonce and nTime
                 pblock->nNonce = ArithToUint256(UintToArith256(pblock->nNonce) + 1);
                 UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
-                if (chainparams.GetConsensus().nPowAllowMinDifficultyBlocksAfterHeight != boost::none) {
+                if (chainparams.GetConsensus().nPowAllowMinDifficultyBlocksAfterHeight != std::nullopt) {
                     // Changing pblock->nTime can change work required on testnet:
                     hashTarget.SetCompact(pblock->nBits);
                 }

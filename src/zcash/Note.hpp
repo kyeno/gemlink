@@ -188,7 +188,6 @@ public:
     );
 
     static std::optional<SaplingNotePlaintext> attempt_sapling_enc_decryption_deserialization(
-        bool zip216Enabled,
         const SaplingEncCiphertext &ciphertext,
         const uint256 &epk,
         const uint256 &esk,

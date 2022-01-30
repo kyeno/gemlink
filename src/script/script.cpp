@@ -10,6 +10,19 @@
 
 using namespace std;
 
+
+namespace
+{
+inline std::string ValueString(const std::vector<unsigned char>& vch)
+{
+    if (vch.size() <= 4)
+        return strprintf("%d", CScriptNum(vch, false).getint());
+    else
+        return HexStr(vch);
+}
+} // namespace
+
+
 const char* GetOpName(opcodetype opcode)
 {
     switch (opcode)

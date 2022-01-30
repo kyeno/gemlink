@@ -48,7 +48,7 @@ uint256 SproutNote::nullifier(const SproutSpendingKey& a_sk) const {
 // Construct and populate Sapling note for a given payment address and value.
 SaplingNote::SaplingNote(
     const SaplingPaymentAddress& address,
-    const uint64_t value,
+    uint64_t value,
     Zip212Enabled zip212Enabled
 ) : BaseNote(value) {
     d = address.d;
@@ -334,8 +334,7 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::decrypt(
     // (https://zips.z.cash/zip-0216#specification) on the following fields:
     //
     // - pk_d in the outCiphertext field of Sapling coinbase outputs.
-    bool nu5Active = params.NetworkUpgradeActive(height, Consensus::UPGRADE_NU5);
-    auto ret = attempt_sapling_enc_decryption_deserialization(nu5Active, ciphertext, epk, esk, pk_d);
+    auto ret = attempt_sapling_enc_decryption_deserialization(ciphertext, epk, esk, pk_d);
 
     if (!ret) {
         return std::nullopt;
@@ -349,19 +348,18 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::decrypt(
             return std::nullopt;
         }
 
-        return plaintext_checks_without_height(nu5Active, plaintext, epk, esk, pk_d, cmu);
+        return plaintext_checks_without_height(false, plaintext, epk, esk, pk_d, cmu);
     }
 }
 
 std::optional<SaplingNotePlaintext> SaplingNotePlaintext::attempt_sapling_enc_decryption_deserialization(
-    bool zip216Enabled,
     const SaplingEncCiphertext &ciphertext,
     const uint256 &epk,
     const uint256 &esk,
     const uint256 &pk_d
 )
 {
-    auto encPlaintext = AttemptSaplingEncDecryption(zip216Enabled, ciphertext, epk, esk, pk_d);
+    auto encPlaintext = AttemptSaplingEncDecryption(ciphertext, epk, esk, pk_d);
 
     if (!encPlaintext) {
         return std::nullopt;
@@ -434,7 +432,7 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
 std::optional<SaplingNotePlaintextEncryptionResult> SaplingNotePlaintext::encrypt(const uint256& pk_d) const
 {
     // Get the encryptor
-    auto sne = SaplingNoteEncryption::FromDiversifier(d, generate_or_derive_esk());
+    auto sne = SaplingNoteEncryption::FromDiversifier(d);
     if (!sne) {
         return std::nullopt;
     }

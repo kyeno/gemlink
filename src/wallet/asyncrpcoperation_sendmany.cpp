@@ -840,7 +840,7 @@ bool AsyncRPCOperation_sendmany::main_impl() {
     assert(zOutputsDeque.size() == 0);
     assert(vpubNewProcessed);
 
-    auto txAndResult = SignSendRawTransaction(obj, boost::none, testmode);
+    auto txAndResult = SignSendRawTransaction(obj, std::nullopt, testmode);
     tx_ = txAndResult.first;
     set_result(txAndResult.second);
     return true;

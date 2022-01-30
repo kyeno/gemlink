@@ -9,9 +9,9 @@
 
 //! Substitute for C++17 std::optional
 template <typename T>
-using Optional = boost::optional<T>;
+using Optional = std::optional<T>;
 
 //! Substitute for C++17 std::nullopt
-static auto& nullopt = boost::none;
+static auto& nullopt = std::nullopt;
 
 #endif // BITCOIN_OPTIONAL_H

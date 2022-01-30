@@ -8,7 +8,7 @@ Add coverage support scoped to only the gemlink-gtest run; invoke with make geml
 Add googlemock 1.7.0 dependency.
 
 Sean Bowe (49):
-Add serialization for primitive boost::optional<T>.
+Add serialization for primitive std::optional<T>.
 New implementation of incremental merkle tree
 Integrate new incremental merkle tree implementation into consensus.
 Test old tree along with new tree as much as possible.

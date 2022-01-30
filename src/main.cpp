@@ -1683,7 +1683,8 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
         }
     }
 
-    SyncWithWallets(tx, NULL);
+    int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0;
+    SyncWithWallets(tx, NULL, nHeight);
 
     return true;
 }
@@ -3389,8 +3390,9 @@ bool static DisconnectTip(CValidationState& state, const CChainParams& chainpara
     assert(pcoinsTip->GetSaplingAnchorAt(pcoinsTip->GetBestAnchor(SAPLING), newSaplingTree));
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
+    int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0;
     for (const CTransaction& tx : block.vtx) {
-        SyncWithWallets(tx, NULL);
+        SyncWithWallets(tx, NULL, nHeight);
     }
     // Update cached incremental witnesses
     GetMainSignals().ChainTip(pindexDelete, &block, newSproutTree, newSaplingTree, false);
@@ -3466,12 +3468,13 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
     mnodeman.CheckSpentCollaterals(pblock->vtx);
     // Tell wallet about transactions that went from mempool
     // to conflicted:
+    int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0;
     for (const CTransaction& tx : txConflicted) {
-        SyncWithWallets(tx, NULL);
+        SyncWithWallets(tx, NULL, nHeight);
     }
     // ... and about transactions that got confirmed:
     for (const CTransaction& tx : pblock->vtx) {
-        SyncWithWallets(tx, pblock);
+        SyncWithWallets(tx, pblock, nHeight);
     }
     // Update cached incremental witnesses
     GetMainSignals().ChainTip(pindexNew, pblock, oldSproutTree, oldSaplingTree, true);
@@ -3944,9 +3947,9 @@ bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBl
         }
     }
     pindexNew->nSproutValue = sproutValue;
-    pindexNew->nChainSproutValue = boost::none;
+    pindexNew->nChainSproutValue = std::nullopt;
     pindexNew->nSaplingValue = saplingValue;
-    pindexNew->nChainSaplingValue = boost::none;
+    pindexNew->nChainSaplingValue = std::nullopt;
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
@@ -3968,12 +3971,12 @@ bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBl
                 if (pindex->pprev->nChainSproutValue && pindex->nSproutValue) {
                     pindex->nChainSproutValue = *pindex->pprev->nChainSproutValue + *pindex->nSproutValue;
                 } else {
-                    pindex->nChainSproutValue = boost::none;
+                    pindex->nChainSproutValue = std::nullopt;
                 }
                 if (pindex->pprev->nChainSaplingValue) {
                     pindex->nChainSaplingValue = *pindex->pprev->nChainSaplingValue + pindex->nSaplingValue;
                 } else {
-                    pindex->nChainSaplingValue = boost::none;
+                    pindex->nChainSaplingValue = std::nullopt;
                 }
             } else {
                 pindex->nChainSproutValue = pindex->nSproutValue;
@@ -4805,17 +4808,17 @@ bool static LoadBlockIndexDB()
                     if (pindex->pprev->nChainSproutValue && pindex->nSproutValue) {
                         pindex->nChainSproutValue = *pindex->pprev->nChainSproutValue + *pindex->nSproutValue;
                     } else {
-                        pindex->nChainSproutValue = boost::none;
+                        pindex->nChainSproutValue = std::nullopt;
                     }
                     if (pindex->pprev->nChainSaplingValue) {
                         pindex->nChainSaplingValue = *pindex->pprev->nChainSaplingValue + pindex->nSaplingValue;
                     } else {
-                        pindex->nChainSaplingValue = boost::none;
+                        pindex->nChainSaplingValue = std::nullopt;
                     }
                 } else {
                     pindex->nChainTx = 0;
-                    pindex->nChainSproutValue = boost::none;
-                    pindex->nChainSaplingValue = boost::none;
+                    pindex->nChainSproutValue = std::nullopt;
+                    pindex->nChainSaplingValue = std::nullopt;
                     mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
                 }
             } else {

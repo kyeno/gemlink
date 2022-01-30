@@ -10,6 +10,7 @@
 #include "zcash/prf.h"
 
 #include <librustzcash.h>
+#include <rust/blake2b.h>
 
 namespace libzcash {
 

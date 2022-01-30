@@ -32,10 +32,10 @@ struct CBlockTemplate {
 /** Generate a new block, without valid proof-of-work */
 CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& scriptPubKeyIn);
 #ifdef ENABLE_WALLET
-boost::optional<CScript> GetMinerScriptPubKey(CReserveKey& reservekey);
+std::optional<CScript> GetMinerScriptPubKey(CReserveKey& reservekey);
 CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams, CReserveKey& reservekey);
 #else
-boost::optional<CScript> GetMinerScriptPubKey();
+std::optional<CScript> GetMinerScriptPubKey();
 CBlockTemplate* CreateNewBlockWithKey(const CChainParams& chainparams);
 #endif
 
