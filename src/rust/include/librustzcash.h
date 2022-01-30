@@ -47,7 +47,10 @@ bool librustzcash_eh_isvalid(
     const unsigned char* nonce,
     size_t nonce_len,
     const unsigned char* soln,
-    size_t soln_len);
+    size_t soln_len,
+    const unsigned char* pers,
+    size_t pers_len
+    );
 
 /// Writes the "uncommitted" note value for empty leaves
 /// of the merkle tree. `result` must be a valid pointer
