@@ -1,27 +1,28 @@
 // Copyright (c) 2017 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
-#ifndef ASYNCRPCOPERATION_MERGETOADDRESS_H
-#define ASYNCRPCOPERATION_MERGETOADDRESS_H
+#ifndef ZCASH_WALLET_ASYNCRPCOPERATION_MERGETOADDRESS_H
+#define ZCASH_WALLET_ASYNCRPCOPERATION_MERGETOADDRESS_H
 
 #include "amount.h"
 #include "asyncrpcoperation.h"
-#include "paymentdisclosure.h"
+#include "policy/fees.h"
 #include "primitives/transaction.h"
 #include "transaction_builder.h"
 #include "wallet.h"
+#include "paymentdisclosure.h"
 #include "zcash/Address.hpp"
 #include "zcash/JoinSplit.hpp"
 
 #include <array>
+#include <optional>
 #include <tuple>
 #include <unordered_map>
 
 #include <univalue.h>
 
-// Default transaction fee if caller does not specify one.
-#define MERGE_TO_ADDRESS_OPERATION_DEFAULT_MINERS_FEE 10000
+#include <rust/ed25519/types.h>
 
 using namespace libzcash;
 
@@ -34,7 +35,7 @@ typedef std::tuple<JSOutPoint, SproutNote, CAmount, SproutSpendingKey> MergeToAd
 typedef std::tuple<SaplingOutPoint, SaplingNote, CAmount, SaplingExpandedSpendingKey> MergeToAddressInputSaplingNote;
 
 // A recipient is a tuple of address, memo (optional if zaddr)
-typedef std::pair<libzcash::PaymentAddress, std::string> MergeToAddressRecipient;
+typedef std::tuple<std::string, std::string> MergeToAddressRecipient;
 
 // Package of info which is passed to perform_joinsplit methods.
 struct MergeToAddressJSInfo {
@@ -56,13 +57,13 @@ class AsyncRPCOperation_mergetoaddress : public AsyncRPCOperation
 {
 public:
     AsyncRPCOperation_mergetoaddress(
-        boost::optional<TransactionBuilder> builder,
+        std::optional<TransactionBuilder> builder,
         CMutableTransaction contextualTx,
         std::vector<MergeToAddressInputUTXO> utxoInputs,
         std::vector<MergeToAddressInputSproutNote> sproutNoteInputs,
         std::vector<MergeToAddressInputSaplingNote> saplingNoteInputs,
         MergeToAddressRecipient recipient,
-        CAmount fee = MERGE_TO_ADDRESS_OPERATION_DEFAULT_MINERS_FEE,
+        CAmount fee = DEFAULT_FEE,
         UniValue contextInfo = NullUniValue);
     virtual ~AsyncRPCOperation_mergetoaddress();
 
@@ -89,11 +90,11 @@ private:
     uint32_t consensusBranchId_;
     CAmount fee_;
     int mindepth_;
+    MergeToAddressRecipient recipient_;
     bool isToTaddr_;
     bool isToZaddr_;
     CTxDestination toTaddr_;
     PaymentAddress toPaymentAddress_;
-    std::string memo_;
 
     Ed25519VerificationKey joinSplitPubKey_;
     Ed25519SigningKey joinSplitPrivKey_;
@@ -122,8 +123,6 @@ private:
         MergeToAddressJSInfo& info,
         std::vector<std::optional<SproutWitness>> witnesses,
         uint256 anchor);
-
-    void sign_send_raw_transaction(UniValue obj); // throws exception if there was an error
 
     void lock_utxos();
 
@@ -186,11 +185,6 @@ public:
         return delegate->perform_joinsplit(info, witnesses, anchor);
     }
 
-    void sign_send_raw_transaction(UniValue obj)
-    {
-        delegate->sign_send_raw_transaction(obj);
-    }
-
     void set_state(OperationStatus state)
     {
         delegate->state_.store(state);
@@ -198,4 +192,4 @@ public:
 };
 
 
-#endif /* ASYNCRPCOPERATION_MERGETOADDRESS_H */
+#endif // ZCASH_WALLET_ASYNCRPCOPERATION_MERGETOADDRESS_H

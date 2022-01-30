@@ -431,9 +431,9 @@ bool CMasternodeBroadcast::Create(CTxIn txin, CService service, CKey keyCollater
     {
         fNewSigs = NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG);
     }
-
+    KeyIO keyIO(Params());
     LogPrint("masternode", "CMasternodeBroadcast::Create -- pubKeyCollateralAddressNew = %s, pubKeyMasternodeNew.GetID() = %s\n",
-             EncodeDestination(pubKeyCollateralAddressNew.GetID()),
+             keyIO.EncodeDestination(pubKeyCollateralAddressNew.GetID()),
              pubKeyMasternodeNew.GetID().ToString());
 
     CMasternodePing mnp(txin);

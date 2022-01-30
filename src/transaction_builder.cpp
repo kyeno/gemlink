@@ -167,7 +167,7 @@ void TransactionBuilder::AddTransparentInput(COutPoint utxo, CScript scriptPubKe
     tIns.emplace_back(scriptPubKey, value);
 }
 
-bool TransactionBuilder::AddTransparentOutput(CTxDestination& to, CAmount value)
+bool TransactionBuilder::AddTransparentOutput(const CTxDestination& to, CAmount value)
 {
     if (!IsValidDestination(to)) {
         return false;
@@ -188,6 +188,13 @@ void TransactionBuilder::SendChangeTo(libzcash::SaplingPaymentAddress changeAddr
 {
     zChangeAddr = std::make_pair(ovk, changeAddr);
     tChangeAddr = boost::none;
+}
+
+void TransactionBuilder::SendChangeTo(libzcash::SproutPaymentAddress changeAddr)
+{
+    sproutChangeAddr = changeAddr;
+    zChangeAddr = std::nullopt;
+    tChangeAddr = std::nullopt;
 }
 
 bool TransactionBuilder::SendChangeTo(CTxDestination& changeAddr)

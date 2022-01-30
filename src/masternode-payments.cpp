@@ -679,15 +679,15 @@ std::string CMasternodeBlockPayees::GetRequiredPaymentsString()
     LOCK(cs_vecPayments);
 
     std::string ret = "Unknown";
-
+    KeyIO keyIO(Params());
     for (CMasternodePayee& payee : vecPayments) {
         CTxDestination address1;
         ExtractDestination(payee.scriptPubKey, address1);
 
         if (ret != "Unknown") {
-            ret += ", " + EncodeDestination(address1) + ":" + std::to_string(payee.nVotes);
+            ret += ", " + keyIO.EncodeDestination(address1) + ":" + std::to_string(payee.nVotes);
         } else {
-            ret = EncodeDestination(address1) + ":" + std::to_string(payee.nVotes);
+            ret = keyIO.EncodeDestination(address1) + ":" + std::to_string(payee.nVotes);
         }
     }
 
@@ -780,7 +780,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
         // pay to the oldest MN that still had no payment but its input is old enough and it was active long enough
         int nCount = 0;
         CMasternode* pmn = mnodeman.GetNextMasternodeInQueueForPayment(nBlockHeight, true, nCount);
-
+        KeyIO keyIO(Params());
         if (pmn != NULL) {
             LogPrint("masternode", "CMasternodePayments::ProcessBlock() Found by FindOldestNotInVec \n");
 
@@ -792,7 +792,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
             CTxDestination address1;
             ExtractDestination(payee, address1);
 
-            LogPrint("masternode", "CMasternodePayments::ProcessBlock() Winner payee %s nHeight %d. \n", EncodeDestination(address1), newWinner.nBlockHeight);
+            LogPrint("masternode", "CMasternodePayments::ProcessBlock() Winner payee %s nHeight %d. \n", keyIO.EncodeDestination(address1), newWinner.nBlockHeight);
         } else {
             LogPrint("masternode", "CMasternodePayments::ProcessBlock() Failed to find masternode to pay\n");
         }

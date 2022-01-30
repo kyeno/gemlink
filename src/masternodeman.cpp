@@ -961,8 +961,8 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         CValidationState state;
         CMutableTransaction tx = CMutableTransaction();
-
-        CTxDestination dest = DecodeDestination(Params().ObfuscationPoolDummyAddress());
+        KeyIO keyIO(Params());
+        CTxDestination dest = keyIO.DecodeDestination(Params().ObfuscationPoolDummyAddress());
         if (!IsValidDestination(dest)) {
             LogPrintf("CObfuscationPool::SetCollateralAddress - Invalid Obfuscation collateral address\n");
             return;

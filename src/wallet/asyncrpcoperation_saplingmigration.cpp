@@ -1,10 +1,9 @@
-#include "asyncrpcoperation_saplingmigration.h"
 #include "assert.h"
-#include "boost/variant/static_visitor.hpp"
+#include "asyncrpcoperation_saplingmigration.h"
 #include "init.h"
 #include "key_io.h"
-#include "random.h"
 #include "rpc/protocol.h"
+#include "random.h"
 #include "sync.h"
 #include "tinyformat.h"
 #include "transaction_builder.h"
@@ -12,15 +11,16 @@
 #include "utilmoneystr.h"
 #include "wallet.h"
 
-const CAmount FEE = 10000;
+#include <optional>
+#include <variant>
+
 const int MIGRATION_EXPIRY_DELTA = 450;
 
 AsyncRPCOperation_saplingmigration::AsyncRPCOperation_saplingmigration(int targetHeight) : targetHeight_(targetHeight) {}
 
 AsyncRPCOperation_saplingmigration::~AsyncRPCOperation_saplingmigration() {}
 
-void AsyncRPCOperation_saplingmigration::main()
-{
+void AsyncRPCOperation_saplingmigration::main() {
     if (isCancelled())
         return;
 
@@ -68,12 +68,11 @@ void AsyncRPCOperation_saplingmigration::main()
     LogPrintf("%s", s);
 }
 
-bool AsyncRPCOperation_saplingmigration::main_impl()
-{
+bool AsyncRPCOperation_saplingmigration::main_impl() {
     LogPrint("zrpcunsafe", "%s: Beginning AsyncRPCOperation_saplingmigration.\n", getId());
-    auto consensusParams = Params().GetConsensus();
+    const Consensus::Params& consensusParams = Params().GetConsensus();
     auto nextActivationHeight = NextActivationHeight(targetHeight_, consensusParams);
-    if (nextActivationHeight && targetHeight_ + MIGRATION_EXPIRY_DELTA >= nextActivationHeight.get()) {
+    if (nextActivationHeight && targetHeight_ + MIGRATION_EXPIRY_DELTA >= nextActivationHeight.value()) {
         LogPrint("zrpcunsafe", "%s: Migration txs would be created before a NU activation but may expire after. Skipping this round.\n", getId());
         setMigrationResult(0, 0, std::vector<std::string>());
         return true;
@@ -95,7 +94,7 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
     // If the remaining amount to be migrated is less than 0.01 ZEC, end the migration.
     if (availableFunds < CENT) {
         LogPrint("zrpcunsafe", "%s: Available Sprout balance (%s) less than required minimum (%s). Stopping.\n",
-                 getId(), FormatMoney(availableFunds), FormatMoney(CENT));
+            getId(), FormatMoney(availableFunds), FormatMoney(CENT));
         setMigrationResult(0, 0, std::vector<std::string>());
         return true;
     }
@@ -114,7 +113,7 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
         CAmount amountToSend = chooseAmount(availableFunds);
         auto builder = TransactionBuilder(consensusParams, targetHeight_, pwalletMain, &coinsView, &cs_main);
         builder.SetExpiryHeight(targetHeight_ + MIGRATION_EXPIRY_DELTA);
-        LogPrint("zrpcunsafe", "%s: Beginning creating transaction with Sapling output amount=%s\n", getId(), FormatMoney(amountToSend - FEE));
+        LogPrint("zrpcunsafe", "%s: Beginning creating transaction with Sapling output amount=%s\n", getId(), FormatMoney(amountToSend - DEFAULT_FEE));
         std::vector<SproutNoteEntry> fromNotes;
         CAmount fromNoteAmount = 0;
         while (fromNoteAmount < amountToSend) {
@@ -125,13 +124,14 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
         availableFunds -= fromNoteAmount;
         for (const SproutNoteEntry& sproutEntry : fromNotes) {
             std::string data(sproutEntry.memo.begin(), sproutEntry.memo.end());
-            LogPrint("zrpcunsafe", "%s: Adding Sprout note input (txid=%s, vjoinsplit=%d, jsoutindex=%d, amount=%s, memo=%s)\n",
-                     getId(),
-                     sproutEntry.jsop.hash.ToString().substr(0, 10),
-                     sproutEntry.jsop.js,
-                     int(sproutEntry.jsop.n), // uint8_t
-                     FormatMoney(sproutEntry.note.value()),
-                     HexStr(data).substr(0, 10));
+            LogPrint("zrpcunsafe", "%s: Adding Sprout note input (txid=%s, vJoinSplit=%d, jsoutindex=%d, amount=%s, memo=%s)\n",
+                getId(),
+                sproutEntry.jsop.hash.ToString().substr(0, 10),
+                sproutEntry.jsop.js,
+                int(sproutEntry.jsop.n),  // uint8_t
+                FormatMoney(sproutEntry.note.value()),
+                HexStr(data).substr(0, 10)
+                );
             libzcash::SproutSpendingKey sproutSk;
             pwalletMain->GetSproutSpendingKey(sproutEntry.address, sproutSk);
             std::vector<JSOutPoint> vOutPoints = {sproutEntry.jsop};
@@ -143,10 +143,10 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
             pwalletMain->GetSproutNoteWitnesses(vOutPoints, vInputWitnesses, inputAnchor);
             builder.AddSproutInput(sproutSk, sproutEntry.note, vInputWitnesses[0].value());
         }
-        // The amount chosen *includes* the 0.0001 ZEC fee for this transaction, i.e.
-        // the value of the Sapling output will be 0.0001 ZEC less.
-        builder.SetFee(FEE);
-        builder.AddSaplingOutput(ovkForShieldingFromTaddr(seed), migrationDestAddress, amountToSend - FEE);
+        // The amount chosen *includes* the default fee for this transaction, i.e.
+        // the value of the Sapling output will be 0.00001 ZEC less.
+        builder.SetFee(DEFAULT_FEE);
+        builder.AddSaplingOutput(ovkForShieldingFromTaddr(seed), migrationDestAddress, amountToSend - DEFAULT_FEE);
         CTransaction tx = builder.Build().GetTxOrThrow();
         if (isCancelled()) {
             LogPrint("zrpcunsafe", "%s: Canceled. Stopping.\n", getId());
@@ -155,7 +155,7 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
         pwalletMain->AddPendingSaplingMigrationTx(tx);
         LogPrint("zrpcunsafe", "%s: Added pending migration transaction with txid=%s\n", getId(), tx.GetHash().ToString());
         ++numTxCreated;
-        amountMigrated += amountToSend - FEE;
+        amountMigrated += amountToSend - DEFAULT_FEE;
         migrationTxIds.push_back(tx.GetHash().ToString());
     } while (numTxCreated < 5 && availableFunds > CENT);
 
@@ -164,21 +164,19 @@ bool AsyncRPCOperation_saplingmigration::main_impl()
     return true;
 }
 
-void AsyncRPCOperation_saplingmigration::setMigrationResult(int numTxCreated, const CAmount& amountMigrated, const std::vector<std::string>& migrationTxIds)
-{
+void AsyncRPCOperation_saplingmigration::setMigrationResult(int numTxCreated, const CAmount& amountMigrated, const std::vector<std::string>& migrationTxIds) {
     UniValue res(UniValue::VOBJ);
-    res.push_back(Pair("num_tx_created", numTxCreated));
-    res.push_back(Pair("amount_migrated", FormatMoney(amountMigrated)));
+    res.pushKV("num_tx_created", numTxCreated);
+    res.pushKV("amount_migrated", FormatMoney(amountMigrated));
     UniValue txIds(UniValue::VARR);
     for (const std::string& txId : migrationTxIds) {
         txIds.push_back(txId);
     }
-    res.push_back(Pair("migration_txids", txIds));
+    res.pushKV("migration_txids", txIds);
     set_result(res);
 }
 
-CAmount AsyncRPCOperation_saplingmigration::chooseAmount(const CAmount& availableFunds)
-{
+CAmount AsyncRPCOperation_saplingmigration::chooseAmount(const CAmount& availableFunds) {
     CAmount amount = 0;
     do {
         // 1. Choose an integer exponent uniformly in the range 6 to 8 inclusive.
@@ -194,14 +192,12 @@ CAmount AsyncRPCOperation_saplingmigration::chooseAmount(const CAmount& availabl
 }
 
 // Unless otherwise specified, the migration destination address is the address for Sapling account 0
-libzcash::SaplingPaymentAddress AsyncRPCOperation_saplingmigration::getMigrationDestAddress(const HDSeed& seed)
-{
+libzcash::SaplingPaymentAddress AsyncRPCOperation_saplingmigration::getMigrationDestAddress(const HDSeed& seed) {
+    KeyIO keyIO(Params());
     if (mapArgs.count("-migrationdestaddress")) {
-        KeyIO keyIO(Params());
         std::string migrationDestAddress = mapArgs["-migrationdestaddress"];
         auto address = keyIO.DecodePaymentAddress(migrationDestAddress);
-        assert(address.has_value()); // This is checked in init.cpp
-        auto saplingAddress = std::get_if<libzcash::SaplingPaymentAddress>(&address.value());
+        auto saplingAddress = std::get_if<libzcash::SaplingPaymentAddress>(&address);
         assert(saplingAddress != nullptr); // This is checked in init.cpp
         return *saplingAddress;
     }
@@ -228,16 +224,14 @@ libzcash::SaplingPaymentAddress AsyncRPCOperation_saplingmigration::getMigration
     return toAddress;
 }
 
-void AsyncRPCOperation_saplingmigration::cancel()
-{
+void AsyncRPCOperation_saplingmigration::cancel() {
     set_state(OperationStatus::CANCELLED);
 }
 
-UniValue AsyncRPCOperation_saplingmigration::getStatus() const
-{
+UniValue AsyncRPCOperation_saplingmigration::getStatus() const {
     UniValue v = AsyncRPCOperation::getStatus();
     UniValue obj = v.get_obj();
-    obj.push_back(Pair("method", "saplingmigration"));
-    obj.push_back(Pair("target_height", targetHeight_));
+    obj.pushKV("method", "saplingmigration");
+    obj.pushKV("target_height", targetHeight_);
     return obj;
 }

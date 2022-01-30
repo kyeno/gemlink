@@ -99,7 +99,12 @@ static const unsigned int BLOCK_DOWNLOAD_WINDOW = 1024;
 static const unsigned int DATABASE_WRITE_INTERVAL = 60 * 60;
 /** Time to wait (in seconds) between flushing chainstate to disk. */
 static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
+/** Time to wait (in seconds) between writing wallet witness data to disk. */
+static const unsigned int WITNESS_WRITE_INTERVAL = 10 * 60;
 /** Maximum length of reject messages. */
+/** Number of updates between writing wallet witness data to disk. */
+static const unsigned int WITNESS_WRITE_UPDATES = 10000;
+
 static const unsigned int MAX_REJECT_MESSAGE_LENGTH = 111;
 static const bool DEFAULT_ADDRESSINDEX = false;
 static const bool DEFAULT_TIMESTAMPINDEX = false;

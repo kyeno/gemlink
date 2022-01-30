@@ -1,6 +1,6 @@
 // Copyright (c) 2017 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #include "asyncrpcoperation_mergetoaddress.h"
 
@@ -19,28 +19,25 @@
 #include "rpc/protocol.h"
 #include "rpc/server.h"
 #include "script/interpreter.h"
-#include "sodium.h"
 #include "timedata.h"
+#include "transaction_builder.h"
 #include "util.h"
-#include "util/match.h"
 #include "utilmoneystr.h"
 #include "utiltime.h"
 #include "wallet.h"
 #include "walletdb.h"
+#include "paymentdisclosuredb.h"
 #include "zcash/IncrementalMerkleTree.hpp"
 
 #include <chrono>
 #include <iostream>
 #include <string>
 #include <thread>
-
-#include "paymentdisclosuredb.h"
+#include <variant>
 
 #include <rust/ed25519.h>
 
 using namespace libzcash;
-
-extern UniValue sendrawtransaction(const UniValue& params, bool fHelp);
 
 int mta_find_output(UniValue obj, int n)
 {
@@ -61,15 +58,16 @@ int mta_find_output(UniValue obj, int n)
 }
 
 AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
-    boost::optional<TransactionBuilder> builder,
+    std::optional<TransactionBuilder> builder,
     CMutableTransaction contextualTx,
     std::vector<MergeToAddressInputUTXO> utxoInputs,
     std::vector<MergeToAddressInputSproutNote> sproutNoteInputs,
     std::vector<MergeToAddressInputSaplingNote> saplingNoteInputs,
     MergeToAddressRecipient recipient,
     CAmount fee,
-    UniValue contextInfo) : tx_(contextualTx), utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs),
-    saplingNoteInputs_(saplingNoteInputs), memo_(recipient.second), fee_(fee), contextinfo_(contextInfo)
+    UniValue contextInfo) :
+    tx_(contextualTx), utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs),
+    saplingNoteInputs_(saplingNoteInputs), recipient_(recipient), fee_(fee), contextinfo_(contextInfo)
 {
     if (fee < 0 || fee > MAX_MONEY) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is out of range");
@@ -77,6 +75,10 @@ AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
 
     if (utxoInputs.empty() && sproutNoteInputs.empty() && saplingNoteInputs.empty()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "No inputs");
+    }
+
+    if (std::get<0>(recipient).size() == 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Recipient parameter missing");
     }
 
     if (sproutNoteInputs.size() > 0 && saplingNoteInputs.size() > 0) {
@@ -94,32 +96,19 @@ AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
     }
 
     KeyIO keyIO(Params());
-    isToTaddr_ = false;
+    toTaddr_ = keyIO.DecodeDestination(std::get<0>(recipient));
+    isToTaddr_ = IsValidDestination(toTaddr_);
     isToZaddr_ = false;
 
-    std::visit(match {
-        [&](const CKeyID& keyId) {
-            toTaddr_ = keyId;
-            isToTaddr_ = true;
-        },
-        [&](const CScriptID& scriptId) {
-            toTaddr_ = scriptId;
-            isToTaddr_ = true;
-        },
-        [&](const libzcash::SproutPaymentAddress& addr) {
-            toPaymentAddress_ = addr;
+    if (!isToTaddr_) {
+        auto address = keyIO.DecodePaymentAddress(std::get<0>(recipient));
+        if (IsValidPaymentAddress(address)) {
             isToZaddr_ = true;
-        },
-        [&](const libzcash::SaplingPaymentAddress& addr) {
-            toPaymentAddress_ = addr;
-            isToZaddr_ = true;
-        },
-        [&](const libzcash::UnifiedAddress& addr) {
-            throw JSONRPCError(
-                    RPC_INVALID_ADDRESS_OR_KEY,
-                    "z_mergetoaddress does not yet support sending to unified addresses");
-        },
-    }, recipient.first);
+            toPaymentAddress_ = address;
+        } else {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recipient address");
+        }
+    }
 
     // Log the context info i.e. the call parameters to z_mergetoaddress
     if (LogAcceptCategory("zrpcunsafe")) {
@@ -350,7 +339,9 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         if (isToTaddr_) {
             builder_.AddTransparentOutput(toTaddr_, sendAmount);
         } else {
-            std::array<unsigned char, ZC_MEMO_SIZE> hexMemo = get_memo_from_hex_string(memo_);
+            std::string zaddr = std::get<0>(recipient_);
+            std::string memo = std::get<1>(recipient_);
+            std::array<unsigned char, ZC_MEMO_SIZE> hexMemo = get_memo_from_hex_string(memo);
             auto saplingPaymentAddress = std::get_if<libzcash::SaplingPaymentAddress>(&toPaymentAddress_);
             if (saplingPaymentAddress == nullptr) {
                 // This should never happen as we have already determined that the payment is to sapling
@@ -402,11 +393,14 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
      * END SCENARIO #1
      */
 
+
     // Prepare raw transaction to handle JoinSplits
     CMutableTransaction mtx(tx_);
     ed25519_generate_keypair(&joinSplitPrivKey_, &joinSplitPubKey_);
     mtx.joinSplitPubKey = joinSplitPubKey_;
     tx_ = CTransaction(mtx);
+    std::string hexMemo = std::get<1>(recipient_);
+
 
     /**
      * SCENARIO #2
@@ -422,8 +416,8 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         info.vpub_new = 0;
 
         JSOutput jso = JSOutput(std::get<libzcash::SproutPaymentAddress>(toPaymentAddress_), sendAmount);
-        if (memo_.size() > 0) {
-            jso.memo = get_memo_from_hex_string(memo_);
+        if (hexMemo.size() > 0) {
+            jso.memo = get_memo_from_hex_string(hexMemo);
         }
         info.vjsout.push_back(jso);
 
@@ -709,8 +703,8 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
             if (isToZaddr_ && vpubNewProcessed) {
                 outputType = "target";
                 jso.addr = std::get<libzcash::SproutPaymentAddress>(toPaymentAddress_);
-                if (!memo_.empty()) {
-                    jso.memo = get_memo_from_hex_string(memo_);
+                if (!hexMemo.empty()) {
+                    jso.memo = get_memo_from_hex_string(hexMemo);
                 }
             }
             info.vjsout.push_back(jso);
@@ -736,76 +730,6 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
     tx_ = txAndResult.first;
     set_result(txAndResult.second);
     return true;
-}
-
-
-
-extern UniValue signrawtransaction(const UniValue& params, bool fHelp);
-
-/**
- * Sign and send a raw transaction.
- * Raw transaction as hex string should be in object field "rawtxn"
- */
-void AsyncRPCOperation_mergetoaddress::sign_send_raw_transaction(UniValue obj)
-{
-    // Sign the raw transaction
-    UniValue rawtxnValue = find_value(obj, "rawtxn");
-    if (rawtxnValue.isNull()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Missing hex data for raw transaction");
-    }
-    std::string rawtxn = rawtxnValue.get_str();
-
-    UniValue params = UniValue(UniValue::VARR);
-    params.push_back(rawtxn);
-    UniValue signResultValue = signrawtransaction(params, false);
-    UniValue signResultObject = signResultValue.get_obj();
-    UniValue completeValue = find_value(signResultObject, "complete");
-    bool complete = completeValue.get_bool();
-    if (!complete) {
-        // TODO: #1366 Maybe get "errors" and print array vErrors into a string
-        throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Failed to sign transaction");
-    }
-
-    UniValue hexValue = find_value(signResultObject, "hex");
-    if (hexValue.isNull()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Missing hex data for signed transaction");
-    }
-    std::string signedtxn = hexValue.get_str();
-
-    // Send the signed transaction
-    if (!testmode) {
-        params.clear();
-        params.setArray();
-        params.push_back(signedtxn);
-        UniValue sendResultValue = sendrawtransaction(params, false);
-        if (sendResultValue.isNull()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Send raw transaction did not return an error or a txid.");
-        }
-
-        std::string txid = sendResultValue.get_str();
-
-        UniValue o(UniValue::VOBJ);
-        o.push_back(Pair("txid", txid));
-        set_result(o);
-    } else {
-        // Test mode does not send the transaction to the network.
-
-        CDataStream stream(ParseHex(signedtxn), SER_NETWORK, PROTOCOL_VERSION);
-        CTransaction tx;
-        stream >> tx;
-
-        UniValue o(UniValue::VOBJ);
-        o.push_back(Pair("test", 1));
-        o.push_back(Pair("txid", tx.GetHash().ToString()));
-        o.push_back(Pair("hex", signedtxn));
-        set_result(o);
-    }
-
-    // Keep the signed transaction so we can hash to the same txid
-    CDataStream stream(ParseHex(signedtxn), SER_NETWORK, PROTOCOL_VERSION);
-    CTransaction tx;
-    stream >> tx;
-    tx_ = tx;
 }
 
 
@@ -1029,16 +953,15 @@ UniValue AsyncRPCOperation_mergetoaddress::getStatus() const
     }
 
     UniValue obj = v.get_obj();
-    obj.push_back(Pair("method", "z_mergetoaddress"));
-    obj.push_back(Pair("params", contextinfo_));
+    obj.pushKV("method", "z_mergetoaddress");
+    obj.pushKV("params", contextinfo_);
     return obj;
 }
 
 /**
  * Lock input utxos
  */
-void AsyncRPCOperation_mergetoaddress::lock_utxos()
-{
+ void AsyncRPCOperation_mergetoaddress::lock_utxos() {
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto utxo : utxoInputs_) {
         pwalletMain->LockCoin(std::get<0>(utxo));
@@ -1048,8 +971,7 @@ void AsyncRPCOperation_mergetoaddress::lock_utxos()
 /**
  * Unlock input utxos
  */
-void AsyncRPCOperation_mergetoaddress::unlock_utxos()
-{
+void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto utxo : utxoInputs_) {
         pwalletMain->UnlockCoin(std::get<0>(utxo));
@@ -1060,8 +982,7 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos()
 /**
  * Lock input notes
  */
-void AsyncRPCOperation_mergetoaddress::lock_notes()
-{
+ void AsyncRPCOperation_mergetoaddress::lock_notes() {
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto note : sproutNoteInputs_) {
         pwalletMain->LockNote(std::get<0>(note));
@@ -1074,8 +995,7 @@ void AsyncRPCOperation_mergetoaddress::lock_notes()
 /**
  * Unlock input notes
  */
-void AsyncRPCOperation_mergetoaddress::unlock_notes()
-{
+void AsyncRPCOperation_mergetoaddress::unlock_notes() {
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto note : sproutNoteInputs_) {
         pwalletMain->UnlockNote(std::get<0>(note));
