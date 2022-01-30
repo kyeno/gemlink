@@ -43,7 +43,7 @@ struct EHparameters {
     unsigned char n;
     unsigned char k;
     unsigned short int nSolSize;
-    const char pers[9];
+    char pers[9];
 };
 
 
