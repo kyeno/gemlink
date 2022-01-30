@@ -13,17 +13,17 @@ TxVersionInfo CurrentTxVersionInfo(
     int nHeight,
     bool requireSprout)
 {
-    if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ZFUTURE)) {
+    if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_DIFA) ||
+    consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ALFHEIMR) ||
+    consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_KNOWHERE) ||
+    consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_WAKANDA) ||
+    consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_ATLANTIS) ||
+    consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_MORAG)
+    ) {
         return {
             .fOverwintered =   true,
-            .nVersionGroupId = ZFUTURE_VERSION_GROUP_ID,
-            .nVersion =        ZFUTURE_TX_VERSION
-        };
-    } else if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_NU5) && !requireSprout) {
-        return {
-            .fOverwintered =   true,
-            .nVersionGroupId = ZIP225_VERSION_GROUP_ID,
-            .nVersion =        ZIP225_TX_VERSION
+            .nVersionGroupId = SAPLING_VERSION_GROUP_ID,
+            .nVersion =        SAPLING_TX_VERSION
         };
     } else if (consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_SAPLING)) {
         return {

@@ -137,8 +137,9 @@ void ScriptPubKeyToUniv(const CScript& scriptPubKey,
     out.pushKV("type", GetTxnOutputType(type));
 
     UniValue a(UniValue::VARR);
+    KeyIO keyIO(Params());
     for (const CTxDestination& addr : addresses) {
-        a.push_back(EncodeDestination(addr));
+        a.push_back(keyIO.EncodeDestination(addr));
     }
     out.pushKV("addresses", a);
 }

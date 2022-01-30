@@ -28,7 +28,7 @@ void UnregisterValidationInterface(CValidationInterface* pwalletIn);
 /** Unregister all wallets from core */
 void UnregisterAllValidationInterfaces();
 /** Push an updated transaction to all registered wallets */
-void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL);
+void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, int nHeight = 0);
 
 class CValidationInterface
 {

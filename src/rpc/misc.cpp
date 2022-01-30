@@ -90,7 +90,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     int nMinDepth = 1;
     CAmount nBalance = getBalanceTaddr("", nMinDepth, true);
-    CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, true);
+    CAmount nPrivateBalance = getBalanceZaddr(std::nullopt, nMinDepth, true);
     CAmount nLockedCoin = pwalletMain->GetLockedCoins();
 
     CAmount nTotalBalance = nBalance + nPrivateBalance + nLockedCoin;
@@ -177,21 +177,19 @@ UniValue getalldata(const UniValue& params, bool fHelp)
             std::set<libzcash::SaplingPaymentAddress> addresses;
             pwalletMain->GetSaplingPaymentAddresses(addresses);
             for (auto addr : addresses) {
+                const string& strName = keyIO.EncodePaymentAddress(addr);
+                auto pa = keyIO.DecodePaymentAddress(strName);
+                auto zaddr = std::visit(RecipientForPaymentAddress(), pa).value();
+
+                UniValue address(UniValue::VOBJ);
+                nBalance = getBalanceZaddr(zaddr, nMinDepth, false);
+                address.push_back(Pair("amount", ValueFromAmount(nBalance)));
+                addrlist.push_back(Pair(strName, address));
                 if (pwalletMain->HaveSaplingSpendingKeyForAddress(addr)) {
-                    UniValue address(UniValue::VOBJ);
-                    const string& strName = keyIO.EncodePaymentAddress(addr);
-                    nBalance = getBalanceZaddr(strName, nMinDepth, false);
-                    address.push_back(Pair("amount", ValueFromAmount(nBalance)));
                     address.push_back(Pair("ismine", true));
-                    addrlist.push_back(Pair(strName, address));
                 }
                 else {
-                    UniValue address(UniValue::VOBJ);
-                    const string& strName = keyIO.EncodePaymentAddress(addr);
-                    nBalance = getBalanceZaddr(strName, nMinDepth, false);
-                    address.push_back(Pair("amount", ValueFromAmount(nBalance)));
                     address.push_back(Pair("ismine", false));
-                    addrlist.push_back(Pair(strName, address));
                 }
             }
         }

@@ -187,6 +187,21 @@ bool CWallet::AddSaplingZKey(const libzcash::SaplingExtendedSpendingKey &sk)
     return true;
 }
 
+bool CWallet::AddSaplingFullViewingKey(const libzcash::SaplingExtendedFullViewingKey &extfvk)
+{
+    AssertLockHeld(cs_wallet);
+
+    if (!CCryptoKeyStore::AddSaplingFullViewingKey(extfvk)) {
+        return false;
+    }
+
+    if (!fFileBacked) {
+        return true;
+    }
+
+    return CWalletDB(strWalletFile).WriteSaplingExtendedFullViewingKey(extfvk);
+}
+
 // Add payment address -> incoming viewing key map entry
 bool CWallet::AddSaplingIncomingViewingKey(
     const libzcash::SaplingIncomingViewingKey &ivk,
@@ -635,7 +650,7 @@ void CWallet::RunSaplingMigration(int blockHeight)
         for (const CTransaction& transaction : pendingSaplingMigrationTxs) {
             // Send the transaction
             CWalletTx wtx(this, transaction);
-            CommitTransaction(wtx, boost::none);
+            CommitTransaction(wtx, std::nullopt);
         }
         pendingSaplingMigrationTxs.clear();
     }
@@ -682,7 +697,7 @@ void CWallet::RunSaplingConsolidation(int blockHeight)
         for (const CTransaction& transaction : pendingSaplingMigrationTxs) {
             // Send the transaction
             CWalletTx wtx(this, transaction);
-            CommitTransaction(wtx, boost::none);
+            CommitTransaction(wtx, std::nullopt);
         }
         pendingSaplingMigrationTxs.clear();
     }
@@ -691,7 +706,7 @@ void CWallet::RunSaplingConsolidation(int blockHeight)
 void CWallet::CommitConsolidationTx(const CTransaction& tx)
 {
     CWalletTx wtx(this, tx);
-    CommitTransaction(wtx, boost::none);
+    CommitTransaction(wtx, std::nullopt);
 }
 
 void CWallet::SetBestChain(const CBlockLocator& loc)
@@ -1983,6 +1998,23 @@ void CWallet::UpdateSaplingNullifierNoteMapWithTx(CWalletTx& wtx) {
         }
     }
 }
+
+/**
+ * Iterate over transactions in a block and update the cached Sapling nullifiers
+ * for transactions which belong to the wallet.
+ */
+void CWallet::UpdateSaplingNullifierNoteMapForBlock(const CBlock *pblock) {
+    LOCK(cs_wallet);
+
+    for (const CTransaction& tx : pblock->vtx) {
+        auto hash = tx.GetHash();
+        bool txIsOurs = mapWallet.count(hash);
+        if (txIsOurs) {
+            UpdateSaplingNullifierNoteMapWithTx(mapWallet[hash]);
+        }
+    }
+}
+
 
 bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet, CWalletDB* pwalletdb)
 {
@@ -4541,7 +4573,7 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, const CAmount& nValue, CWa
 /**
  * Call after CreateTransaction unless you want to abort
  */
-bool CWallet::CommitTransaction(CWalletTx& wtxNew, boost::optional<CReserveKey&> reservekey, std::string strCommand)
+bool CWallet::CommitTransaction(CWalletTx& wtxNew, std::optional<std::reference_wrapper<CReserveKey>> reservekey, std::string strCommand)
 {
     {
         LOCK2(cs_main, cs_wallet);
@@ -4554,7 +4586,7 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, boost::optional<CReserveKey&>
 
             if (reservekey) {
                 // Take key pair from key pool so it won't be used again
-                reservekey.get().KeepKey();
+                reservekey.value().get().KeepKey();
             }
 
             // Add tx to wallet, because if it has change it's also ours,

@@ -162,10 +162,10 @@ double benchmark_solve_equihash()
     unsigned int k = 9;
     eh_HashState eh_state;
     EhInitialiseState(n, k, eh_state);
-    Update((unsigned char*)&ss[0], ss.size());
+    eh_state.Update((unsigned char*)&ss[0], ss.size());
 
     uint256 nonce = GetRandHash();
-    Update(nonce.begin(), nonce.size());
+    eh_state.Update(nonce.begin(), nonce.size());
 
     struct timeval tv_start;
     timer_start(tv_start);

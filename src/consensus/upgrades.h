@@ -95,13 +95,13 @@ bool IsActivationHeightForAnyUpgrade(
  * Returns the index of the next upgrade after the given block height, or
  * boost::none if there are no more known upgrades.
  */
-boost::optional<int> NextEpoch(int nHeight, const Consensus::Params& params);
+std::optional<int> NextEpoch(int nHeight, const Consensus::Params& params);
 
 /**
  * Returns the activation height for the next upgrade after the given block height,
  * or boost::none if there are no more known upgrades.
  */
-boost::optional<int> NextActivationHeight(
+std::optional<int> NextActivationHeight(
     int nHeight,
     const Consensus::Params& params);
 

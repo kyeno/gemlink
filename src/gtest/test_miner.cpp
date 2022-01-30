@@ -27,7 +27,7 @@ TEST(Miner, GetMinerScriptPubKey)
 {
     SelectParams(CBaseChainParams::MAIN);
 
-    boost::optional<CScript> scriptPubKey;
+    std::optional<CScript> scriptPubKey;
 #ifdef ENABLE_WALLET
     MockReserveKey reservekey;
     EXPECT_CALL(reservekey, GetReservedKey(::testing::_))
