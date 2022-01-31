@@ -348,7 +348,7 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::decrypt(
             return std::nullopt;
         }
 
-        return plaintext_checks_without_height(false, plaintext, epk, esk, pk_d, cmu);
+        return plaintext_checks_without_height(plaintext, epk, esk, pk_d, cmu);
     }
 }
 
@@ -381,7 +381,6 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::attempt_sapling_enc_de
 }
 
 std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_without_height(
-    bool zip216Enabled,
     const SaplingNotePlaintext &plaintext,
     const uint256 &epk,
     const uint256 &esk,
@@ -411,7 +410,7 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
     uint256 cmu_expected;
     uint256 rcm = plaintext.rcm();
     if (!librustzcash_sapling_compute_cmu(
-        zip216Enabled,
+        false,
         plaintext.d.data(),
         pk_d.begin(),
         plaintext.value(),

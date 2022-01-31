@@ -182,7 +182,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                 auto zaddr = std::visit(RecipientForPaymentAddress(), pa).value();
 
                 UniValue address(UniValue::VOBJ);
-                nBalance = getBalanceZaddr(zaddr, nMinDepth, false);
+                nBalance = getBalanceZaddr(zaddr, nMinDepth, INT_MAX, false);
                 address.push_back(Pair("amount", ValueFromAmount(nBalance)));
                 addrlist.push_back(Pair(strName, address));
                 if (pwalletMain->HaveSaplingSpendingKeyForAddress(addr)) {

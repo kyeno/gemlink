@@ -14,6 +14,8 @@
 #include "test/test_bitcoin.h"
 #include "uint256.h"
 
+#include "librustzcash.h"
+
 #include "sodium.h"
 
 #include <set>
@@ -48,23 +50,22 @@ void PrintSolutions(std::stringstream& strm, std::set<std::vector<uint32_t>> sol
 }
 
 #ifdef ENABLE_MINING
-void TestEquihashSolvers(unsigned int n, unsigned int k, const std::string& I, const arith_uint256& nonce, const std::set<std::vector<uint32_t>>& solns)
-{
-    size_t cBitLen{n / (k + 1)};
-    crypto_generichash_blake2b_state state;
+void TestEquihashSolvers(unsigned int n, unsigned int k, const std::string &I, const arith_uint256 &nonce, const std::set<std::vector<uint32_t>> &solns) {
+    size_t cBitLen { n/(k+1) };
+    eh_HashState state;
     EhInitialiseState(n, k, state);
     uint256 V = ArithToUint256(nonce);
     BOOST_TEST_MESSAGE("Running solver: n = " << n << ", k = " << k << ", I = " << I << ", V = " << V.GetHex());
-    crypto_generichash_blake2b_update(&state, (unsigned char*)&I[0], I.size());
-    crypto_generichash_blake2b_update(&state, V.begin(), V.size());
+    state.Update((unsigned char*)&I[0], I.size());
+    state.Update(V.begin(), V.size());
 
     // First test the basic solver
     std::set<std::vector<uint32_t>> ret;
     std::function<bool(std::vector<unsigned char>)> validBlock =
-        [&ret, cBitLen](std::vector<unsigned char> soln) {
-            ret.insert(GetIndicesFromMinimal(soln, cBitLen));
-            return false;
-        };
+            [&ret, cBitLen](std::vector<unsigned char> soln) {
+        ret.insert(GetIndicesFromMinimal(soln, cBitLen));
+        return false;
+    };
     EhBasicSolveUncancellable(n, k, state, validBlock);
     BOOST_TEST_MESSAGE("[Basic] Number of solutions: " << ret.size());
     std::stringstream strm;
@@ -75,10 +76,10 @@ void TestEquihashSolvers(unsigned int n, unsigned int k, const std::string& I, c
     // The optimised solver should have the exact same result
     std::set<std::vector<uint32_t>> retOpt;
     std::function<bool(std::vector<unsigned char>)> validBlockOpt =
-        [&retOpt, cBitLen](std::vector<unsigned char> soln) {
-            retOpt.insert(GetIndicesFromMinimal(soln, cBitLen));
-            return false;
-        };
+            [&retOpt, cBitLen](std::vector<unsigned char> soln) {
+        retOpt.insert(GetIndicesFromMinimal(soln, cBitLen));
+        return false;
+    };
     EhOptimisedSolveUncancellable(n, k, state, validBlockOpt);
     BOOST_TEST_MESSAGE("[Optimised] Number of solutions: " << retOpt.size());
     strm.str("");
@@ -89,20 +90,24 @@ void TestEquihashSolvers(unsigned int n, unsigned int k, const std::string& I, c
 }
 #endif
 
-void TestEquihashValidator(unsigned int n, unsigned int k, const std::string& I, const arith_uint256& nonce, std::vector<uint32_t> soln, bool expected)
-{
-    size_t cBitLen{n / (k + 1)};
-    crypto_generichash_blake2b_state state;
-    EhInitialiseState(n, k, state);
+void TestEquihashValidator(unsigned int n, unsigned int k, const std::string &I, const arith_uint256 &nonce, std::vector<uint32_t> soln, bool expected) {
+    size_t cBitLen { n/(k+1) };
+    auto minimal = GetMinimalFromIndices(soln, cBitLen);
+
     uint256 V = ArithToUint256(nonce);
-    crypto_generichash_blake2b_update(&state, (unsigned char*)&I[0], I.size());
-    crypto_generichash_blake2b_update(&state, V.begin(), V.size());
     BOOST_TEST_MESSAGE("Running validator: n = " << n << ", k = " << k << ", I = " << I << ", V = " << V.GetHex() << ", expected = " << expected << ", soln =");
     std::stringstream strm;
     PrintSolution(strm, soln);
     BOOST_TEST_MESSAGE(strm.str());
-    bool isValid;
-    EhIsValidSolution(n, k, state, GetMinimalFromIndices(soln, cBitLen), isValid);
+    unsigned char personalization[PERS_SIZE] = {};
+    memcpy(personalization, "ZcashPoW", PERS_SIZE);
+
+    bool isValid = librustzcash_eh_isvalid(
+        n, k,
+        (unsigned char*)&I[0], I.size(),
+        V.begin(), V.size(),
+        minimal.data(), minimal.size(),
+        personalization, sizeof(personalization));
     BOOST_CHECK(isValid == expected);
 }
 

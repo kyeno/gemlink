@@ -758,7 +758,7 @@ public:
 
 TEST(ChecktransactionTests, SaplingSproutInputSumsTooLarge) {
     CMutableTransaction mtx = GetValidTransaction();
-    mtx.vJoinSplit.resize(0);
+    mtx.vjoinsplit.resize(0);
     mtx.fOverwintered = true;
     mtx.nVersion = SAPLING_TX_VERSION;
     mtx.nVersionGroupId = SAPLING_VERSION_GROUP_ID;
@@ -787,12 +787,12 @@ TEST(ChecktransactionTests, SaplingSproutInputSumsTooLarge) {
             inputMap, outputMap,
             false);
 
-        mtx.vJoinSplit.push_back(jsdesc);
+        mtx.vjoinsplit.push_back(jsdesc);
     }
 
     mtx.vShieldedSpend.push_back(SpendDescription());
 
-    mtx.vJoinSplit[0].vpub_new = (MAX_MONEY / 2) + 10;
+    mtx.vjoinsplit[0].vpub_new = (MAX_MONEY / 2) + 10;
 
     {
         UNSAFE_CTransaction tx(mtx);
