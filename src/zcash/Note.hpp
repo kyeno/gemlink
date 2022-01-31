@@ -179,7 +179,6 @@ public:
     );
 
     static std::optional<SaplingNotePlaintext> plaintext_checks_without_height(
-        bool zip216Enabled,
         const SaplingNotePlaintext &plaintext,
         const uint256 &epk,
         const uint256 &esk,

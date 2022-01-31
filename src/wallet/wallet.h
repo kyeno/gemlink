@@ -269,10 +269,9 @@ public:
     int witnessHeight;
 
     // In Memory Only
-    bool witnessRootValidated;
-    SproutNoteData() : address(), nullifier(), witnessHeight{-1}, witnessRootValidated{false} {}
-    SproutNoteData(libzcash::SproutPaymentAddress a) : address{a}, nullifier(), witnessHeight{-1}, witnessRootValidated{false} {}
-    SproutNoteData(libzcash::SproutPaymentAddress a, uint256 n) : address{a}, nullifier{n}, witnessHeight{-1}, witnessRootValidated{false} {}
+    SproutNoteData() : address(), nullifier(), witnessHeight{-1} {}
+    SproutNoteData(libzcash::SproutPaymentAddress a) : address{a}, nullifier(), witnessHeight{-1} {}
+    SproutNoteData(libzcash::SproutPaymentAddress a, uint256 n) : address{a}, nullifier{n}, witnessHeight{-1} {}
 
     ADD_SERIALIZE_METHODS;
 
@@ -309,17 +308,14 @@ public:
      * We initialize the height to -1 for the same reason as we do in SproutNoteData.
      * See the comment in that class for a full description.
      */
-    SaplingNoteData() : witnessHeight{-1}, nullifier(), witnessRootValidated{false} {}
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk{ivk}, witnessHeight{-1}, nullifier(), witnessRootValidated{false} {}
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk{ivk}, witnessHeight{-1}, nullifier(n), witnessRootValidated{false} {}
+    SaplingNoteData() : witnessHeight{-1}, nullifier() {}
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk{ivk}, witnessHeight{-1}, nullifier() {}
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk{ivk}, witnessHeight{-1}, nullifier(n) {}
 
     std::list<SaplingWitness> witnesses;
     int witnessHeight;
     libzcash::SaplingIncomingViewingKey ivk;
     std::optional<uint256> nullifier;
-
-    // In Memory Only
-    bool witnessRootValidated;
 
     ADD_SERIALIZE_METHODS;
 
@@ -625,6 +621,22 @@ public:
     void SetSproutNoteData(mapSproutNoteData_t& noteData);
     void SetSaplingNoteData(mapSaplingNoteData_t& noteData);
 
+    std::pair<libzcash::SproutNotePlaintext, libzcash::SproutPaymentAddress> DecryptSproutNote(
+        JSOutPoint jsop) const;
+    std::optional<std::pair<
+        libzcash::SaplingNotePlaintext,
+        libzcash::SaplingPaymentAddress>> DecryptSaplingNote(const Consensus::Params& params, int height, SaplingOutPoint op) const;
+    std::optional<std::pair<
+        libzcash::SaplingNotePlaintext,
+        libzcash::SaplingPaymentAddress>> DecryptSaplingNoteWithoutLeadByteCheck(SaplingOutPoint op) const;
+    std::optional<std::pair<
+        libzcash::SaplingNotePlaintext,
+        libzcash::SaplingPaymentAddress>> RecoverSaplingNote(const Consensus::Params& params, int height,
+            SaplingOutPoint op, std::set<uint256>& ovks) const;
+    std::optional<std::pair<
+        libzcash::SaplingNotePlaintext,
+        libzcash::SaplingPaymentAddress>> RecoverSaplingNoteWithoutLeadByteCheck(SaplingOutPoint op, std::set<uint256>& ovks) const;
+
     //! filter decides which addresses will count towards the debit
     CAmount GetDebit(const isminefilter& filter) const;
     CAmount GetCredit(const isminefilter& filter) const;
@@ -876,11 +888,6 @@ protected:
     /**
      * pindex is the new tip being connected.
      */
-    int VerifyAndSetInitialWitness(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly);
-    void BuildWitnessCache(const CChainParams& chainparams, const CBlockIndex* pindex, bool witnessOnly);
-    /**
-     * pindex is the new tip being connected.
-     */
     void IncrementNoteWitnesses(const CBlockIndex* pindex,
                                 const CBlock* pblock,
                                 SproutMerkleTree& sproutTree,
@@ -891,19 +898,26 @@ protected:
     void DecrementNoteWitnesses(const CBlockIndex* pindex);
 
     template <typename WalletDB>
-    void SetBestChainINTERNAL(WalletDB& walletdb, const CBlockLocator& loc)
-    {
+    void SetBestChainINTERNAL(WalletDB& walletdb, const CBlockLocator& loc) {
         if (!walletdb.TxnBegin()) {
             // This needs to be done atomically, so don't do it at all
             LogPrintf("SetBestChain(): Couldn't start atomic write\n");
             return;
         }
         try {
+            LOCK(cs_wallet);
             for (std::pair<const uint256, CWalletTx>& wtxItem : mapWallet) {
-                if (!walletdb.WriteTx(wtxItem.second)) {
-                    LogPrintf("SetBestChain(): Failed to write CWalletTx, aborting atomic write\n");
-                    walletdb.TxnAbort();
-                    return;
+                auto wtx = wtxItem.second;
+                // We skip transactions for which mapSproutNoteData and mapSaplingNoteData
+                // are empty. This covers transactions that have no Sprout or Sapling data
+                // (i.e. are purely transparent), as well as shielding and unshielding
+                // transactions in which we only have transparent addresses involved.
+                if (!(wtx.mapSproutNoteData.empty() && wtx.mapSaplingNoteData.empty())) {
+                    if (!walletdb.WriteTx(wtx)) {
+                        LogPrintf("SetBestChain(): Failed to write CWalletTx, aborting atomic write\n");
+                        walletdb.TxnAbort();
+                        return;
+                    }
                 }
             }
             if (!walletdb.WriteWitnessCacheSize(nWitnessCacheSize)) {
@@ -916,7 +930,7 @@ protected:
                 walletdb.TxnAbort();
                 return;
             }
-        } catch (const std::exception& exc) {
+        } catch (const std::exception &exc) {
             // Unexpected failure
             LogPrintf("SetBestChain(): Unexpected error during atomic write:\n");
             LogPrintf("%s\n", exc.what());

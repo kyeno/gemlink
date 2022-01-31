@@ -9,6 +9,7 @@
 #include "core_io.h"
 #include "key_io.h"
 #include "keystore.h"
+#include "main.h"
 #include "primitives/transaction.h"
 #include "script/script.h"
 #include "script/sign.h"
@@ -399,10 +400,11 @@ static void MutateTxSign(CMutableTransaction& tx, const std::string& strInput)
     UniValue keysObj = registers["privatekeys"];
     fGivenKeys = true;
 
+    KeyIO keyIO(Params());
     for (size_t kidx = 0; kidx < keysObj.size(); kidx++) {
         if (!keysObj[kidx].isStr())
             throw std::runtime_error("privatekey not a std::string");
-        CKey key = DecodeSecret(keysObj[kidx].getValStr());
+        CKey key = keyIO.DecodeSecret(keysObj[kidx].getValStr());
         if (!key.IsValid()) {
             throw std::runtime_error("privatekey not valid");
         }

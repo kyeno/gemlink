@@ -87,7 +87,7 @@ public:
 BOOST_AUTO_TEST_CASE(boost_optional)
 {
     check_ser_rep<std::optional<unsigned char>>(0xff, {0x01, 0xff});
-    check_ser_rep<std::optional<unsigned char>>(boost::none, {0x00});
+    check_ser_rep<std::optional<unsigned char>>(std::nullopt, {0x00});
     check_ser_rep<std::optional<std::string>>(std::string("Test"), {0x01, 0x04, 'T', 'e', 's', 't'});
 
     {
