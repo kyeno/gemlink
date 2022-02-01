@@ -15,6 +15,7 @@
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
 #include "crypto/common.h"
+#include "experimental_features.h"
 #include "httprpc.h"
 #include "httpserver.h"
 #include "init.h"
@@ -1604,6 +1605,22 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
                 // Check for changed -txindex state
                 if (fTxIndex != GetBoolArg("-txindex", false)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
+                    break;
+                }
+
+                // Check for changed -insightexplorer state
+                bool fInsightExplorerPreviouslySet = false;
+                pblocktree->ReadFlag("insightexplorer", fInsightExplorerPreviouslySet);
+                if (fExperimentalInsightExplorer != fInsightExplorerPreviouslySet) {
+                    strLoadError = _("You need to rebuild the database using -reindex to change -insightexplorer");
+                    break;
+                }
+
+                // Check for changed -lightwalletd state
+                bool fLightWalletdPreviouslySet = false;
+                pblocktree->ReadFlag("lightwalletd", fLightWalletdPreviouslySet);
+                if (fExperimentalLightWalletd != fLightWalletdPreviouslySet) {
+                    strLoadError = _("You need to rebuild the database using -reindex to change -lightwalletd");
                     break;
                 }
 

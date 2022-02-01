@@ -549,7 +549,7 @@ UniValue getmasternodeoutputs(const UniValue& params, bool fHelp)
 
     // Find possible candidates
     std::vector<COutput> possibleCoins;
-    pwalletMain->AvailableCoins(possibleCoins, true, nullptr, false, false, ONLY_10000);
+    pwalletMain->AvailableCoins(possibleCoins, true, nullptr, false, false, true, 1, ONLY_10000);
 
     UniValue ret(UniValue::VARR);
     for (COutput& out : possibleCoins) {

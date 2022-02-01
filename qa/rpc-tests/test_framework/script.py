@@ -847,7 +847,7 @@ def getHashOutputs(tx, person=b'ZcashOutputsHash'):
 
 def getHashJoinSplits(tx):
     digest = blake2b(digest_size=32, person=b'ZcashJSplitsHash')
-    for jsdesc in tx.vJoinSplit:
+    for jsdesc in tx.vjoinsplit:
         digest.update(jsdesc.serialize())
     digest.update(tx.joinSplitPubKey)
     return digest.digest()
@@ -901,7 +901,7 @@ def SignatureHash(script, txTo, inIdx, hashtype, amount, consensusBranchId):
             digest.update(txTo.vout[inIdx].serialize())
             hashOutputs = digest.digest()
 
-        if len(txTo.vJoinSplit) > 0:
+        if len(txTo.vjoinsplit) > 0:
             hashJoinSplits = getHashJoinSplits(txTo)
 
         if len(txTo.shieldedSpends) > 0:

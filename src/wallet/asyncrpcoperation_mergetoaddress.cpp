@@ -490,7 +490,9 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
     }
 
     // Keep track of treestate within this transaction
-    boost::unordered_map<uint256, SproutMerkleTree, CCoinsKeyHasher> intermediates;
+    // The SaltedTxidHasher is fine to use here; it salts the map keys automatically
+    // with randomness generated on construction.
+    boost::unordered_map<uint256, SproutMerkleTree, SaltedTxidHasher> intermediates;
     std::vector<uint256> previousCommitments;
 
     while (!vpubNewProcessed) {
@@ -513,11 +515,11 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
         uint256 jsAnchor;
         std::vector<std::optional<SproutWitness>> witnesses;
 
-        JSDescription prevjoinsplit;
+        JSDescription prevJoinSplit;
 
         // Keep track of previous JoinSplit and its commitments
         if (tx_.vjoinsplit.size() > 0) {
-            prevjoinsplit = tx_.vjoinsplit.back();
+            prevJoinSplit = tx_.vjoinsplit.back();
         }
 
         // If there is no change, the chain has terminated so we can reset the tracked treestate.
@@ -534,17 +536,17 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
 
             // Update tree state with previous joinsplit
             SproutMerkleTree tree;
-            auto it = intermediates.find(prevjoinsplit.anchor);
+            auto it = intermediates.find(prevJoinSplit.anchor);
             if (it != intermediates.end()) {
                 tree = it->second;
-            } else if (!pcoinsTip->GetSproutAnchorAt(prevjoinsplit.anchor, tree)) {
+            } else if (!pcoinsTip->GetSproutAnchorAt(prevJoinSplit.anchor, tree)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Could not find previous JoinSplit anchor");
             }
 
             assert(changeOutputIndex != -1);
             std::optional<SproutWitness> changeWitness;
             int n = 0;
-            for (const uint256& commitment : prevjoinsplit.commitments) {
+            for (const uint256& commitment : prevJoinSplit.commitments) {
                 tree.append(commitment);
                 previousCommitments.push_back(commitment);
                 if (!changeWitness && changeOutputIndex == n++) {
@@ -562,14 +564,14 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
             // Decrypt the change note's ciphertext to retrieve some data we need
             ZCNoteDecryption decryptor(changeKey.receiving_key());
             auto hSig = ZCJoinSplit::h_sig(
-                prevjoinsplit.randomSeed,
-                prevjoinsplit.nullifiers,
+                prevJoinSplit.randomSeed,
+                prevJoinSplit.nullifiers,
                 tx_.joinSplitPubKey);
             try {
                 SproutNotePlaintext plaintext = SproutNotePlaintext::decrypt(
                     decryptor,
-                    prevjoinsplit.ciphertexts[changeOutputIndex],
-                    prevjoinsplit.ephemeralKey,
+                    prevJoinSplit.ciphertexts[changeOutputIndex],
+                    prevJoinSplit.ephemeralKey,
                     hSig,
                     (unsigned char)changeOutputIndex);
 

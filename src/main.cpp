@@ -18,6 +18,7 @@
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
 #include "deprecation.h"
+#include "experimental_features.h"
 #include "init.h"
 #include "masternode-budget.h"
 #include "masternode-payments.h"
@@ -132,6 +133,45 @@ const string strMessageMagic = "Snowgem Signed Message:\n";
 namespace
 {
 
+unsigned char ShieldedReqRejectCode(UnsatisfiedShieldedReq shieldedReq)
+{
+    switch (shieldedReq) {
+        case UnsatisfiedShieldedReq::SproutDuplicateNullifier:
+        case UnsatisfiedShieldedReq::SaplingDuplicateNullifier:
+            return REJECT_DUPLICATE;
+        case UnsatisfiedShieldedReq::SproutUnknownAnchor:
+        case UnsatisfiedShieldedReq::SaplingUnknownAnchor:
+            return REJECT_INVALID;
+    }
+}
+
+std::string ShieldedReqRejectReason(UnsatisfiedShieldedReq shieldedReq)
+{
+    switch (shieldedReq) {
+        case UnsatisfiedShieldedReq::SproutDuplicateNullifier:  return "bad-txns-sprout-duplicate-nullifier";
+        case UnsatisfiedShieldedReq::SproutUnknownAnchor:       return "bad-txns-sprout-unknown-anchor";
+        case UnsatisfiedShieldedReq::SaplingDuplicateNullifier: return "bad-txns-sapling-duplicate-nullifier";
+        case UnsatisfiedShieldedReq::SaplingUnknownAnchor:      return "bad-txns-sapling-unknown-anchor";
+    }
+}
+
+    /** Abort with a message */
+bool AbortNode(const std::string& strMessage, const std::string& userMessage="")
+{
+    SetMiscWarning(strMessage, GetTime());
+    LogPrintf("*** %s\n", strMessage);
+    uiInterface.ThreadSafeMessageBox(
+        userMessage.empty() ? _("Error: A fatal internal error occurred, see debug.log for details") : userMessage,
+        "", CClientUIInterface::MSG_ERROR);
+    StartShutdown();
+    return false;
+}
+
+bool AbortNode(CValidationState& state, const std::string& strMessage, const std::string& userMessage="")
+{
+    AbortNode(strMessage, userMessage);
+    return state.Error(strMessage);
+}
 struct CBlockIndexWorkComparator {
     bool operator()(CBlockIndex* pa, CBlockIndex* pb) const
     {
@@ -1074,7 +1114,7 @@ bool ContextualCheckTransaction(
 
     if (!tx.vShieldedSpend.empty() ||
         !tx.vShieldedOutput.empty()) {
-        auto ctx = librustzcash_sapling_verification_ctx_init(false);
+        auto ctx = librustzcash_sapling_verification_ctx_init();
 
         for (const SpendDescription& spend : tx.vShieldedSpend) {
             if (!librustzcash_sapling_check_spend(
@@ -1547,10 +1587,18 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
                 return state.Invalid(error("AcceptToMemoryPool: inputs already spent"),
                                      REJECT_DUPLICATE, "bad-txns-inputs-spent");
 
-            // are the joinsplit's requirements met?
-            if (!view.HaveJoinSplitRequirements(tx))
-                return state.Invalid(error("AcceptToMemoryPool: joinsplit requirements not met"),
-                                     REJECT_DUPLICATE, "bad-txns-joinsplit-requirements-not-met");
+            // Are the shielded spends' requirements met?
+            auto unmetShieldedReq = view.HaveShieldedRequirements(tx);
+            if (unmetShieldedReq) {
+                auto txid = tx.GetHash().ToString();
+                auto rejectCode = ShieldedReqRejectCode(*unmetShieldedReq);
+                auto rejectReason = ShieldedReqRejectReason(*unmetShieldedReq);
+                TracingError(
+                    "main", "AcceptToMemoryPool(): shielded requirements not met",
+                    "txid", txid.c_str(),
+                    "reason", rejectReason.c_str());
+                return state.Invalid(false, rejectCode, rejectReason);
+            }
 
             // Bring the best block into scope
             view.GetBestBlock();
@@ -2139,25 +2187,6 @@ int64_t GetPremineAmountAtHeight(int nHeight)
     return ret;
 }
 
-/** Abort with a message */
-bool AbortNode(const std::string& strMessage, const std::string& userMessage = "")
-{
-    SetMiscWarning(strMessage, GetTime());
-    LogPrintf("*** %s\n", strMessage);
-    uiInterface.ThreadSafeMessageBox(
-        userMessage.empty() ? _("Error: A fatal internal error occurred, see debug.log for details") : userMessage,
-        "", CClientUIInterface::MSG_ERROR);
-    StartShutdown();
-    return false;
-}
-
-bool AbortNode(CValidationState& state, const std::string& strMessage, const std::string& userMessage = "")
-{
-    AbortNode(strMessage, userMessage);
-    return state.Error(strMessage);
-}
-
-
 bool IsInitialBlockDownload(const Consensus::Params& params)
 {
     // Once this function has returned false, it must remain false.
@@ -2435,9 +2464,18 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
     if (!inputs.HaveInputs(tx))
         return state.Invalid(error("CheckInputs(): %s inputs unavailable", tx.GetHash().ToString()));
 
-    // are the JoinSplit's requirements met?
-    if (!inputs.HaveJoinSplitRequirements(tx))
-        return state.Invalid(error("CheckInputs(): %s JoinSplit requirements not met", tx.GetHash().ToString()));
+    // Are the shielded spends' requirements met?
+    auto unmetShieldedReq = inputs.HaveShieldedRequirements(tx);
+    if (unmetShieldedReq) {
+        auto txid = tx.GetHash().ToString();
+        auto rejectCode = ShieldedReqRejectCode(*unmetShieldedReq);
+        auto rejectReason = ShieldedReqRejectReason(*unmetShieldedReq);
+        TracingError(
+            "main", "CheckInputs(): shielded requirements not met",
+            "txid", txid.c_str(),
+            "reason", rejectReason.c_str());
+        return state.Invalid(false, rejectCode, rejectReason);
+    }
 
     CAmount nValueIn = 0;
     CAmount nFees = 0;
@@ -2958,10 +2996,18 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
                 return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
                                  REJECT_INVALID, "bad-txns-inputs-missingorspent");
 
-            // are the JoinSplit's requirements met?
-            if (!view.HaveJoinSplitRequirements(tx))
-                return state.DoS(100, error("ConnectBlock(): JoinSplit requirements not met"),
-                                 REJECT_INVALID, "bad-txns-joinsplit-requirements-not-met");
+            // Are the shielded spends' requirements met?
+            auto unmetShieldedReq = view.HaveShieldedRequirements(tx);
+            if (unmetShieldedReq) {
+                auto txid = tx.GetHash().ToString();
+                auto rejectCode = ShieldedReqRejectCode(*unmetShieldedReq);
+                auto rejectReason = ShieldedReqRejectReason(*unmetShieldedReq);
+                TracingError(
+                    "main", "ConnectBlock(): shielded requirements not met",
+                    "txid", txid.c_str(),
+                    "reason", rejectReason.c_str());
+                return state.DoS(100, false, rejectCode, rejectReason);
+            }
 
             if (fAddressIndex || fSpentIndex) {
                 for (size_t j = 0; j < tx.vin.size(); j++) {
@@ -4783,7 +4829,7 @@ CBlockIndex* InsertBlockIndex(uint256 hash)
 bool static LoadBlockIndexDB()
 {
     const CChainParams& chainparams = Params();
-    if (!pblocktree->LoadBlockIndexGuts())
+    if (!pblocktree->LoadBlockIndexGuts(InsertBlockIndex, chainparams))
         return false;
 
     boost::this_thread::interruption_point();
@@ -5240,16 +5286,17 @@ bool InitBlockIndex()
     fTxIndex = GetBoolArg("-txindex", false);
     pblocktree->WriteFlag("txindex", fTxIndex);
 
-    // Use the provided setting for -addressindex in the new database
-    fAddressIndex = GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX);
-    pblocktree->WriteFlag("addressindex", fAddressIndex);
-
-    // Use the provided setting for -timestampindex in the new database
-    fTimestampIndex = GetBoolArg("-timestampindex", DEFAULT_TIMESTAMPINDEX);
-    pblocktree->WriteFlag("timestampindex", fTimestampIndex);
-
-    fSpentIndex = GetBoolArg("-spentindex", DEFAULT_SPENTINDEX);
-    pblocktree->WriteFlag("spentindex", fSpentIndex);
+    // Use the provided setting for -insightexplorer or -lightwalletd in the new database
+    pblocktree->WriteFlag("insightexplorer", fExperimentalInsightExplorer);
+    pblocktree->WriteFlag("lightwalletd", fExperimentalLightWalletd);
+    if (fExperimentalInsightExplorer) {
+        fAddressIndex = true;
+        fSpentIndex = true;
+        fTimestampIndex = true;
+    }
+    else if (fExperimentalLightWalletd) {
+        fAddressIndex = true;
+    }
 
     LogPrintf("Initializing databases...\n");
 
@@ -7123,11 +7170,6 @@ bool SendMessages(const Consensus::Params& consensusParams, CNode* pto, bool fSe
             pto->PushMessage("getdata", vGetData);
     }
     return true;
-}
-
-std::string CBlockFileInfo::ToString() const
-{
-    return strprintf("CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)", nBlocks, nSize, nHeightFirst, nHeightLast, DateTimeStrFormat("%Y-%m-%d", nTimeFirst), DateTimeStrFormat("%Y-%m-%d", nTimeLast));
 }
 
 

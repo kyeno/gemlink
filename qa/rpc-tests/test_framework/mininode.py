@@ -975,7 +975,7 @@ class CTransaction(object):
             self.orchardBundle = OrchardBundle()
             self.shieldedSpends = []
             self.shieldedOutputs = []
-            self.vJoinSplit = []
+            self.vjoinsplit = []
             self.joinSplitPubKey = None
             self.joinSplitSig = None
             self.bindingSig = None
@@ -994,7 +994,7 @@ class CTransaction(object):
             self.orchardBundle = copy.deepcopy(tx.orchardBundle)
             self.shieldedSpends = copy.deepcopy(tx.shieldedSpends)
             self.shieldedOutputs = copy.deepcopy(tx.shieldedOutputs)
-            self.vJoinSplit = copy.deepcopy(tx.vJoinSplit)
+            self.vjoinsplit = copy.deepcopy(tx.vjoinsplit)
             self.joinSplitPubKey = tx.joinSplitPubKey
             self.joinSplitSig = tx.joinSplitSig
             self.bindingSig = tx.bindingSig
@@ -1050,8 +1050,8 @@ class CTransaction(object):
             self.shieldedOutputs = deser_vector(f, OutputDescription)
 
         if self.nVersion >= 2:
-            self.vJoinSplit = deser_vector(f, JSDescription)
-            if len(self.vJoinSplit) > 0:
+            self.vjoinsplit = deser_vector(f, JSDescription)
+            if len(self.vjoinsplit) > 0:
                 self.joinSplitPubKey = deser_uint256(f)
                 self.joinSplitSig = f.read(64)
 
@@ -1110,8 +1110,8 @@ class CTransaction(object):
             r += ser_vector(self.shieldedSpends)
             r += ser_vector(self.shieldedOutputs)
         if self.nVersion >= 2:
-            r += ser_vector(self.vJoinSplit)
-            if len(self.vJoinSplit) > 0:
+            r += ser_vector(self.vjoinsplit)
+            if len(self.vjoinsplit) > 0:
                 r += ser_uint256(self.joinSplitPubKey)
                 r += self.joinSplitSig
         if isSaplingV4 and not (len(self.shieldedSpends) == 0 and len(self.shieldedOutputs) == 0):
@@ -1147,8 +1147,8 @@ class CTransaction(object):
                 self.vin, self.vout, self.nLockTime, self.nExpiryHeight,
                 self.valueBalance, self.shieldedSpends, self.shieldedOutputs))
         if self.nVersion >= 2:
-            r += " vJoinSplit=%r" % (self.vJoinSplit,)
-            if len(self.vJoinSplit) > 0:
+            r += " vjoinsplit=%r" % (self.vjoinsplit,)
+            if len(self.vjoinsplit) > 0:
                 r += " joinSplitPubKey=%064x joinSplitSig=%s" \
                     % (self.joinSplitPubKey, bytes_to_hex_str(self.joinSplitSig))
         if len(self.shieldedSpends) > 0 or len(self.shieldedOutputs) > 0:
