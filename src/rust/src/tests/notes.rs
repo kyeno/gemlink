@@ -19,7 +19,7 @@ fn notes() {
         note_cm: [u8; 32],
         note_pos: u64,
         note_nf: [u8; 32],
-    }
+    };
 
     // From https://github.com/zcash-hackworks/zcash-test-vectors/blob/master/sapling_key_components.py
     let test_vectors = vec![
@@ -649,7 +649,6 @@ fn notes() {
         // Compute commitment and compare with test vector
         let mut result = [0u8; 32];
         assert!(librustzcash_sapling_compute_cmu(
-            true,
             &tv.default_d,
             &tv.default_pk_d,
             tv.note_v,

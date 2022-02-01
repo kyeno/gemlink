@@ -1,6 +1,6 @@
 use zcash_primitives::{
     constants::SPENDING_KEY_GENERATOR,
-    sapling::redjubjub::{PrivateKey, PublicKey, Signature},
+    redjubjub::{PrivateKey, PublicKey, Signature},
 };
 
 #[test]
@@ -14,7 +14,7 @@ fn redjubjub_signatures() {
         m: [u8; 32],
         sig: [u8; 64],
         rsig: [u8; 64],
-    }
+    };
 
     // From https://github.com/zcash-hackworks/zcash-test-vectors/blob/master/sapling_signatures.py
     let test_vectors = vec![
@@ -491,7 +491,7 @@ fn redjubjub_signatures() {
 
         {
             let mut vec = Vec::new();
-            sk.randomize(alpha).write(&mut vec).unwrap();
+            sk.randomize(alpha.clone()).write(&mut vec).unwrap();
             assert_eq!(&vec, &tv.rsk);
         }
         {

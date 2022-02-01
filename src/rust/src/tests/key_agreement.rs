@@ -1,6 +1,6 @@
 use group::{Group, GroupEncoding};
 use rand_core::{OsRng, RngCore};
-use zcash_primitives::sapling::{Diversifier, ViewingKey};
+use zcash_primitives::primitives::{Diversifier, ViewingKey};
 
 use crate::{
     librustzcash_sapling_generate_r, librustzcash_sapling_ka_agree,
@@ -21,14 +21,15 @@ fn test_key_agreement() {
     let addr = loop {
         let mut d = [0; 11];
         rng.fill_bytes(&mut d);
-        if let Some(a) = vk.to_payment_address(Diversifier(d)) {
-            break a;
+        match vk.to_payment_address(Diversifier(d)) {
+            Some(a) => break a,
+            None => {}
         }
     };
 
     // Grab ivk from our viewing key in serialized form
     let ivk = vk.ivk();
-    let ivk_serialized = ivk.to_repr();
+    let ivk_serialized = ivk.to_bytes();
 
     // Create random esk
     let mut esk = [0u8; 32];
@@ -43,7 +44,6 @@ fn test_key_agreement() {
     let addr_pk_d = addr.pk_d().to_bytes();
 
     assert!(librustzcash_sapling_ka_agree(
-        true,
         &addr_pk_d,
         &esk,
         &mut shared_secret_sender
@@ -61,7 +61,6 @@ fn test_key_agreement() {
     // Create sharedSecret with ephemeral key
     let mut shared_secret_recipient = [0u8; 32];
     assert!(librustzcash_sapling_ka_agree(
-        true,
         &epk,
         &ivk_serialized,
         &mut shared_secret_recipient

@@ -30,7 +30,6 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::slice;
 use subtle::CtOption;
-use tracing::info;
 
 #[cfg(not(target_os = "windows"))]
 use std::ffi::OsStr;
@@ -46,12 +45,10 @@ use zcash_primitives::{
     block::equihash,
     constants::{CRH_IVK_PERSONALIZATION, PROOF_GENERATION_KEY_GENERATOR, SPENDING_KEY_GENERATOR},
     merkle_tree::MerklePath,
+    note_encryption::sapling_ka_agree,
+    primitives::{Diversifier, Note, PaymentAddress, ProofGenerationKey, Rseed, ViewingKey},
+    redjubjub::{self, Signature},
     sapling::{merkle_hash, spend_sig},
-    sapling::{
-        note_encryption::sapling_ka_agree,
-        redjubjub::{self, Signature},
-        Diversifier, Note, PaymentAddress, ProofGenerationKey, Rseed, ViewingKey,
-    },
     transaction::components::Amount,
     zip32,
 };
@@ -62,20 +59,11 @@ use zcash_proofs::{
     sprout,
 };
 
+use zcash_history::{Entry as MMREntry, NodeData as MMRNodeData, Tree as MMRTree};
+
 mod blake2b;
 mod ed25519;
-mod metrics_ffi;
-mod streams_ffi;
 mod tracing_ffi;
-
-mod address_ffi;
-mod history_ffi;
-mod incremental_merkle_tree_ffi;
-mod orchard_ffi;
-mod transaction_ffi;
-mod zip339_ffi;
-
-mod test_harness_ffi;
 
 #[cfg(test)]
 mod tests;
@@ -87,9 +75,6 @@ static mut SPROUT_GROTH16_VK: Option<PreparedVerifyingKey<Bls12>> = None;
 static mut SAPLING_SPEND_PARAMS: Option<Parameters<Bls12>> = None;
 static mut SAPLING_OUTPUT_PARAMS: Option<Parameters<Bls12>> = None;
 static mut SPROUT_GROTH16_PARAMS_PATH: Option<PathBuf> = None;
-
-static mut ORCHARD_PK: Option<orchard::circuit::ProvingKey> = None;
-static mut ORCHARD_VK: Option<orchard::circuit::VerifyingKey> = None;
 
 /// Converts CtOption<t> into Option<T>
 fn de_ct<T>(ct: CtOption<T>) -> Option<T> {
@@ -160,26 +145,19 @@ pub extern "C" fn librustzcash_init_zksnark_params(
     );
 
     // Load params
-    let params = load_parameters(spend_path, output_path, sprout_path);
-
-    // Generate Orchard parameters.
-    info!(target: "main", "Loading Orchard parameters");
-    let orchard_pk = orchard::circuit::ProvingKey::build();
-    let orchard_vk = orchard::circuit::VerifyingKey::build();
+    let (spend_params, spend_vk, output_params, output_vk, sprout_vk) =
+        load_parameters(spend_path, output_path, sprout_path);
 
     // Caller is responsible for calling this function once, so
     // these global mutations are safe.
     unsafe {
-        SAPLING_SPEND_PARAMS = Some(params.spend_params);
-        SAPLING_OUTPUT_PARAMS = Some(params.output_params);
+        SAPLING_SPEND_PARAMS = Some(spend_params);
+        SAPLING_OUTPUT_PARAMS = Some(output_params);
         SPROUT_GROTH16_PARAMS_PATH = sprout_path.map(|p| p.to_owned());
 
-        SAPLING_SPEND_VK = Some(params.spend_vk);
-        SAPLING_OUTPUT_VK = Some(params.output_vk);
-        SPROUT_GROTH16_VK = params.sprout_vk;
-
-        ORCHARD_PK = Some(orchard_pk);
-        ORCHARD_VK = Some(orchard_vk);
+        SAPLING_SPEND_VK = Some(spend_vk);
+        SAPLING_OUTPUT_VK = Some(output_vk);
+        SPROUT_GROTH16_VK = sprout_vk;
     }
 }
 
@@ -336,7 +314,6 @@ pub extern "C" fn librustzcash_sapling_generate_r(result: *mut [c_uchar; 32]) {
 
 // Private utility function to get Note from C parameters
 fn priv_get_note(
-    zip216_enabled: bool,
     diversifier: *const [c_uchar; 11],
     pk_d: *const [c_uchar; 32],
     value: u64,
@@ -345,12 +322,7 @@ fn priv_get_note(
     let diversifier = Diversifier(unsafe { *diversifier });
     let g_d = diversifier.g_d().ok_or(())?;
 
-    let pk_d = de_ct(if zip216_enabled {
-        jubjub::ExtendedPoint::from_bytes(unsafe { &*pk_d })
-    } else {
-        jubjub::AffinePoint::from_bytes_pre_zip216_compatibility(unsafe { *pk_d }).map(|p| p.into())
-    })
-    .ok_or(())?;
+    let pk_d = de_ct(jubjub::ExtendedPoint::from_bytes(unsafe { &*pk_d })).ok_or(())?;
 
     let pk_d = de_ct(pk_d.into_subgroup()).ok_or(())?;
 
@@ -386,9 +358,7 @@ pub extern "C" fn librustzcash_sapling_compute_nf(
     position: u64,
     result: *mut [c_uchar; 32],
 ) -> bool {
-    // ZIP 216: Nullifier derivation is not consensus-critical
-    // (nullifiers are revealed, not calculated by consensus).
-    let note = match priv_get_note(true, diversifier, pk_d, value, rcm) {
+    let note = match priv_get_note(diversifier, pk_d, value, rcm) {
         Ok(p) => p,
         Err(_) => return false,
     };
@@ -416,7 +386,7 @@ pub extern "C" fn librustzcash_sapling_compute_nf(
     let vk = ViewingKey { ak, nk };
     let nf = note.nf(&vk, position);
     let result = unsafe { &mut *result };
-    result.copy_from_slice(&nf.0);
+    result.copy_from_slice(&nf);
 
     true
 }
@@ -429,14 +399,13 @@ pub extern "C" fn librustzcash_sapling_compute_nf(
 /// Returns false if `diversifier` or `pk_d` is not valid.
 #[no_mangle]
 pub extern "C" fn librustzcash_sapling_compute_cmu(
-    zip216_enabled: bool,
     diversifier: *const [c_uchar; 11],
     pk_d: *const [c_uchar; 32],
     value: u64,
     rcm: *const [c_uchar; 32],
     result: *mut [c_uchar; 32],
 ) -> bool {
-    let note = match priv_get_note(zip216_enabled, diversifier, pk_d, value, rcm) {
+    let note = match priv_get_note(diversifier, pk_d, value, rcm) {
         Ok(p) => p,
         Err(_) => return false,
     };
@@ -453,17 +422,12 @@ pub extern "C" fn librustzcash_sapling_compute_cmu(
 /// the 32-byte `result` buffer.
 #[no_mangle]
 pub extern "C" fn librustzcash_sapling_ka_agree(
-    zip216_enabled: bool,
     p: *const [c_uchar; 32],
     sk: *const [c_uchar; 32],
     result: *mut [c_uchar; 32],
 ) -> bool {
     // Deserialize p
-    let p = match de_ct(if zip216_enabled {
-        jubjub::ExtendedPoint::from_bytes(unsafe { &*p })
-    } else {
-        jubjub::AffinePoint::from_bytes_pre_zip216_compatibility(unsafe { *p }).map(|p| p.into())
-    }) {
+    let p = match de_ct(jubjub::ExtendedPoint::from_bytes(unsafe { &*p })) {
         Some(p) => p,
         None => return false,
     };
@@ -542,10 +506,8 @@ pub extern "C" fn librustzcash_eh_isvalid(
 
 /// Creates a Sapling verification context. Please free this when you're done.
 #[no_mangle]
-pub extern "C" fn librustzcash_sapling_verification_ctx_init(
-    zip216_enabled: bool,
-) -> *mut SaplingVerificationContext {
-    let ctx = Box::new(SaplingVerificationContext::new(zip216_enabled));
+pub extern "C" fn librustzcash_sapling_verification_ctx_init() -> *mut SaplingVerificationContext {
+    let ctx = Box::new(SaplingVerificationContext::new());
 
     Box::into_raw(ctx)
 }
@@ -950,7 +912,10 @@ pub extern "C" fn librustzcash_sapling_spend_proof(
     };
 
     // Construct the proof generation key
-    let proof_generation_key = ProofGenerationKey { ak, nsk };
+    let proof_generation_key = ProofGenerationKey {
+        ak: ak.clone(),
+        nsk,
+    };
 
     // Grab the diversifier from the caller
     let diversifier = Diversifier(unsafe { *diversifier });
@@ -1092,9 +1057,9 @@ pub extern "C" fn librustzcash_zip32_xfvk_address(
         .expect("valid ExtendedFullViewingKey");
     let j = zip32::DiversifierIndex(unsafe { *j });
 
-    let addr = match xfvk.find_address(j) {
-        Some(addr) => addr,
-        None => return false,
+    let addr = match xfvk.address(j) {
+        Ok(addr) => addr,
+        Err(_) => return false,
     };
 
     let j_ret = unsafe { &mut *j_ret };
@@ -1104,6 +1069,183 @@ pub extern "C" fn librustzcash_zip32_xfvk_address(
     addr_ret.copy_from_slice(&addr.1.to_bytes());
 
     true
+}
+
+fn construct_mmr_tree(
+    // Consensus branch id
+    cbranch: u32,
+    // Length of tree in array representation
+    t_len: u32,
+
+    // Indices of provided tree nodes, length of p_len+e_len
+    ni_ptr: *const u32,
+    // Provided tree nodes data, length of p_len+e_len
+    n_ptr: *const [c_uchar; zcash_history::MAX_ENTRY_SIZE],
+
+    // Peaks count
+    p_len: size_t,
+    // Extra nodes loaded (for deletion) count
+    e_len: size_t,
+) -> Result<MMRTree, &'static str> {
+    let (indices, nodes) = unsafe {
+        (
+            slice::from_raw_parts(ni_ptr, p_len + e_len),
+            slice::from_raw_parts(n_ptr, p_len + e_len),
+        )
+    };
+
+    let mut peaks: Vec<_> = indices
+        .iter()
+        .zip(nodes.iter())
+        .map(
+            |(index, node)| match MMREntry::from_bytes(cbranch, &node[..]) {
+                Ok(entry) => Ok((*index, entry)),
+                Err(_) => Err("Invalid encoding"),
+            },
+        )
+        .collect::<Result<_, _>>()?;
+    let extra = peaks.split_off(p_len);
+
+    Ok(MMRTree::new(t_len, peaks, extra))
+}
+
+#[no_mangle]
+pub extern "system" fn librustzcash_mmr_append(
+    // Consensus branch id
+    cbranch: u32,
+    // Length of tree in array representation
+    t_len: u32,
+    // Indices of provided tree nodes, length of p_len
+    ni_ptr: *const u32,
+    // Provided tree nodes data, length of p_len
+    n_ptr: *const [c_uchar; zcash_history::MAX_ENTRY_SIZE],
+    // Peaks count
+    p_len: size_t,
+    // New node pointer
+    nn_ptr: *const [u8; zcash_history::MAX_NODE_DATA_SIZE],
+    // Return of root commitment
+    rt_ret: *mut [u8; 32],
+    // Return buffer for appended leaves, should be pre-allocated of ceiling(log2(t_len)) length
+    buf_ret: *mut [c_uchar; zcash_history::MAX_NODE_DATA_SIZE],
+) -> u32 {
+    let new_node_bytes: &[u8; zcash_history::MAX_NODE_DATA_SIZE] = unsafe {
+        match nn_ptr.as_ref() {
+            Some(r) => r,
+            None => {
+                return 0;
+            } // Null pointer passed, error
+        }
+    };
+
+    let mut tree = match construct_mmr_tree(cbranch, t_len, ni_ptr, n_ptr, p_len, 0) {
+        Ok(t) => t,
+        _ => {
+            return 0;
+        } // error
+    };
+
+    let node = match MMRNodeData::from_bytes(cbranch, &new_node_bytes[..]) {
+        Ok(node) => node,
+        _ => {
+            return 0;
+        } // error
+    };
+
+    let appended = match tree.append_leaf(node) {
+        Ok(appended) => appended,
+        _ => {
+            return 0;
+        }
+    };
+
+    let return_count = appended.len();
+
+    let root_node = tree
+        .root_node()
+        .expect("Just added, should resolve always; qed");
+    unsafe {
+        *rt_ret = root_node.data().hash();
+
+        for (idx, next_buf) in slice::from_raw_parts_mut(buf_ret, return_count as usize)
+            .iter_mut()
+            .enumerate()
+        {
+            tree.resolve_link(appended[idx])
+                .expect("This was generated by the tree and thus resolvable; qed")
+                .data()
+                .write(&mut &mut next_buf[..])
+                .expect("Write using cursor with enough buffer size cannot fail; qed");
+        }
+    }
+
+    return_count as u32
+}
+
+#[no_mangle]
+pub extern "system" fn librustzcash_mmr_delete(
+    // Consensus branch id
+    cbranch: u32,
+    // Length of tree in array representation
+    t_len: u32,
+    // Indices of provided tree nodes, length of p_len+e_len
+    ni_ptr: *const u32,
+    // Provided tree nodes data, length of p_len+e_len
+    n_ptr: *const [c_uchar; zcash_history::MAX_ENTRY_SIZE],
+    // Peaks count
+    p_len: size_t,
+    // Extra nodes loaded (for deletion) count
+    e_len: size_t,
+    // Return of root commitment
+    rt_ret: *mut [u8; 32],
+) -> u32 {
+    let mut tree = match construct_mmr_tree(cbranch, t_len, ni_ptr, n_ptr, p_len, e_len) {
+        Ok(t) => t,
+        _ => {
+            return 0;
+        } // error
+    };
+
+    let truncate_len = match tree.truncate_leaf() {
+        Ok(v) => v,
+        _ => {
+            return 0;
+        } // Error
+    };
+
+    unsafe {
+        *rt_ret = tree
+            .root_node()
+            .expect("Just generated without errors, root should be resolving")
+            .data()
+            .hash();
+    }
+
+    truncate_len
+}
+
+#[no_mangle]
+pub extern "system" fn librustzcash_mmr_hash_node(
+    cbranch: u32,
+    n_ptr: *const [u8; zcash_history::MAX_NODE_DATA_SIZE],
+    h_ret: *mut [u8; 32],
+) -> u32 {
+    let node_bytes: &[u8; zcash_history::MAX_NODE_DATA_SIZE] = unsafe {
+        match n_ptr.as_ref() {
+            Some(r) => r,
+            None => return 1,
+        }
+    };
+
+    let node = match MMRNodeData::from_bytes(cbranch, &node_bytes[..]) {
+        Ok(n) => n,
+        _ => return 1, // error
+    };
+
+    unsafe {
+        *h_ret = node.hash();
+    }
+
+    0
 }
 
 #[no_mangle]
