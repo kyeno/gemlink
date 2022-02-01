@@ -66,6 +66,7 @@ SaplingNote::SaplingNote(
 std::optional<uint256> SaplingNote::cmu() const {
     uint256 result;
     uint256 rcm_tmp = rcm();
+    LogPrintf("librustzcash_sapling_compute_cmu 333");
     if (!librustzcash_sapling_compute_cmu(
             d.data(),
             pk_d.begin(),
@@ -88,6 +89,7 @@ std::optional<uint256> SaplingNote::nullifier(const SaplingFullViewingKey& vk, c
 
     uint256 result;
     uint256 rcm_tmp = rcm();
+    LogPrintf("librustzcash_sapling_compute_nffff");
     if (!librustzcash_sapling_compute_nf(
             d.data(),
             pk_d.begin(),
@@ -163,11 +165,7 @@ SaplingNotePlaintext::SaplingNotePlaintext(
 {
     d = note.d;
     rseed = note.rseed;
-    if (note.get_zip_212_enabled() == libzcash::Zip212Enabled::AfterZip212) {
-        leadbyte = 0x02;
-    } else {
-        leadbyte = 0x01;
-    }
+    leadbyte = 0x01;
 }
 
 
@@ -175,12 +173,8 @@ std::optional<SaplingNote> SaplingNotePlaintext::note(const SaplingIncomingViewi
 {
     auto addr = ivk.address(d);
     if (addr) {
-        Zip212Enabled zip_212_enabled = Zip212Enabled::BeforeZip212;
-        if (leadbyte != 0x01) {
-            assert(leadbyte == 0x02);
-            zip_212_enabled = Zip212Enabled::AfterZip212;
-        };
-        auto tmp = SaplingNote(d, addr.value().pk_d, value_, rseed, zip_212_enabled);
+        
+        auto tmp = SaplingNote(d, addr.value().pk_d, value_, rseed, libzcash::Zip212Enabled::BeforeZip212);
         return tmp;
     } else {
         return std::nullopt;
@@ -283,6 +277,7 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
 
     uint256 cmu_expected;
     uint256 rcm = plaintext.rcm();
+    LogPrintf("librustzcash_sapling_compute_cmu 222");
     if (!librustzcash_sapling_compute_cmu(
         plaintext.d.data(),
         pk_d.begin(),
@@ -400,6 +395,7 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
 
     uint256 cmu_expected;
     uint256 rcm = plaintext.rcm();
+    LogPrintf("librustzcash_sapling_compute_cmu 111");
     if (!librustzcash_sapling_compute_cmu(
         plaintext.d.data(),
         pk_d.begin(),

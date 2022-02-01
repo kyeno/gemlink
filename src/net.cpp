@@ -2125,12 +2125,12 @@ CNode::~CNode()
 void CNode::ReloadTracingSpan()
 {
     if (fLogIPs) {
-        span = TracingSpan("info", "net", "Peer",
-                           "id", idStr.c_str(),
-                           "addr", addrName.c_str());
+        span = TracingSpanFields("info", "net", "Peer",
+            "id", idStr.c_str(),
+            "addr", addrName.c_str());
     } else {
-        span = TracingSpan("info", "net", "Peer",
-                           "id", idStr.c_str());
+        span = TracingSpanFields("info", "net", "Peer",
+            "id", idStr.c_str());
     }
 }
 
