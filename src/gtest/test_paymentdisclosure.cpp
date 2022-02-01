@@ -18,8 +18,8 @@
 #include <iostream>
 #include "util.h"
 
-#include "wallet/paymentdisclosure.h"
-#include "wallet/paymentdisclosuredb.h"
+#include "paymentdisclosure.h"
+#include "paymentdisclosuredb.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

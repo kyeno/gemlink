@@ -103,6 +103,7 @@ LIBZCASH_H = \
   zcash/address/sapling.hpp \
   zcash/address/sprout.hpp \
   zcash/address/zip32.h \
+  zcash/History.hpp \
   zcash/JoinSplit.hpp \
   zcash/Note.hpp \
   zcash/prf.h \
@@ -223,6 +224,7 @@ BITCOIN_CORE_H = \
   torcontrol.h \
   transaction_builder.h \
   txdb.h \
+  mempool_limit.h \
   txmempool.h \
   ui_interface.h \
   uint256.h \
@@ -303,6 +305,7 @@ libbitcoin_server_a_SOURCES = \
   timedata.cpp \
   torcontrol.cpp \
   txdb.cpp \
+  mempool_limit.cpp \
   txmempool.cpp \
   validationinterface.cpp \
   $(BITCOIN_CORE_H) \
@@ -558,6 +561,7 @@ libzcash_a_SOURCES = \
   zcash/address/sapling.cpp \
   zcash/address/sprout.cpp \
   zcash/address/zip32.cpp \
+  zcash/History.cpp \
   zcash/JoinSplit.cpp \
   zcash/Note.cpp \
   zcash/prf.cpp \

@@ -168,7 +168,6 @@ void AsyncRPCOperation_sendmany::main() {
         set_error_message("unknown error");
     }
 
-
 #ifdef ENABLE_MINING
 #ifdef ENABLE_WALLET
     GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", 1), Params());
@@ -248,7 +247,8 @@ bool AsyncRPCOperation_sendmany::main_impl() {
     // and if there are multiple zaddrs, we don't know where to send it.
     if (isfromtaddr_) {
         // Only select coinbase if we are spending from a single t-address to a single z-address.
-        if (!useanyutxo_ && isSingleZaddrOutput) {
+        bool fProtectCoinbase = Params().GetCoinbaseProtected(chainActive.Height() + 1);
+        if ((!useanyutxo_ && isSingleZaddrOutput) || !fProtectCoinbase) {
             bool b = find_utxos(true, txValues);
             if (!b) {
                 throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient transparent funds, no UTXOs found for taddr from address.");
@@ -589,7 +589,7 @@ bool AsyncRPCOperation_sendmany::main_impl() {
     // Keep track of treestate within this transaction
     // The SaltedTxidHasher is fine to use here; it salts the map keys automatically
     // with randomness generated on construction.
-    boost::unordered_map<uint256, SproutMerkleTree, CCoinsKeyHasher> intermediates;
+    boost::unordered_map<uint256, SproutMerkleTree, SaltedTxidHasher> intermediates;
     std::vector<uint256> previousCommitments;
 
     while (!vpubNewProcessed) {
@@ -601,11 +601,11 @@ bool AsyncRPCOperation_sendmany::main_impl() {
         uint256 jsAnchor;
         std::vector<std::optional<SproutWitness>> witnesses;
 
-        JSDescription prevjoinsplit;
+        JSDescription prevJoinSplit;
 
         // Keep track of previous JoinSplit and its commitments
         if (tx_.vjoinsplit.size() > 0) {
-            prevjoinsplit = tx_.vjoinsplit.back();
+            prevJoinSplit = tx_.vjoinsplit.back();
         }
 
         // If there is no change, the chain has terminated so we can reset the tracked treestate.
@@ -622,17 +622,17 @@ bool AsyncRPCOperation_sendmany::main_impl() {
 
             // Update tree state with previous joinsplit
             SproutMerkleTree tree;
-            auto it = intermediates.find(prevjoinsplit.anchor);
+            auto it = intermediates.find(prevJoinSplit.anchor);
             if (it != intermediates.end()) {
                 tree = it->second;
-            } else if (!pcoinsTip->GetSproutAnchorAt(prevjoinsplit.anchor, tree)) {
+            } else if (!pcoinsTip->GetSproutAnchorAt(prevJoinSplit.anchor, tree)) {
                 throw JSONRPCError(RPC_WALLET_ERROR, "Could not find previous JoinSplit anchor");
             }
 
             assert(changeOutputIndex != -1);
             std::optional<SproutWitness> changeWitness;
             int n = 0;
-            for (const uint256& commitment : prevjoinsplit.commitments) {
+            for (const uint256& commitment : prevJoinSplit.commitments) {
                 tree.append(commitment);
                 previousCommitments.push_back(commitment);
                 if (!changeWitness && changeOutputIndex == n++) {
@@ -650,14 +650,14 @@ bool AsyncRPCOperation_sendmany::main_impl() {
             // Decrypt the change note's ciphertext to retrieve some data we need
             ZCNoteDecryption decryptor(std::get<libzcash::SproutSpendingKey>(spendingkey_).receiving_key());
             auto hSig = ZCJoinSplit::h_sig(
-                prevjoinsplit.randomSeed,
-                prevjoinsplit.nullifiers,
+                prevJoinSplit.randomSeed,
+                prevJoinSplit.nullifiers,
                 tx_.joinSplitPubKey);
             try {
                 SproutNotePlaintext plaintext = SproutNotePlaintext::decrypt(
                         decryptor,
-                        prevjoinsplit.ciphertexts[changeOutputIndex],
-                        prevjoinsplit.ephemeralKey,
+                        prevJoinSplit.ciphertexts[changeOutputIndex],
+                        prevJoinSplit.ephemeralKey,
                         hSig,
                         (unsigned char) changeOutputIndex);
 
@@ -852,8 +852,16 @@ bool AsyncRPCOperation_sendmany::find_utxos(bool fAcceptCoinbase, TxValues& txVa
     if (!useanyutxo_) {
         destinations.insert(fromtaddr_);
     }
-
-    pwalletMain->AvailableCoins(t_inputs_, false, NULL, true, fAcceptCoinbase);
+    pwalletMain->AvailableCoins(
+            t_inputs_,
+            false,              // fOnlyConfirmed
+            nullptr,            // coinControl
+            true,               // fIncludeZeroValue
+            fAcceptCoinbase,    // fIncludeCoinBase
+            true,               // fOnlySpendable
+            mindepth_,          // nMinDepth
+            ALL_COINS,
+            &destinations);     // onlyFilterByDests
     if (t_inputs_.empty()) return false;
 
     // sort in ascending order, so smaller utxos appear first

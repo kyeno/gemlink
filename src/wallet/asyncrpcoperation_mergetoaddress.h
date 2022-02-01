@@ -7,7 +7,6 @@
 
 #include "amount.h"
 #include "asyncrpcoperation.h"
-#include "policy/fees.h"
 #include "primitives/transaction.h"
 #include "transaction_builder.h"
 #include "wallet.h"

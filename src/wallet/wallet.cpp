@@ -716,10 +716,10 @@ void CWallet::SetBestChain(const CBlockLocator& loc)
 }
 
 
-std::set<std::pair<libzcash::RawAddress, uint256>> CWallet::GetNullifiersForAddresses(
-        const std::set<libzcash::RawAddress> & addresses)
+std::set<std::pair<libzcash::PaymentAddress, uint256>> CWallet::GetNullifiersForAddresses(
+        const std::set<libzcash::PaymentAddress> & addresses)
 {
-    std::set<std::pair<libzcash::RawAddress, uint256>> nullifierSet;
+    std::set<std::pair<libzcash::PaymentAddress, uint256>> nullifierSet;
     // Sapling ivk -> list of addrs map
     // (There may be more than one diversified address for a given ivk.)
     std::map<libzcash::SaplingIncomingViewingKey, std::vector<libzcash::SaplingPaymentAddress>> ivkMap;
@@ -759,8 +759,8 @@ std::set<std::pair<libzcash::RawAddress, uint256>> CWallet::GetNullifiersForAddr
 
 
 bool CWallet::IsNoteSproutChange(
-        const std::set<std::pair<libzcash::RawAddress, uint256>> & nullifierSet,
-        const libzcash::RawAddress & address,
+        const std::set<std::pair<libzcash::PaymentAddress, uint256>> & nullifierSet,
+        const PaymentAddress & address,
         const JSOutPoint & jsop)
 {
     // A Note is marked as "change" if the address that received it
@@ -782,8 +782,8 @@ bool CWallet::IsNoteSproutChange(
     return false;
 }
 
-bool CWallet::IsNoteSaplingChange(const std::set<std::pair<libzcash::RawAddress, uint256>> & nullifierSet,
-        const libzcash::RawAddress & address,
+bool CWallet::IsNoteSaplingChange(const std::set<std::pair<libzcash::PaymentAddress, uint256>> & nullifierSet,
+        const libzcash::PaymentAddress & address,
         const SaplingOutPoint & op)
 {
     // A Note is marked as "change" if the address that received it
@@ -801,7 +801,6 @@ bool CWallet::IsNoteSaplingChange(const std::set<std::pair<libzcash::RawAddress,
     }
     return false;
 }
-
 
 bool CWallet::SetMinVersion(enum WalletFeature nVersion, CWalletDB* pwalletdbIn, bool fExplicit)
 {
@@ -1130,7 +1129,7 @@ bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& 
     // Find possible candidates
     std::vector<COutput> vPossibleCoins;
 
-    AvailableCoins(vPossibleCoins, true, NULL, false, true, ONLY_10000);
+    AvailableCoins(vPossibleCoins, true, NULL, false, false, true, ONLY_10000);
     if (vPossibleCoins.empty()) {
         LogPrintf("CWallet::GetMasternodeVinAndKeys -- Could not locate any valid masternode vin\n");
         return false;
@@ -1420,23 +1419,6 @@ void CWallet::DecrementNoteWitnesses(const CBlockIndex* pindex)
     // For performance reasons, we write out the witness cache in
     // CWallet::SetBestChain() (which also ensures that overall consistency
     // of the wallet.dat is maintained).
-}
-
-int CWallet::SproutWitnessMinimumHeight(const uint256& nullifier, int nWitnessHeight, int nMinimumHeight)
-{
-    if (GetSproutSpendDepth(nullifier) <= WITNESS_CACHE_SIZE) {
-        nMinimumHeight = min(nWitnessHeight, nMinimumHeight);
-    }
-    return nMinimumHeight;
-}
-
-
-int CWallet::SaplingWitnessMinimumHeight(const uint256& nullifier, int nWitnessHeight, int nMinimumHeight)
-{
-    if (GetSaplingSpendDepth(nullifier) <= WITNESS_CACHE_SIZE) {
-        nMinimumHeight = min(nWitnessHeight, nMinimumHeight);
-    }
-    return nMinimumHeight;
 }
 
 bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
@@ -3705,17 +3687,23 @@ CAmount CWallet::GetImmatureWatchOnlyBalance() const
     return nTotal;
 }
 
-/**
- * populate vCoins with vector of available COutputs.
- */
-void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const CCoinControl* coinControl, bool fIncludeZeroValue, bool fIncludeCoinBase, AvailableCoinsType coin_type, bool useIX) const
+void CWallet::AvailableCoins(vector<COutput>& vCoins,
+                             bool fOnlyConfirmed,
+                             const CCoinControl *coinControl,
+                             bool fIncludeZeroValue,
+                             bool fIncludeCoinBase,
+                             bool fOnlySpendable,
+                             int nMinDepth,
+                             AvailableCoinsType coin_type,
+                             std::set<CTxDestination>* onlyFilterByDests) const
 {
+    assert(nMinDepth >= 0);
     vCoins.clear();
 
     {
         LOCK2(cs_main, cs_wallet);
-        int count = 1;
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        {
             const uint256& wtxid = it->first;
             const CWalletTx* pcoin = &(*it).second;
 
@@ -3728,13 +3716,13 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
             if (pcoin->IsCoinBase() && !fIncludeCoinBase)
                 continue;
 
-            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
+            bool isCoinbase = pcoin->IsCoinBase();
+            if (isCoinbase && pcoin->GetBlocksToMaturity() > 0)
                 continue;
 
-            int nDepth = pcoin->GetDepthInMainChain(false);
-            if (useIX && nDepth < 6) {
+            int nDepth = pcoin->GetDepthInMainChain();
+            if (nDepth < nMinDepth)
                 continue;
-            }
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
                 bool found = false;
@@ -3747,30 +3735,37 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 if (!found)
                     continue;
 
-                isminetype mine = IsMine(pcoin->vout[i]);
 
-                if (IsSpent(wtxid, i)) {
-                    continue;
-                }
-                if (mine == ISMINE_NO) {
-                    continue;
-                }
                 if (IsLockedCoin((*it).first, i) && coin_type != ONLY_10000) {
                     continue;
                 }
-                if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs && !coinControl->IsSelected((*it).first, i)) {
+
+                const auto& output = pcoin->vout[i];
+                isminetype mine = IsMine(output);
+
+                bool isSpendable = ((mine & ISMINE_SPENDABLE) != ISMINE_NO) ||
+                                    (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_SOLVABLE) != ISMINE_NO);
+
+                if (fOnlySpendable && !isSpendable)
                     continue;
+
+                // Filter by specific destinations if needed
+                if (onlyFilterByDests && !onlyFilterByDests->empty()) {
+                    CTxDestination address;
+                    if (!ExtractDestination(output.scriptPubKey, address) || onlyFilterByDests->count(address) == 0) {
+                        continue;
+                    }
                 }
 
-                bool fIsSpendable = false;
-                if ((mine & ISMINE_SPENDABLE) != ISMINE_NO)
-                    fIsSpendable = true;
-
-                vCoins.emplace_back(COutput(pcoin, i, nDepth, fIsSpendable));
+                if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
+                    !IsLockedCoin((*it).first, i) && (pcoin->vout[i].nValue > 0 || fIncludeZeroValue) &&
+                    (!coinControl || !coinControl->HasSelected() || coinControl->fAllowOtherInputs || coinControl->IsSelected((*it).first, i)))
+                        vCoins.push_back(COutput(pcoin, i, nDepth, isSpendable, isCoinbase));
             }
         }
     }
 }
+
 
 static void ApproximateBestSubset(vector<pair<CAmount, pair<const CWalletTx*, unsigned int>>> vValue, const CAmount& nTotalLower, const CAmount& nTargetValue, vector<char>& vfBest, CAmount& nBest, int iterations = 1000)
 {
@@ -3904,8 +3899,8 @@ bool CWallet::SelectCoins(const CAmount& nTargetValue, set<pair<const CWalletTx*
 {
     // Output parameter fOnlyCoinbaseCoinsRet is set to true when the only available coins are coinbase utxos.
     vector<COutput> vCoinsNoCoinbase, vCoinsWithCoinbase;
-    AvailableCoins(vCoinsNoCoinbase, true, coinControl, false, false, coin_type, useIX);
-    AvailableCoins(vCoinsWithCoinbase, true, coinControl, false, true, coin_type, useIX);
+    AvailableCoins(vCoinsNoCoinbase, true, coinControl, false, false, false, coin_type);
+    AvailableCoins(vCoinsWithCoinbase, true, coinControl, false, true, false, coin_type);
     fOnlyCoinbaseCoinsRet = vCoinsNoCoinbase.size() == 0 && vCoinsWithCoinbase.size() > 0;
 
     // If coinbase utxos can only be sent to zaddrs, exclude any coinbase utxos from coin selection.
@@ -4077,7 +4072,7 @@ bool CWallet::ConvertList(std::vector<CTxIn> vCoins, std::vector<CAmount>& vecAm
     return true;
 }
 
-bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosRet, std::string& strFailReason)
+bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nChangePosRet, std::string& strFailReason, bool includeWatching)
 {
     vector<CRecipient> vecSend;
 
@@ -4089,6 +4084,7 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nC
 
     CCoinControl coinControl;
     coinControl.fAllowOtherInputs = true;
+    coinControl.fAllowWatchOnly = includeWatching;
     for (const CTxIn& txin : tx.vin)
         coinControl.Select(txin.prevout);
 
@@ -5329,28 +5325,25 @@ void CWallet::GetFilteredNotes(
     bool ignoreSpent,
     bool requireSpendingKey)
 {
-    std::set<libzcash::RawAddress> filterAddresses;
+    std::set<PaymentAddress> filterAddresses;
 
     KeyIO keyIO(Params());
     if (address.length() > 0) {
-        auto addr = keyIO.DecodePaymentAddress(address);
-        for (const auto ra : std::visit(GetRawAddresses(), addr)) {
-            filterAddresses.insert(ra);
-        }
+        filterAddresses.insert(keyIO.DecodePaymentAddress(address));
     }
 
     GetFilteredNotes(sproutEntries, saplingEntries, filterAddresses, minDepth, INT_MAX, ignoreSpent, requireSpendingKey);
 }
 
 /**
- * Find notes in the wallet filtered by payment addresses, min depth, max depth,
+ * Find notes in the wallet filtered by payment addresses, min depth, max depth, 
  * if the note is spent, if a spending key is required, and if the notes are locked.
  * These notes are decrypted and added to the output parameter vector, outEntries.
  */
 void CWallet::GetFilteredNotes(
     std::vector<SproutNoteEntry>& sproutEntries,
     std::vector<SaplingNoteEntry>& saplingEntries,
-    std::set<libzcash::RawAddress>& filterAddresses,
+    std::set<PaymentAddress>& filterAddresses,
     int minDepth,
     int maxDepth,
     bool ignoreSpent,
@@ -5671,12 +5664,6 @@ bool PaymentAddressBelongsToWallet::operator()(const libzcash::SaplingPaymentAdd
         m_wallet->HaveSaplingFullViewingKey(ivk);
 }
 
-bool PaymentAddressBelongsToWallet::operator()(const libzcash::UnifiedAddress &uaddr) const
-{
-    // TODO
-    return false;
-}
-
 bool PaymentAddressBelongsToWallet::operator()(const libzcash::InvalidEncoding& no) const
 {
     return false;
@@ -5712,12 +5699,6 @@ PaymentAddressSource GetSourceForPaymentAddress::operator()(const libzcash::Sapl
     } else {
         return AddressNotFound;
     }
-}
-
-PaymentAddressSource GetSourceForPaymentAddress::operator()(const libzcash::UnifiedAddress &uaddr) const
-{
-    // TODO
-    return AddressNotFound;
 }
 
 PaymentAddressSource GetSourceForPaymentAddress::operator()(const libzcash::InvalidEncoding& no) const
@@ -5758,13 +5739,6 @@ std::optional<libzcash::ViewingKey> GetViewingKeyForPaymentAddress::operator()(
 }
 
 std::optional<libzcash::ViewingKey> GetViewingKeyForPaymentAddress::operator()(
-    const libzcash::UnifiedAddress &uaddr) const
-{
-    // TODO
-    return libzcash::ViewingKey();
-}
-
-std::optional<libzcash::ViewingKey> GetViewingKeyForPaymentAddress::operator()(
     const libzcash::InvalidEncoding& no) const
 {
     // Defaults to InvalidEncoding
@@ -5784,12 +5758,6 @@ bool HaveSpendingKeyForPaymentAddress::operator()(const libzcash::SaplingPayment
     return m_wallet->GetSaplingIncomingViewingKey(zaddr, ivk) &&
         m_wallet->GetSaplingFullViewingKey(ivk, extfvk) &&
         m_wallet->HaveSaplingSpendingKey(extfvk);
-}
-
-bool HaveSpendingKeyForPaymentAddress::operator()(const libzcash::UnifiedAddress &uaddr) const
-{
-    // TODO
-    return false;
 }
 
 bool HaveSpendingKeyForPaymentAddress::operator()(const libzcash::InvalidEncoding& no) const
@@ -5817,13 +5785,6 @@ std::optional<libzcash::SpendingKey> GetSpendingKeyForPaymentAddress::operator()
     } else {
         return std::nullopt;
     }
-}
-
-std::optional<libzcash::SpendingKey> GetSpendingKeyForPaymentAddress::operator()(
-    const libzcash::UnifiedAddress &uaddr) const
-{
-    // TODO
-    return libzcash::SpendingKey();
 }
 
 std::optional<libzcash::SpendingKey> GetSpendingKeyForPaymentAddress::operator()(

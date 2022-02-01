@@ -48,7 +48,7 @@ uint256 SproutNote::nullifier(const SproutSpendingKey& a_sk) const {
 // Construct and populate Sapling note for a given payment address and value.
 SaplingNote::SaplingNote(
     const SaplingPaymentAddress& address,
-    uint64_t value,
+    const uint64_t value,
     Zip212Enabled zip212Enabled
 ) : BaseNote(value) {
     d = address.d;
@@ -66,9 +66,7 @@ SaplingNote::SaplingNote(
 std::optional<uint256> SaplingNote::cmu() const {
     uint256 result;
     uint256 rcm_tmp = rcm();
-    // ZIP 216: This method is only called from test code.
     if (!librustzcash_sapling_compute_cmu(
-            true,
             d.data(),
             pk_d.begin(),
             value(),
@@ -278,8 +276,6 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
     const uint256 &cmu
 )
 {
-    // ZIP 216: pk_d here is serialized from Rust,
-    // and thus has always used the canonical encoding.
     uint256 pk_d;
     if (!librustzcash_ivk_to_pkd(ivk.begin(), plaintext.d.data(), pk_d.begin())) {
         return std::nullopt;
@@ -288,7 +284,6 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
     uint256 cmu_expected;
     uint256 rcm = plaintext.rcm();
     if (!librustzcash_sapling_compute_cmu(
-        true,
         plaintext.d.data(),
         pk_d.begin(),
         plaintext.value(),
@@ -330,10 +325,6 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::decrypt(
     const uint256 &cmu
 )
 {
-    // The nu5Active flag passed in here enables the new consensus rules from ZIP 216
-    // (https://zips.z.cash/zip-0216#specification) on the following fields:
-    //
-    // - pk_d in the outCiphertext field of Sapling coinbase outputs.
     auto ret = attempt_sapling_enc_decryption_deserialization(ciphertext, epk, esk, pk_d);
 
     if (!ret) {
@@ -410,7 +401,6 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
     uint256 cmu_expected;
     uint256 rcm = plaintext.rcm();
     if (!librustzcash_sapling_compute_cmu(
-        false,
         plaintext.d.data(),
         pk_d.begin(),
         plaintext.value(),
@@ -431,7 +421,7 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
 std::optional<SaplingNotePlaintextEncryptionResult> SaplingNotePlaintext::encrypt(const uint256& pk_d) const
 {
     // Get the encryptor
-    auto sne = SaplingNoteEncryption::FromDiversifier(d);
+    auto sne = SaplingNoteEncryption::FromDiversifier(d, generate_or_derive_esk());
     if (!sne) {
         return std::nullopt;
     }

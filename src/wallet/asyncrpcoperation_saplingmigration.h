@@ -4,7 +4,6 @@
 #include "amount.h"
 #include "asyncrpcoperation.h"
 #include "univalue.h"
-#include "policy/fees.h"
 #include "zcash/Address.hpp"
 
 class AsyncRPCOperation_saplingmigration : public AsyncRPCOperation

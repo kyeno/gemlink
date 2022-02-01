@@ -7,7 +7,6 @@
 
 #include "asyncrpcoperation.h"
 #include "amount.h"
-#include "policy/fees.h"
 #include "primitives/transaction.h"
 #include "transaction_builder.h"
 #include "zcash/JoinSplit.hpp"
@@ -106,7 +105,6 @@ public:
 
     bool operator()(const libzcash::SproutPaymentAddress &zaddr) const;
     bool operator()(const libzcash::SaplingPaymentAddress &zaddr) const;
-    bool operator()(const libzcash::UnifiedAddress &uaddr) const;
     bool operator()(const libzcash::InvalidEncoding& no) const;
 };
 

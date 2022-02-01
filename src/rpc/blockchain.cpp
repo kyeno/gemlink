@@ -9,6 +9,7 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "consensus/validation.h"
+#include "experimental_features.h"
 #include "key_io.h"
 #include "main.h"
 #include "masternode-budget.h"
@@ -401,13 +402,74 @@ UniValue getrawmempool(const UniValue& params, bool fHelp)
     return mempoolToJSON(fVerbose);
 }
 
+
+// insightexplorer
 UniValue getblockdeltas(const UniValue& params, bool fHelp)
 {
+    std::string disabledMsg = "";
+    if (!(fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
+        disabledMsg = experimentalDisabledHelpMsg("getblockdeltas", {"insightexplorer", "lightwalletd"});
+    }
     if (fHelp || params.size() != 1)
-        throw runtime_error("");
+        throw runtime_error(
+            "getblockdeltas \"blockhash\"\n"
+            "\nReturns information about the given block and its transactions.\n"
+            + disabledMsg +
+            "\nArguments:\n"
+            "1. \"hash\"          (string, required) The block hash\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"hash\": \"hash\",              (string) block ID\n"
+            "  \"confirmations\": n,          (numeric) number of confirmations\n"
+            "  \"size\": n,                   (numeric) block size in bytes\n"
+            "  \"height\": n,                 (numeric) block height\n"
+            "  \"version\": n,                (numeric) block version (e.g. 4)\n"
+            "  \"merkleroot\": \"hash\",        (hexstring) block Merkle root\n"
+            "  \"deltas\": [\n"
+            "    {\n"
+            "      \"txid\": \"hash\",          (hexstring) transaction ID\n"
+            "      \"index\": n,              (numeric) The offset of the tx in the block\n"
+            "      \"inputs\": [                (array of json objects)\n"
+            "        {\n"
+            "          \"address\": \"taddr\",  (string) transparent address\n"
+            "          \"satoshis\": n,       (numeric) negative of spend amount\n"
+            "          \"index\": n,          (numeric) vin index\n"
+            "          \"prevtxid\": \"hash\",  (string) source utxo tx ID\n"
+            "          \"prevout\": n         (numeric) source utxo index\n"
+            "        }, ...\n"
+            "      ],\n"
+            "      \"outputs\": [             (array of json objects)\n"
+            "        {\n"
+            "          \"address\": \"taddr\",  (string) transparent address\n"
+            "          \"satoshis\": n,       (numeric) amount\n"
+            "          \"index\": n           (numeric) vout index\n"
+            "        }, ...\n"
+            "      ]\n"
+            "    }, ...\n"
+            "  ],\n"
+            "  \"time\" : n,                  (numeric) The block version\n"
+            "  \"mediantime\": n,             (numeric) The most recent blocks' ave time\n"
+            "  \"nonce\" : \"nonce\",           (hex string) The nonce\n"
+            "  \"bits\" : \"1d00ffff\",         (hex string) The bits\n"
+            "  \"difficulty\": n,             (numeric) the current difficulty\n"
+            "  \"chainwork\": \"xxxx\"          (hex string) total amount of work in active chain\n"
+            "  \"previousblockhash\" : \"hash\",(hex string) The hash of the previous block\n"
+            "  \"nextblockhash\" : \"hash\"     (hex string) The hash of the next block\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getblockdeltas", "00227e566682aebd6a7a5b772c96d7a999cadaebeaf1ce96f4191a3aad58b00b")
+            + HelpExampleRpc("getblockdeltas", "\"00227e566682aebd6a7a5b772c96d7a999cadaebeaf1ce96f4191a3aad58b00b\"")
+        );
+
+    if (!(fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Error: getblockdeltas is disabled. "
+            "Run './zcash-cli help getblockdeltas' for instructions on how to enable this feature.");
+    }
 
     std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
+
+    LOCK(cs_main);
 
     if (mapBlockIndex.count(hash) == 0)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
@@ -424,32 +486,48 @@ UniValue getblockdeltas(const UniValue& params, bool fHelp)
     return blockToDeltasJSON(block, pblockindex);
 }
 
+// insightexplorer
 UniValue getblockhashes(const UniValue& params, bool fHelp)
 {
+    std::string disabledMsg = "";
+    if (!(fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
+        disabledMsg = experimentalDisabledHelpMsg("getblockhashes", {"insightexplorer", "lightwalletd"});
+    }
     if (fHelp || params.size() < 2)
         throw runtime_error(
-            "getblockhashes timestamp\n"
-            "\nReturns array of hashes of blocks within the timestamp range provided.\n"
+            "getblockhashes high low ( {\"noOrphans\": true|false, \"logicalTimes\": true|false} )\n"
+            "\nReturns array of hashes of blocks within the timestamp range provided,\n"
+            "\ngreater or equal to low, less than high.\n"
+            + disabledMsg +
             "\nArguments:\n"
-            "1. high         (numeric, required) The newer block timestamp\n"
-            "2. low          (numeric, required) The older block timestamp\n"
-            "3. options      (string, required) A json object\n"
+            "1. high                            (numeric, required) The newer block timestamp\n"
+            "2. low                             (numeric, required) The older block timestamp\n"
+            "3. options                         (string, optional) A json object\n"
             "    {\n"
-            "      \"noOrphans\":true   (boolean) will only include blocks on the main chain\n"
-            "      \"logicalTimes\":true   (boolean) will include logical timestamps with hashes\n"
+            "      \"noOrphans\": true|false      (boolean) will only include blocks on the main chain\n"
+            "      \"logicalTimes\": true|false   (boolean) will include logical timestamps with hashes\n"
             "    }\n"
             "\nResult:\n"
             "[\n"
-            "  \"hash\"         (string) The block hash\n"
+            "  \"xxxx\"                   (hex string) The block hash\n"
             "]\n"
+            "or\n"
             "[\n"
             "  {\n"
-            "    \"blockhash\": (string) The block hash\n"
-            "    \"logicalts\": (numeric) The logical timestamp\n"
+            "    \"blockhash\": \"xxxx\"    (hex string) The block hash\n"
+            "    \"logicalts\": n         (numeric) The logical timestamp\n"
             "  }\n"
             "]\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getblockhashes", "1231614698 1231024505") + HelpExampleRpc("getblockhashes", "1231614698, 1231024505") + HelpExampleCli("getblockhashes", "1231614698 1231024505 '{\"noOrphans\":false, \"logicalTimes\":true}'"));
+            "\nExamples:\n"
+            + HelpExampleCli("getblockhashes", "1558141697 1558141576")
+            + HelpExampleRpc("getblockhashes", "1558141697, 1558141576")
+            + HelpExampleCli("getblockhashes", "1558141697 1558141576 '{\"noOrphans\":false, \"logicalTimes\":true}'")
+            );
+
+    if (!(fExperimentalInsightExplorer || fExperimentalLightWalletd)) {
+        throw JSONRPCError(RPC_MISC_ERROR, "Error: getblockhashes is disabled. "
+            "Run './zcash-cli help getblockhashes' for instructions on how to enable this feature.");
+    }
 
     unsigned int high = params[0].get_int();
     unsigned int low = params[1].get_int();
@@ -457,42 +535,38 @@ UniValue getblockhashes(const UniValue& params, bool fHelp)
     bool fLogicalTS = false;
 
     if (params.size() > 2) {
-        if (params[2].isObject()) {
-            UniValue noOrphans = find_value(params[2].get_obj(), "noOrphans");
-            UniValue returnLogical = find_value(params[2].get_obj(), "logicalTimes");
+        UniValue noOrphans = find_value(params[2].get_obj(), "noOrphans");
+        if (!noOrphans.isNull())
+            fActiveOnly = noOrphans.get_bool();
 
-            if (noOrphans.isBool())
-                fActiveOnly = noOrphans.get_bool();
+        UniValue returnLogical = find_value(params[2].get_obj(), "logicalTimes");
+        if (!returnLogical.isNull())
+            fLogicalTS = returnLogical.get_bool();
+    }
 
-            if (returnLogical.isBool())
-                fLogicalTS = returnLogical.get_bool();
+    std::vector<std::pair<uint256, unsigned int> > blockHashes;
+    {
+        LOCK(cs_main);
+        if (!GetTimestampIndex(high, low, fActiveOnly, blockHashes)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                "No information available for block hashes");
         }
     }
-
-    std::vector<std::pair<uint256, unsigned int>> blockHashes;
-
-    if (fActiveOnly)
-        LOCK(cs_main);
-
-    if (!GetTimestampIndex(high, low, fActiveOnly, blockHashes)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available for block hashes");
-    }
-
     UniValue result(UniValue::VARR);
-
-    for (std::vector<std::pair<uint256, unsigned int>>::const_iterator it = blockHashes.begin(); it != blockHashes.end(); it++) {
+    for (std::vector<std::pair<uint256, unsigned int> >::const_iterator it=blockHashes.begin();
+            it!=blockHashes.end(); it++) {
         if (fLogicalTS) {
             UniValue item(UniValue::VOBJ);
-            item.push_back(Pair("blockhash", it->first.GetHex()));
-            item.push_back(Pair("logicalts", (int)it->second));
+            item.pushKV("blockhash", it->first.GetHex());
+            item.pushKV("logicalts", (int)it->second);
             result.push_back(item);
         } else {
             result.push_back(it->first.GetHex());
         }
     }
-
     return result;
 }
+
 
 UniValue getblockhash(const UniValue& params, bool fHelp)
 {
