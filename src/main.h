@@ -261,8 +261,6 @@ std::pair<std::string, int64_t> GetWarnings(const std::string& strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256& hash, CTransaction& tx, const Consensus::Params& consensusParams, uint256& hashBlock, bool fAllowSlow = false);
 
-bool DisconnectBlocksAndReprocess(int blocks);
-
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, CBlock* pblock = NULL);
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
@@ -948,5 +946,9 @@ int GetSpendHeight(const CCoinsViewCache& inputs);
 
 /** Return a CMutableTransaction with contextual default values based on set of consensus rules at height */
 CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Params& consensusParams, int nHeight);
+
+std::pair<std::map<CBlockIndex*, std::list<CTransaction>>, uint64_t> DrainRecentlyConflicted();
+void SetChainNotifiedSequence(const CChainParams& chainparams, uint64_t recentlyConflictedSequence);
+bool ChainIsFullyNotified(const CChainParams& chainparams);
 
 #endif // BITCOIN_MAIN_H
