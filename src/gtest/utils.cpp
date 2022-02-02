@@ -1,3 +1,5 @@
+#include "gtest/utils.h"
+
 int GenZero(int n)
 {
     return 0;
@@ -5,5 +7,5 @@ int GenZero(int n)
 
 int GenMax(int n)
 {
-    return n - 1;
+    return n-1;
 }

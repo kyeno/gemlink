@@ -1,5 +1,6 @@
 #include "chainparams.h"
 #include "consensus/params.h"
+#include "consensus/consensus.h"
 #include "consensus/validation.h"
 #include "key_io.h"
 #include "main.h"
@@ -12,18 +13,14 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-extern ZCJoinSplit* params;
-
 // Fake an empty view
-class TransactionBuilderCoinsViewDB : public CCoinsView
-{
+class TransactionBuilderCoinsViewDB : public CCoinsView {
 public:
     std::map<uint256, SproutMerkleTree> sproutTrees;
 
     TransactionBuilderCoinsViewDB() {}
 
-    bool GetSproutAnchorAt(const uint256& rt, SproutMerkleTree& tree) const
-    {
+    bool GetSproutAnchorAt(const uint256 &rt, SproutMerkleTree &tree) const {
         auto it = sproutTrees.find(rt);
         if (it != sproutTrees.end()) {
             tree = it->second;
@@ -33,52 +30,44 @@ public:
         }
     }
 
-    bool GetSaplingAnchorAt(const uint256& rt, SaplingMerkleTree& tree) const
-    {
+    bool GetSaplingAnchorAt(const uint256 &rt, SaplingMerkleTree &tree) const {
         return false;
     }
 
-    bool GetNullifier(const uint256& nf, ShieldedType type) const
-    {
+    bool GetNullifier(const uint256 &nf, ShieldedType type) const {
         return false;
     }
 
-    bool GetCoins(const uint256& txid, CCoins& coins) const
-    {
+    bool GetCoins(const uint256 &txid, CCoins &coins) const {
         return false;
     }
 
-    bool HaveCoins(const uint256& txid) const
-    {
+    bool HaveCoins(const uint256 &txid) const {
         return false;
     }
 
-    uint256 GetBestBlock() const
-    {
+    uint256 GetBestBlock() const {
         uint256 a;
         return a;
     }
 
-    uint256 GetBestAnchor(ShieldedType type) const
-    {
+    uint256 GetBestAnchor(ShieldedType type) const {
         uint256 a;
         return a;
     }
 
-    bool BatchWrite(CCoinsMap& mapCoins,
-                    const uint256& hashBlock,
-                    const uint256& hashSproutAnchor,
-                    const uint256& hashSaplingAnchor,
-                    CAnchorsSproutMap& mapSproutAnchors,
-                    CAnchorsSaplingMap& mapSaplingAnchors,
-                    CNullifiersMap& mapSproutNullifiers,
-                    CNullifiersMap saplingNullifiersMap)
-    {
+    bool BatchWrite(CCoinsMap &mapCoins,
+                    const uint256 &hashBlock,
+                    const uint256 &hashSproutAnchor,
+                    const uint256 &hashSaplingAnchor,
+                    CAnchorsSproutMap &mapSproutAnchors,
+                    CAnchorsSaplingMap &mapSaplingAnchors,
+                    CNullifiersMap &mapSproutNullifiers,
+                    CNullifiersMap saplingNullifiersMap) {
         return false;
     }
 
-    bool GetStats(CCoinsStats& stats) const
-    {
+    bool GetStats(CCoinsStats &stats) const {
         return false;
     }
 };
@@ -102,9 +91,9 @@ TEST(TransactionBuilder, TransparentToSapling)
     auto pk = *ivk.address(d);
 
     // Create a shielding transaction from transparent to Sapling
-    // 0.0005 t-ZEC in, 0.0004 z-ZEC out, 0.0001 t-ZEC fee
+    // 0.0005 t-ZEC in, 0.0004 z-ZEC out, default fee
     auto builder = TransactionBuilder(consensusParams, 1, &keystore);
-    builder.AddTransparentInput(COutPoint(), scriptPubKey, 50000);
+    builder.AddTransparentInput(COutPoint(uint256S("1234"), 0), scriptPubKey, 50000);
     builder.AddSaplingOutput(fvk_from.ovk, pk, 40000, {});
     auto tx = builder.Build().GetTxOrThrow();
 
@@ -116,15 +105,14 @@ TEST(TransactionBuilder, TransparentToSapling)
     EXPECT_EQ(tx.valueBalance, -40000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 2, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 2, true));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default
     RegtestDeactivateSapling();
 }
 
-TEST(TransactionBuilder, SaplingToSapling)
-{
+TEST(TransactionBuilder, SaplingToSapling) {
     auto consensusParams = RegtestActivateSapling();
 
     auto sk = libzcash::SaplingSpendingKey::random();
@@ -135,7 +123,7 @@ TEST(TransactionBuilder, SaplingToSapling)
     auto testNote = GetTestSaplingNote(pa, 40000);
 
     // Create a Sapling-only transaction
-    // 0.0004 z-ZEC in, 0.00025 z-ZEC out, 0.0001 t-ZEC fee, 0.00005 z-ZEC change
+    // 0.0004 z-ZEC in, 0.00025 z-ZEC out, default fee, 0.00005 z-ZEC change
     auto builder = TransactionBuilder(consensusParams, 2);
     builder.AddSaplingSpend(expsk, testNote.note, testNote.tree.root(), testNote.tree.witness());
 
@@ -154,15 +142,14 @@ TEST(TransactionBuilder, SaplingToSapling)
     EXPECT_EQ(tx.valueBalance, 10000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 3, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 3, true));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default
     RegtestDeactivateSapling();
 }
 
-TEST(TransactionBuilder, SaplingToSprout)
-{
+TEST(TransactionBuilder, SaplingToSprout) {
     auto consensusParams = RegtestActivateSapling();
 
     auto sk = libzcash::SaplingSpendingKey::random();
@@ -177,8 +164,8 @@ TEST(TransactionBuilder, SaplingToSprout)
     // Create a Sapling-to-Sprout transaction (reusing the note from above)
     // - 0.0004 Sapling-ZEC in      - 0.00025 Sprout-ZEC out
     //                              - 0.00005 Sapling-ZEC change
-    //                              - 0.0001 t-ZEC fee
-    auto builder = TransactionBuilder(consensusParams, 2, nullptr, params);
+    //                              - default t-ZEC fee
+    auto builder = TransactionBuilder(consensusParams, 2, nullptr);
     builder.AddSaplingSpend(expsk, testNote.note, testNote.tree.root(), testNote.tree.witness());
     builder.AddSproutOutput(sproutAddr, 25000);
     auto tx = builder.Build().GetTxOrThrow();
@@ -193,15 +180,14 @@ TEST(TransactionBuilder, SaplingToSprout)
     EXPECT_EQ(tx.valueBalance, 35000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 3, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 3, true));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default
     RegtestDeactivateSapling();
 }
 
-TEST(TransactionBuilder, SproutToSproutAndSapling)
-{
+TEST(TransactionBuilder, SproutToSproutAndSapling) {
     auto consensusParams = RegtestActivateSapling();
 
     auto sk = libzcash::SaplingSpendingKey::random();
@@ -211,8 +197,8 @@ TEST(TransactionBuilder, SproutToSproutAndSapling)
     auto sproutSk = libzcash::SproutSpendingKey::random();
     auto sproutAddr = sproutSk.address();
 
-    auto wtx = GetValidSproutReceive(*params, sproutSk, 25000, true);
-    auto sproutNote = GetSproutNote(*params, sproutSk, wtx, 0, 1);
+    auto wtx = GetValidSproutReceive(sproutSk, 25000, true);
+    auto sproutNote = GetSproutNote(sproutSk, wtx, 0, 1);
 
     SproutMerkleTree sproutTree;
     for (int i = 0; i < ZC_NUM_JS_OUTPUTS; i++) {
@@ -231,7 +217,7 @@ TEST(TransactionBuilder, SproutToSproutAndSapling)
     //                              - 0.00005 Sprout-ZEC change
     //                              - 0.00005 Sapling-ZEC out
     //                              - 0.00005 t-ZEC fee
-    auto builder = TransactionBuilder(consensusParams, 2, nullptr, params, &view);
+    auto builder = TransactionBuilder(consensusParams, 2, nullptr, &view);
     builder.SetFee(5000);
     builder.AddSproutInput(sproutSk, sproutNote, sproutWitness);
     builder.AddSproutOutput(sproutAddr, 6000);
@@ -255,27 +241,17 @@ TEST(TransactionBuilder, SproutToSproutAndSapling)
     EXPECT_EQ(tx.valueBalance, -5000);
 
     CValidationState state;
-    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 4, 0));
+    EXPECT_TRUE(ContextualCheckTransaction(tx, state, Params(), 4, true));
     EXPECT_EQ(state.GetRejectReason(), "");
 
     // Revert to default
     RegtestDeactivateSapling();
 }
 
-TEST(TransactionBuilder, ThrowsOnSproutOutputWithoutParams)
-{
-    auto consensusParams = Params().GetConsensus();
-    auto sk = libzcash::SproutSpendingKey::random();
-    auto addr = sk.address();
-
-    auto builder = TransactionBuilder(consensusParams, 1);
-    ASSERT_THROW(builder.AddSproutOutput(addr, 10), std::runtime_error);
-}
-
 TEST(TransactionBuilder, ThrowsOnTransparentInputWithoutKeyStore)
 {
     SelectParams(CBaseChainParams::REGTEST);
-    auto consensusParams = Params().GetConsensus();
+    const Consensus::Params& consensusParams = Params().GetConsensus();
 
     auto builder = TransactionBuilder(consensusParams, 1);
     ASSERT_THROW(builder.AddTransparentInput(COutPoint(), CScript(), 1), std::runtime_error);
@@ -284,7 +260,7 @@ TEST(TransactionBuilder, ThrowsOnTransparentInputWithoutKeyStore)
 TEST(TransactionBuilder, RejectsInvalidTransparentOutput)
 {
     SelectParams(CBaseChainParams::REGTEST);
-    auto consensusParams = Params().GetConsensus();
+    const Consensus::Params& consensusParams = Params().GetConsensus();
 
     // Default CTxDestination type is an invalid address
     CTxDestination taddr;
@@ -295,7 +271,7 @@ TEST(TransactionBuilder, RejectsInvalidTransparentOutput)
 TEST(TransactionBuilder, RejectsInvalidTransparentChangeAddress)
 {
     SelectParams(CBaseChainParams::REGTEST);
-    auto consensusParams = Params().GetConsensus();
+    const Consensus::Params& consensusParams = Params().GetConsensus();
 
     // Default CTxDestination type is an invalid address
     CTxDestination taddr;
@@ -323,19 +299,19 @@ TEST(TransactionBuilder, FailsWithNegativeChange)
     auto testNote = GetTestSaplingNote(pa, 59999);
 
     // Fail if there is only a Sapling output
-    // 0.0005 z-ZEC out, 0.0001 t-ZEC fee
+    // 0.0005 z-ZEC out, default fee
     auto builder = TransactionBuilder(consensusParams, 1);
     builder.AddSaplingOutput(fvk.ovk, pa, 50000, {});
     EXPECT_EQ("Change cannot be negative", builder.Build().GetError());
 
     // Fail if there is only a transparent output
-    // 0.0005 t-ZEC out, 0.0001 t-ZEC fee
+    // 0.0005 t-ZEC out, default fee
     builder = TransactionBuilder(consensusParams, 1, &keystore);
     builder.AddTransparentOutput(taddr, 50000);
     EXPECT_EQ("Change cannot be negative", builder.Build().GetError());
 
     // Fails if there is insufficient input
-    // 0.0005 t-ZEC out, 0.0001 t-ZEC fee, 0.00059999 z-ZEC in
+    // 0.0005 t-ZEC out, default fee, 0.00059999 z-ZEC in
     builder.AddSaplingSpend(expsk, testNote.note, testNote.tree.root(), testNote.tree.witness());
     EXPECT_EQ("Change cannot be negative", builder.Build().GetError());
 
@@ -478,7 +454,7 @@ TEST(TransactionBuilder, CheckSaplingTxVersion)
 {
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
-    auto consensusParams = Params().GetConsensus();
+    const Consensus::Params& consensusParams = Params().GetConsensus();
 
     auto sk = libzcash::SaplingSpendingKey::random();
     auto expsk = sk.expanded_spending_key();
@@ -488,20 +464,20 @@ TEST(TransactionBuilder, CheckSaplingTxVersion)
     auto builder = TransactionBuilder(consensusParams, 1);
     try {
         builder.AddSaplingOutput(uint256(), pk, 12345, {});
-    } catch (std::runtime_error const& err) {
+    } catch (std::runtime_error const & err) {
         EXPECT_EQ(err.what(), std::string("TransactionBuilder cannot add Sapling output to pre-Sapling transaction"));
-    } catch (...) {
+    } catch(...) {
         FAIL() << "Expected std::runtime_error";
     }
 
     // Cannot add Sapling spends to a non-Sapling transaction
-    libzcash::SaplingNote note(pk, 50000);
+    libzcash::SaplingNote note(pk, 50000, libzcash::Zip212Enabled::BeforeZip212);
     SaplingMerkleTree tree;
     try {
         builder.AddSaplingSpend(expsk, note, uint256(), tree.witness());
-    } catch (std::runtime_error const& err) {
+    } catch (std::runtime_error const & err) {
         EXPECT_EQ(err.what(), std::string("TransactionBuilder cannot add Sapling spend to pre-Sapling transaction"));
-    } catch (...) {
+    } catch(...) {
         FAIL() << "Expected std::runtime_error";
     }
 

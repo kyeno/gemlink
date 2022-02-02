@@ -14,6 +14,7 @@
 #include "script/script_error.h"
 #include "script/sign.h"
 #include "test/test_bitcoin.h"
+#include "test/test_util.h"
 #include "util.h"
 
 #if defined(HAVE_CONSENSUS_LIB)
@@ -41,17 +42,6 @@ static const unsigned int flags = SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC;
 unsigned int ParseScriptFlags(string strFlags);
 string FormatScriptFlags(unsigned int flags);
 
-UniValue
-read_json(const std::string& jsondata)
-{
-    UniValue v;
-
-    if (!v.read(jsondata) || !v.isArray()) {
-        BOOST_ERROR("Parse error.");
-        return UniValue(UniValue::VARR);
-    }
-    return v.get_array();
-}
 
 BOOST_FIXTURE_TEST_SUITE(script_tests, BasicTestingSetup)
 
