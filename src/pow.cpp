@@ -203,7 +203,7 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const Consensus::Params& 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << I;
 
-    LogPrint("pow", "Equihash sol: n %d k %d solsize %d pers %s\n", n, k, pblock->nSolution.size(), params.eh_epoch_1_params().pers);
+    // LogPrint("pow", "Equihash sol: n %d k %d solsize %d pers %s\n", n, k, pblock->nSolution.size());
     return librustzcash_eh_isvalid(
         n, k,
         (unsigned char*)&ss[0], ss.size(),
