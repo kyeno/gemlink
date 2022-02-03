@@ -5490,7 +5490,6 @@ void CWallet::GetFilteredNotes(
 bool CWallet::InitLoadWallet(const CChainParams& params, bool clearWitnessCaches)
 {
     std::string walletFile = GetArg("-wallet", DEFAULT_WALLET_DAT);
-
     // needed to restore wallet transaction meta data after -zapwallettxes
     std::vector<CWalletTx> vWtx;
 
@@ -5586,8 +5585,10 @@ bool CWallet::InitLoadWallet(const CChainParams& params, bool clearWitnessCaches
         if (walletInstance->GetKeyFromPool(newDefaultKey)) {
             walletInstance->SetDefaultKey(newDefaultKey);
             if (!walletInstance->SetAddressBook(walletInstance->vchDefaultKey.GetID(), "", "receive"))
+            {
                 LogPrintf(_("Cannot write default address") += "\n");
                 return false;
+            }
         }
 
         walletInstance->SetBestChain(chainActive.GetLocator());
@@ -5606,6 +5607,7 @@ bool CWallet::InitLoadWallet(const CChainParams& params, bool clearWitnessCaches
         if (walletdb.ReadBestBlock(locator))
             pindexRescan = FindForkInGlobalIndex(chainActive, locator);
     }
+
     if (chainActive.Tip() && chainActive.Tip() != pindexRescan)
     {
         // We can't rescan beyond non-pruned blocks, stop and throw an error.
@@ -5618,10 +5620,10 @@ bool CWallet::InitLoadWallet(const CChainParams& params, bool clearWitnessCaches
                 block = block->pprev;
 
             if (pindexRescan != block)
-        {
+            {
                 LogPrintf(_("Prune: last wallet synchronisation goes beyond pruned data. You need to -reindex (download the whole blockchain again in case of pruned node)"));
                 return false;
-        }
+            }
         }
 
         uiInterface.InitMessage(_("Rescanning..."));
