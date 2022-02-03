@@ -1379,12 +1379,12 @@ void DecrementNoteWitnesses(NoteDataMap& noteDataMap, int indexHeight, int64_t n
             // (never incremented or decremented) or equal to the height
             // of the block being removed (indexHeight)
             assert((nd->witnessHeight == -1) || (nd->witnessHeight == indexHeight));
-            if (nd->witnesses.size() > 0) {
+            if (nd->witnesses.size() > 1) {
                 nd->witnesses.pop_front();
+                nd->witnessHeight = indexHeight - 1;
             }
             // indexHeight is the height of the block being removed, so
             // the new witness cache height is one below it.
-            nd->witnessHeight = indexHeight - 1;
         }
         // Check the validity of the cache
         // Technically if there are notes witnessed above the current
