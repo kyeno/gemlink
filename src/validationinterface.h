@@ -38,7 +38,7 @@ protected:
     virtual void SyncTransaction(const CTransaction &tx, const CBlock *pblock, const int nHeight) {}
     virtual void EraseFromWallet(const uint256 &hash) {}
     virtual void ChainTip(const CBlockIndex *pindex, const CBlock *pblock, std::optional<std::pair<SproutMerkleTree, SaplingMerkleTree>> added) {}
-    virtual bool UpdatedTransaction(const uint256 &hash) {}
+    virtual bool UpdatedTransaction(const uint256 &hash) { return false; }
     virtual void Inventory(const uint256 &hash) {}
     virtual void ResendWalletTransactions(int64_t nBestBlockTime) {}
     virtual void BlockChecked(const CBlock&, const CValidationState&) {}
