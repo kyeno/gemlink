@@ -66,7 +66,6 @@ SaplingNote::SaplingNote(
 std::optional<uint256> SaplingNote::cmu() const {
     uint256 result;
     uint256 rcm_tmp = rcm();
-    LogPrintf("librustzcash_sapling_compute_cmu 333");
     if (!librustzcash_sapling_compute_cmu(
             d.data(),
             pk_d.begin(),
@@ -277,7 +276,6 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
 
     uint256 cmu_expected;
     uint256 rcm = plaintext.rcm();
-    LogPrintf("librustzcash_sapling_compute_cmu 222");
     if (!librustzcash_sapling_compute_cmu(
         plaintext.d.data(),
         pk_d.begin(),
@@ -395,7 +393,6 @@ std::optional<SaplingNotePlaintext> SaplingNotePlaintext::plaintext_checks_witho
 
     uint256 cmu_expected;
     uint256 rcm = plaintext.rcm();
-    LogPrintf("librustzcash_sapling_compute_cmu 111");
     if (!librustzcash_sapling_compute_cmu(
         plaintext.d.data(),
         pk_d.begin(),
