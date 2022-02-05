@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2013 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #ifndef BITCOIN_SYNC_H
 #define BITCOIN_SYNC_H
@@ -71,31 +71,41 @@ public:
     }
 };
 
-/**
- * Wrapped boost mutex: supports recursive locking, but no waiting
- * TODO: We should move away from using the recursive lock by default.
- */
-typedef AnnotatedMixin<boost::recursive_mutex> CCriticalSection;
-
-/** Wrapped boost mutex: supports waiting but not recursive locking */
-typedef AnnotatedMixin<boost::mutex> CWaitableCriticalSection;
-
-/** Just a typedef for boost::condition_variable, can be wrapped later if desired */
-typedef boost::condition_variable CConditionVariable;
-
 #ifdef DEBUG_LOCKORDER
 void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);
 void LeaveCritical();
 std::string LocksHeld();
 void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs);
+void AssertLockNotHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs);
+void DeleteLock(void* cs);
 #else
-void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false)
-{
-}
+void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false) {}
 void static inline LeaveCritical() {}
 void static inline AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs) {}
+void static inline AssertLockNotHeldInternal(const char* pszName, const char* pszFile, int nLine, void* cs) {}
+void static inline DeleteLock(void* cs) {}
 #endif
 #define AssertLockHeld(cs) AssertLockHeldInternal(#cs, __FILE__, __LINE__, &cs)
+#define AssertLockNotHeld(cs) AssertLockNotHeldInternal(#cs, __FILE__, __LINE__, &cs)
+
+/**
+ * Wrapped boost mutex: supports recursive locking, but no waiting
+ * TODO: We should move away from using the recursive lock by default.
+ */
+class CCriticalSection : public AnnotatedMixin<boost::recursive_mutex>
+{
+public:
+    ~CCriticalSection() {
+        DeleteLock((void*)this);
+    }
+};
+
+typedef CCriticalSection CDynamicCriticalSection;
+/** Wrapped boost mutex: supports waiting but not recursive locking */
+typedef AnnotatedMixin<boost::mutex> CWaitableCriticalSection;
+
+/** Just a typedef for boost::condition_variable, can be wrapped later if desired */
+typedef boost::condition_variable CConditionVariable;
 
 #ifdef DEBUG_LOCKCONTENTION
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
@@ -141,8 +151,7 @@ public:
 
     CMutexLock(Mutex* pmutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(pmutexIn)
     {
-        if (!pmutexIn)
-            return;
+        if (!pmutexIn) return;
 
         lock = boost::unique_lock<Mutex>(*pmutexIn, boost::defer_lock);
         if (fTry)
@@ -165,7 +174,10 @@ public:
 
 typedef CMutexLock<CCriticalSection> CCriticalBlock;
 
-#define LOCK(cs) CCriticalBlock criticalblock(cs, #cs, __FILE__, __LINE__)
+#define PASTE(x, y) x ## y
+#define PASTE2(x, y) PASTE(x, y)
+
+#define LOCK(cs) CCriticalBlock PASTE2(criticalblock, __COUNTER__)(cs, #cs, __FILE__, __LINE__)
 #define LOCK2(cs1, cs2) CCriticalBlock criticalblock1(cs1, #cs1, __FILE__, __LINE__), criticalblock2(cs2, #cs2, __FILE__, __LINE__)
 #define TRY_LOCK(cs, name) CCriticalBlock name(cs, #cs, __FILE__, __LINE__, true)
 
@@ -190,8 +202,6 @@ typedef CMutexLock<CCriticalSection> CCriticalBlock;
 //!   int val = WITH_LOCK(cs, return shared_val);
 //!
 #define WITH_LOCK(cs, code) [&] { LOCK(cs); code; }()
-
-
 class CSemaphore
 {
 private:
