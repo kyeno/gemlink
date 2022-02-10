@@ -1032,3 +1032,51 @@ UniValue relaymasternodebroadcast(const UniValue& params, bool fHelp)
 
     return strprintf("Masternode broadcast sent (service %s, vin %s)", mnb.addr.ToString(), mnb.vin.ToString());
 }
+
+
+UniValue getamiinfo(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getfreyjainfo\n"
+            "Returns an object containing various state info regarding block chain processing.\n"
+            "\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getfreyjainfo", "") + HelpExampleRpc("getfreyjainfo", ""));
+
+    LOCK(cs_main);
+
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("chain", Params().NetworkIDString()));
+    obj.push_back(Pair("blocks", (int)chainActive.Height()));
+    obj.push_back(Pair("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1));
+    obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
+    obj.push_back(Pair("difficulty", (double)GetNetworkDifficulty()));
+    obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(Params().Checkpoints(), chainActive.Tip())));
+    obj.push_back(Pair("chainwork", chainActive.Tip()->nChainWork.GetHex()));
+    obj.push_back(Pair("pruned", fPruneMode));
+    if (vNodes.empty())
+        obj.push_back(Pair("IsBlockchainConnected", false));
+    else
+        obj.push_back(Pair("IsBlockchainConnected", true));
+
+    if (IsInitialBlockDownload(Params().GetConsensus()))
+        obj.push_back(Pair("IsBlockchainSync", false));
+    else
+        obj.push_back(Pair("IsBlockchainSync", true));
+
+    if (activeMasternode.GetStatus() != ACTIVE_MASTERNODE_INITIAL || !masternodeSync.IsSynced())
+        obj.push_back(Pair("MasternodeStatus", activeMasternode.GetStatusMessage()));
+    else {
+        LogPrintf("Check masternode Vin start");
+        CTxIn vin = CTxIn();
+        CPubKey pubkey = CPubKey();
+        CKey key;
+        if (!pwalletMain->GetMasternodeVinAndKeys(vin, pubkey, key))
+            obj.push_back(Pair("MasternodeStatus", "Missing masternode input, please look at the documentation for instructions on masternode creation"));
+        else
+            obj.push_back(Pair("MasternodeStatus", activeMasternode.GetStatusMessage()));
+        LogPrintf("Check masternode Vin success");
+    }
+    return obj;
+}

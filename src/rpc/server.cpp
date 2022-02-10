@@ -333,6 +333,7 @@ static const CRPCCommand vRPCCommands[] =
         {"gemlink", "mnsync", &mnsync, true},
         {"gemlink", "spork", &spork, true},
         {"gemlink", "startalias", &startalias, true},
+        {"gemlink", "getamiinfo", &getamiinfo, true},
 
 };
 
