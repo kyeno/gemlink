@@ -508,8 +508,8 @@ void TransactionBuilder::CreateJSDescriptions()
                 vpub_old += vjsout[n].value;
             }
 
-            std::array<uint64_t, ZC_NUM_JS_INPUTS> inputMap;
-            std::array<uint64_t, ZC_NUM_JS_OUTPUTS> outputMap;
+            std::array<size_t, ZC_NUM_JS_INPUTS> inputMap;
+            std::array<size_t, ZC_NUM_JS_OUTPUTS> outputMap;
             CreateJSDescription(vpub_old, 0, vjsin, vjsout, inputMap, outputMap);
         }
         return;
