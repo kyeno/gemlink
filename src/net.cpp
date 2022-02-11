@@ -1553,6 +1553,7 @@ void ThreadMessageHandler()
             if (pnode->fDisconnect)
                 continue;
 
+            auto spanGuard = pnode->span.Enter();
             // Receive messages
             {
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
@@ -1571,8 +1572,10 @@ void ThreadMessageHandler()
 
             // Send messages
             {
-                LOCK(pnode->cs_sendProcessing);
-                g_signals.SendMessages(chainparams.GetConsensus(), pnode, pnode == pnodeTrickle || pnode->fWhitelisted);
+                TRY_LOCK(pnode->cs_sendProcessing, lockSendMessage);
+                if (lockSendMessage) {
+                    g_signals.SendMessages(chainparams.GetConsensus(), pnode, pnode == pnodeTrickle || pnode->fWhitelisted);
+                }
             }
             boost::this_thread::interruption_point();
         }
