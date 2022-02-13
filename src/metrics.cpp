@@ -208,12 +208,16 @@ int printStats(bool mining)
     size_t connections;
     int64_t netsolps;
     {
-        LOCK2(cs_main, cs_vNodes);
+        LOCK(cs_vNodes);
+        connections = vNodes.size();
+    }
+    {
+        LOCK(cs_main);
         height = chainActive.Height();
         tipmediantime = chainActive.Tip()->GetMedianTimePast();
-        connections = vNodes.size();
         netsolps = GetNetworkHashPS(120, -1);
     }
+
     auto localsolps = GetLocalSolPS();
 
     if (IsInitialBlockDownload(Params().GetConsensus())) {

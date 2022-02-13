@@ -4601,7 +4601,7 @@ bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, C
             return error("%s: AcceptBlock FAILED", __func__);
     }
 
-    NotifyHeaderTip(chainparams.GetConsensus());
+    // NotifyHeaderTip(chainparams.GetConsensus());
 
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
@@ -5402,7 +5402,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
                     LogPrintf("Block Import: already had block %s at height %d\n", hash.ToString(), mapBlockIndex[hash]->nHeight);
                 }
 
-                NotifyHeaderTip(chainparams.GetConsensus());
+                // NotifyHeaderTip(chainparams.GetConsensus());
 
                 // Recursively process earlier encountered successors of this block
                 deque<uint256> queue;
@@ -5423,7 +5423,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos* dbp)
                             }
                         }
                         range.first = mapBlocksUnknownParent.erase(range.first);
-                        NotifyHeaderTip(chainparams.GetConsensus());
+                        // NotifyHeaderTip(chainparams.GetConsensus());
                     }
                 }
             } catch (const std::exception& e) {
@@ -6533,7 +6533,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
 
             CheckBlockIndex();
         }
-        NotifyHeaderTip(chainparams.GetConsensus());
+        // NotifyHeaderTip(chainparams.GetConsensus());
     }
 
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing

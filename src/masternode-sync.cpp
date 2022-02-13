@@ -292,9 +292,9 @@ void CMasternodeSync::Process()
         !IsBlockchainSynced() && RequestedMasternodeAssets > MASTERNODE_SYNC_SPORKS)
         return;
 
-    TRY_LOCK(cs_vNodes, lockRecv);
-    if (!lockRecv)
-        return;
+    // TRY_LOCK(cs_vNodes, lockRecv);
+    // if (!lockRecv)
+    //     return;
 
     for (CNode* pnode : vNodes) {
         if (NetworkIdFromCommandLine() == CBaseChainParams::REGTEST) {
