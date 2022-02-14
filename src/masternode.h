@@ -126,7 +126,6 @@ public:
         MASTERNODE_PRE_ENABLED,
         MASTERNODE_ENABLED,
         MASTERNODE_EXPIRED,
-        MASTERNODE_OUTPOINT_SPENT,
         MASTERNODE_REMOVE,
         MASTERNODE_WATCHDOG_EXPIRED,
         MASTERNODE_POSE_BAN,
@@ -228,8 +227,6 @@ public:
 
     bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
 
-    CMasternode::state GetActiveState() const;
-
     void Check(bool forceCheck = false);
 
     bool IsBroadcastedWithin(int seconds)
@@ -253,40 +250,22 @@ public:
         lastPing = CMasternodePing();
     }
 
-    bool IsEnabled() const
+    bool IsEnabled()
     {
-        return GetActiveState() == MASTERNODE_ENABLED;
-    }
-
-    bool IsPreEnabled() const
-    {
-        return GetActiveState() == MASTERNODE_PRE_ENABLED;
-    }
-
-    bool IsAvailableState() const
-    {
-        state s = GetActiveState();
-        return s == MASTERNODE_ENABLED || s == MASTERNODE_PRE_ENABLED;
+        return activeState == MASTERNODE_ENABLED;
     }
 
     std::string Status()
     {
         std::string strStatus = "ACTIVE";
-        activeState = GetActiveState();
 
         LOCK(cs);
-        if (activeState == CMasternode::MASTERNODE_ENABLED)
-            strStatus = "ENABLED";
-        if (activeState == CMasternode::MASTERNODE_EXPIRED)
-            strStatus = "EXPIRED";
-        if (activeState == CMasternode::MASTERNODE_VIN_SPENT)
-            strStatus = "VIN_SPENT";
-        if (activeState == CMasternode::MASTERNODE_REMOVE)
-            strStatus = "REMOVE";
-        if (activeState == CMasternode::MASTERNODE_POS_ERROR)
-            strStatus = "POS_ERROR";
-        if (activeState == CMasternode::MASTERNODE_MISSING)
-            strStatus = "MISSING";
+        if (activeState == CMasternode::MASTERNODE_ENABLED) strStatus = "ENABLED";
+        if (activeState == CMasternode::MASTERNODE_EXPIRED) strStatus = "EXPIRED";
+        if (activeState == CMasternode::MASTERNODE_VIN_SPENT) strStatus = "VIN_SPENT";
+        if (activeState == CMasternode::MASTERNODE_REMOVE) strStatus = "REMOVE";
+        if (activeState == CMasternode::MASTERNODE_POS_ERROR) strStatus = "POS_ERROR";
+        if (activeState == CMasternode::MASTERNODE_MISSING) strStatus = "MISSING";
 
         return strStatus;
     }

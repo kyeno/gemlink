@@ -98,7 +98,7 @@ public:
     }
 
     CMasternodeMan();
-
+    void Check();
     /// Add an entry
     bool Add(CMasternode& mn);
 

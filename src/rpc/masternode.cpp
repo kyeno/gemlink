@@ -1064,7 +1064,12 @@ UniValue getamiinfo(const UniValue& params, bool fHelp)
         obj.push_back(Pair("IsBlockchainSync", false));
     else
         obj.push_back(Pair("IsBlockchainSync", true));
-
+    if (!masternodeSync.IsSynced())
+        obj.push_back(Pair("IsMasternodeSync", false));
+    else {
+        obj.push_back(Pair("IsMasternodeSync", true));
+        obj.push_back(Pair("Total masternodes", mnodeman.size()));
+    }
     if (activeMasternode.GetStatus() != ACTIVE_MASTERNODE_INITIAL || !masternodeSync.IsSynced())
         obj.push_back(Pair("MasternodeStatus", activeMasternode.GetStatusMessage()));
     else {

@@ -220,17 +220,22 @@ void CMasternode::Check(bool forceCheck)
     }
 
     if (!unitTest) {
+        CValidationState state;
+        CMutableTransaction tx = CMutableTransaction();
+        CScript dummyScript;
+        dummyScript << ToByteVector(pubKeyCollateralAddress) << OP_CHECKSIG;
+        CTxOut vout = CTxOut(9999.99 * COIN, dummyScript);
+        if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_MORAG)) {
+            vout = CTxOut(19999.99 * COIN, dummyScript);
+        }
+        tx.vin.push_back(vin);
+        tx.vout.push_back(vout);
         {
             TRY_LOCK(cs_main, lockMain);
-            if (!lockMain)
-                return;
+            if (!lockMain) return;
 
-            CCoins coins;
-            if (!pcoinsTip->GetCoins(vin.prevout.hash, coins) ||
-                (unsigned int)vin.prevout.n >= coins.vout.size() ||
-                coins.vout[vin.prevout.n].IsNull()) {
-                activeState = MASTERNODE_OUTPOINT_SPENT;
-                LogPrint("masternode", "CMasternode::Check -- Failed to find Masternode UTXO, masternode=%s\n", vin.prevout.ToStringShort());
+            if (!AcceptableInputs(mempool, state, CTransaction(tx), false, NULL)) {
+                activeState = MASTERNODE_VIN_SPENT;
                 return;
             }
         }
@@ -301,24 +306,6 @@ int64_t CMasternode::GetLastPaid()
     }
 
     return 0;
-}
-
-CMasternode::state CMasternode::GetActiveState() const
-{
-    LOCK(cs);
-    if (fCollateralSpent) {
-        return MASTERNODE_VIN_SPENT;
-    }
-    if (!IsPingedWithin(MASTERNODE_REMOVAL_SECONDS)) {
-        return MASTERNODE_REMOVE;
-    }
-    if (!IsPingedWithin(MASTERNODE_EXPIRATION_SECONDS)) {
-        return MASTERNODE_EXPIRED;
-    }
-    if (lastPing.sigTime - sigTime < MASTERNODE_MIN_MNP_SECONDS) {
-        return MASTERNODE_PRE_ENABLED;
-    }
-    return MASTERNODE_ENABLED;
 }
 
 bool CMasternode::IsValidNetAddr()
@@ -574,6 +561,7 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
         // take the newest entry
         LogPrint("masternode", "mnb - Got updated entry for %s\n", vin.prevout.hash.ToString());
         if (pmn->UpdateFromNewBroadcast((*this))) {
+            pmn->Check();
             if (pmn->IsEnabled())
                 Relay();
         }
@@ -585,7 +573,6 @@ bool CMasternodeBroadcast::CheckAndUpdate(int& nDos)
 
 bool CMasternodeBroadcast::CheckInputsAndAdd(int& nDoS)
 {
-    LogPrint("masternode", "CheckInputsAndAdd\n");
     // we are a masternode with the same vin (i.e. already activated) and this mnb is ours (matches our Masternode privkey)
     // so nothing to do here for us
     if (fMasterNode && vin.prevout == activeMasternode.vin.prevout && pubKeyMasternode == activeMasternode.pubKeyMasternode)
@@ -799,8 +786,10 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
 
     // see if we have this Masternode
     if (isMasternodeFound && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
-        if (fRequireEnabled && !pmn->IsAvailableState())
+        if (fRequireEnabled && !pmn->IsEnabled()) {
+            // nDos = 20;
             return false;
+        }
 
         // LogPrint("masternode","mnping - Found corresponding mn for vin: %s\n", vin.ToString());
         // update only if there is no known ping for this masternode or
@@ -838,6 +827,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
                 mnodeman.mapSeenMasternodeBroadcast[hash].lastPing = *this;
             }
 
+            pmn->Check(true);
             if (!pmn->IsEnabled())
                 return false;
 

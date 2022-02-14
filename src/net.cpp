@@ -1572,8 +1572,8 @@ void ThreadMessageHandler()
 
             // Send messages
             {
-                TRY_LOCK(pnode->cs_sendProcessing, lockSendMessage);
-                if (lockSendMessage) {
+                TRY_LOCK(pnode->cs_vSend, lockSend);
+                if (lockSend) {
                     g_signals.SendMessages(chainparams.GetConsensus(), pnode, pnode == pnodeTrickle || pnode->fWhitelisted);
                 }
             }

@@ -96,6 +96,9 @@ enum {
     // BIP process.
 };
 
+/* Get a vector of all valid message types (see above) */
+const std::vector<std::string>& getAllNetMessageTypes();
+
 /** A CService with information about it as peer */
 class CAddress : public CService
 {

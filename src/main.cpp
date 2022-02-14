@@ -136,27 +136,31 @@ namespace
 unsigned char ShieldedReqRejectCode(UnsatisfiedShieldedReq shieldedReq)
 {
     switch (shieldedReq) {
-        case UnsatisfiedShieldedReq::SproutDuplicateNullifier:
-        case UnsatisfiedShieldedReq::SaplingDuplicateNullifier:
-            return REJECT_DUPLICATE;
-        case UnsatisfiedShieldedReq::SproutUnknownAnchor:
-        case UnsatisfiedShieldedReq::SaplingUnknownAnchor:
-            return REJECT_INVALID;
+    case UnsatisfiedShieldedReq::SproutDuplicateNullifier:
+    case UnsatisfiedShieldedReq::SaplingDuplicateNullifier:
+        return REJECT_DUPLICATE;
+    case UnsatisfiedShieldedReq::SproutUnknownAnchor:
+    case UnsatisfiedShieldedReq::SaplingUnknownAnchor:
+        return REJECT_INVALID;
     }
 }
 
 std::string ShieldedReqRejectReason(UnsatisfiedShieldedReq shieldedReq)
 {
     switch (shieldedReq) {
-        case UnsatisfiedShieldedReq::SproutDuplicateNullifier:  return "bad-txns-sprout-duplicate-nullifier";
-        case UnsatisfiedShieldedReq::SproutUnknownAnchor:       return "bad-txns-sprout-unknown-anchor";
-        case UnsatisfiedShieldedReq::SaplingDuplicateNullifier: return "bad-txns-sapling-duplicate-nullifier";
-        case UnsatisfiedShieldedReq::SaplingUnknownAnchor:      return "bad-txns-sapling-unknown-anchor";
+    case UnsatisfiedShieldedReq::SproutDuplicateNullifier:
+        return "bad-txns-sprout-duplicate-nullifier";
+    case UnsatisfiedShieldedReq::SproutUnknownAnchor:
+        return "bad-txns-sprout-unknown-anchor";
+    case UnsatisfiedShieldedReq::SaplingDuplicateNullifier:
+        return "bad-txns-sapling-duplicate-nullifier";
+    case UnsatisfiedShieldedReq::SaplingUnknownAnchor:
+        return "bad-txns-sapling-unknown-anchor";
     }
 }
 
-    /** Abort with a message */
-bool AbortNode(const std::string& strMessage, const std::string& userMessage="")
+/** Abort with a message */
+bool AbortNode(const std::string& strMessage, const std::string& userMessage = "")
 {
     SetMiscWarning(strMessage, GetTime());
     LogPrintf("*** %s\n", strMessage);
@@ -167,7 +171,7 @@ bool AbortNode(const std::string& strMessage, const std::string& userMessage="")
     return false;
 }
 
-bool AbortNode(CValidationState& state, const std::string& strMessage, const std::string& userMessage="")
+bool AbortNode(CValidationState& state, const std::string& strMessage, const std::string& userMessage = "")
 {
     AbortNode(strMessage, userMessage);
     return state.Error(strMessage);
@@ -1088,8 +1092,7 @@ bool ContextualCheckTransaction(
         }
     }
 
-    if (!tx.vjoinsplit.empty())
-    {
+    if (!tx.vjoinsplit.empty()) {
         if (!ed25519_verify(&tx.joinSplitPubKey, &tx.joinSplitSig, dataToBeSigned.begin(), 32)) {
             // Check whether the failure was caused by an outdated consensus
             // branch ID; if so, inform the node that they need to upgrade. We
@@ -1100,10 +1103,7 @@ bool ContextualCheckTransaction(
                                &tx.joinSplitSig,
                                prevDataToBeSigned.begin(), 32)) {
                 return state.DoS(
-                    dosLevel, false, REJECT_INVALID, strprintf(
-                        "old-consensus-branch-id (Expected %s, found %s)",
-                        HexInt(consensusBranchId),
-                        HexInt(prevConsensusBranchId)));
+                    dosLevel, false, REJECT_INVALID, strprintf("old-consensus-branch-id (Expected %s, found %s)", HexInt(consensusBranchId), HexInt(prevConsensusBranchId)));
             }
             return state.DoS(
                 dosLevel,
@@ -1208,10 +1208,10 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state, ProofVeri
         return false;
     } else {
         // Ensure that zk-SNARKs verify
-        for (const JSDescription &joinsplit : tx.vjoinsplit) {
+        for (const JSDescription& joinsplit : tx.vjoinsplit) {
             if (!verifier.VerifySprout(joinsplit, tx.joinSplitPubKey)) {
                 return state.DoS(100, error("CheckTransaction(): joinsplit does not verify"),
-                                    REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
+                                 REJECT_INVALID, "bad-txns-joinsplit-verification-failed");
             }
         }
         return true;
@@ -1652,7 +1652,7 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
         CAmount txMinFee = GetMinRelayFee(tx, nSize, true);
         if (fLimitFree && nFees < txMinFee)
             return state.DoS(0, error("AcceptToMemoryPool: not enough fees %s, %d < %d", hash.ToString(), nFees, txMinFee),
-                                REJECT_INSUFFICIENTFEE, "insufficient fee");
+                             REJECT_INSUFFICIENTFEE, "insufficient fee");
 
         if (!ignoreFees) {
             CAmount txMinFee = GetMinRelayFee(tx, nSize, true);
@@ -3251,89 +3251,90 @@ enum FlushStateMode {
  * or always and in all cases if we're in prune mode and are deleting files.
  */
 bool static FlushStateToDisk(
-    CValidationState &state,
-    FlushStateMode mode) {
+    CValidationState& state,
+    FlushStateMode mode)
+{
     LOCK2(cs_main, cs_LastBlockFile);
     static int64_t nLastWrite = 0;
     static int64_t nLastFlush = 0;
     std::set<int> setFilesToPrune;
     bool fFlushForPrune = false;
     try {
-    if (fPruneMode && fCheckForPruning && !fReindex) {
-        FindFilesToPrune(setFilesToPrune);
-        fCheckForPruning = false;
-        if (!setFilesToPrune.empty()) {
-            fFlushForPrune = true;
-            if (!fHavePruned) {
-                pblocktree->WriteFlag("prunedblockfiles", true);
-                fHavePruned = true;
+        if (fPruneMode && fCheckForPruning && !fReindex) {
+            FindFilesToPrune(setFilesToPrune);
+            fCheckForPruning = false;
+            if (!setFilesToPrune.empty()) {
+                fFlushForPrune = true;
+                if (!fHavePruned) {
+                    pblocktree->WriteFlag("prunedblockfiles", true);
+                    fHavePruned = true;
+                }
             }
         }
-    }
-    int64_t nNow = GetTimeMicros();
-    // Avoid writing/flushing immediately after startup.
-    if (nLastWrite == 0) {
-        nLastWrite = nNow;
-    }
-    if (nLastFlush == 0) {
-        nLastFlush = nNow;
-    }
-    size_t cacheSize = pcoinsTip->DynamicMemoryUsage();
-    // The cache is large and close to the limit, but we have time now (not in the middle of a block processing).
-    bool fCacheLarge = mode == FLUSH_STATE_PERIODIC && cacheSize * (10.0/9) > nCoinCacheUsage;
-    // The cache is over the limit, we have to write now.
-    bool fCacheCritical = mode == FLUSH_STATE_IF_NEEDED && cacheSize > nCoinCacheUsage;
-    // It's been a while since we wrote the block index to disk. Do this frequently, so we don't need to redownload after a crash.
-    bool fPeriodicWrite = mode == FLUSH_STATE_PERIODIC && nNow > nLastWrite + (int64_t)DATABASE_WRITE_INTERVAL * 1000000;
-    // It's been very long since we flushed the cache. Do this infrequently, to optimize cache usage.
-    bool fPeriodicFlush = mode == FLUSH_STATE_PERIODIC && nNow > nLastFlush + (int64_t)DATABASE_FLUSH_INTERVAL * 1000000;
-    // Combine all conditions that result in a full cache flush.
-    bool fDoFullFlush = (mode == FLUSH_STATE_ALWAYS) || fCacheLarge || fCacheCritical || fPeriodicFlush || fFlushForPrune;
-    // Write blocks and block index to disk.
-    if (fDoFullFlush || fPeriodicWrite) {
-        // Depend on nMinDiskSpace to ensure we can write block index
-        if (!CheckDiskSpace(0))
-            return state.Error("out of disk space");
-        // First make sure all block and undo data is flushed to disk.
-        FlushBlockFile();
-        // Then update all block file information (which may refer to block and undo files).
-        {
-            std::vector<std::pair<int, const CBlockFileInfo*> > vFiles;
-            vFiles.reserve(setDirtyFileInfo.size());
-            for (set<int>::iterator it = setDirtyFileInfo.begin(); it != setDirtyFileInfo.end(); ) {
-                vFiles.push_back(make_pair(*it, &vinfoBlockFile[*it]));
-                it = setDirtyFileInfo.erase(it);
-            }
-            std::vector<const CBlockIndex*> vBlocks;
-            vBlocks.reserve(setDirtyBlockIndex.size());
-            for (set<CBlockIndex*>::iterator it = setDirtyBlockIndex.begin(); it != setDirtyBlockIndex.end(); ) {
-                vBlocks.push_back(*it);
-                it = setDirtyBlockIndex.erase(it);
-            }
-            if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
-                return AbortNode(state, "Files to write to block index database");
-            }
+        int64_t nNow = GetTimeMicros();
+        // Avoid writing/flushing immediately after startup.
+        if (nLastWrite == 0) {
+            nLastWrite = nNow;
         }
-        // Finally remove any pruned files
-        if (fFlushForPrune)
-            UnlinkPrunedFiles(setFilesToPrune);
-        nLastWrite = nNow;
-    }
-    // Flush best chain related state. This can only be done if the blocks / block index write was also done.
-    if (fDoFullFlush) {
-        // Typical CCoins structures on disk are around 128 bytes in size.
-        // Pushing a new one to the database can cause it to be written
-        // twice (once in the log, and once in the tables). This is already
-        // an overestimation, as most will delete an existing entry or
-        // overwrite one. Still, use a conservative safety factor of 2.
-        if (!CheckDiskSpace(128 * 2 * 2 * pcoinsTip->GetCacheSize()))
-            return state.Error("out of disk space");
-        // Flush the chainstate (which may refer to block index entries).
-        if (!pcoinsTip->Flush())
-            return AbortNode(state, "Failed to write to coin database");
-        nLastFlush = nNow;
-    }
-    // Don't flush the wallet witness cache (SetBestChain()) here, see #4301
+        if (nLastFlush == 0) {
+            nLastFlush = nNow;
+        }
+        size_t cacheSize = pcoinsTip->DynamicMemoryUsage();
+        // The cache is large and close to the limit, but we have time now (not in the middle of a block processing).
+        bool fCacheLarge = mode == FLUSH_STATE_PERIODIC && cacheSize * (10.0 / 9) > nCoinCacheUsage;
+        // The cache is over the limit, we have to write now.
+        bool fCacheCritical = mode == FLUSH_STATE_IF_NEEDED && cacheSize > nCoinCacheUsage;
+        // It's been a while since we wrote the block index to disk. Do this frequently, so we don't need to redownload after a crash.
+        bool fPeriodicWrite = mode == FLUSH_STATE_PERIODIC && nNow > nLastWrite + (int64_t)DATABASE_WRITE_INTERVAL * 1000000;
+        // It's been very long since we flushed the cache. Do this infrequently, to optimize cache usage.
+        bool fPeriodicFlush = mode == FLUSH_STATE_PERIODIC && nNow > nLastFlush + (int64_t)DATABASE_FLUSH_INTERVAL * 1000000;
+        // Combine all conditions that result in a full cache flush.
+        bool fDoFullFlush = (mode == FLUSH_STATE_ALWAYS) || fCacheLarge || fCacheCritical || fPeriodicFlush || fFlushForPrune;
+        // Write blocks and block index to disk.
+        if (fDoFullFlush || fPeriodicWrite) {
+            // Depend on nMinDiskSpace to ensure we can write block index
+            if (!CheckDiskSpace(0))
+                return state.Error("out of disk space");
+            // First make sure all block and undo data is flushed to disk.
+            FlushBlockFile();
+            // Then update all block file information (which may refer to block and undo files).
+            {
+                std::vector<std::pair<int, const CBlockFileInfo*>> vFiles;
+                vFiles.reserve(setDirtyFileInfo.size());
+                for (set<int>::iterator it = setDirtyFileInfo.begin(); it != setDirtyFileInfo.end();) {
+                    vFiles.push_back(make_pair(*it, &vinfoBlockFile[*it]));
+                    it = setDirtyFileInfo.erase(it);
+                }
+                std::vector<const CBlockIndex*> vBlocks;
+                vBlocks.reserve(setDirtyBlockIndex.size());
+                for (set<CBlockIndex*>::iterator it = setDirtyBlockIndex.begin(); it != setDirtyBlockIndex.end();) {
+                    vBlocks.push_back(*it);
+                    it = setDirtyBlockIndex.erase(it);
+                }
+                if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
+                    return AbortNode(state, "Files to write to block index database");
+                }
+            }
+            // Finally remove any pruned files
+            if (fFlushForPrune)
+                UnlinkPrunedFiles(setFilesToPrune);
+            nLastWrite = nNow;
+        }
+        // Flush best chain related state. This can only be done if the blocks / block index write was also done.
+        if (fDoFullFlush) {
+            // Typical CCoins structures on disk are around 128 bytes in size.
+            // Pushing a new one to the database can cause it to be written
+            // twice (once in the log, and once in the tables). This is already
+            // an overestimation, as most will delete an existing entry or
+            // overwrite one. Still, use a conservative safety factor of 2.
+            if (!CheckDiskSpace(128 * 2 * 2 * pcoinsTip->GetCacheSize()))
+                return state.Error("out of disk space");
+            // Flush the chainstate (which may refer to block index entries).
+            if (!pcoinsTip->Flush())
+                return AbortNode(state, "Failed to write to coin database");
+            nLastFlush = nNow;
+        }
+        // Don't flush the wallet witness cache (SetBestChain()) here, see #4301
     } catch (const std::runtime_error& e) {
         return AbortNode(state, std::string("System error while flushing: ") + e.what());
     }
@@ -3450,7 +3451,8 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
     // Read block from disk.
     int64_t nTime1 = GetTimeMicros();
     // Apply the block atomically to the chain state.
-    int64_t nTime2 = GetTimeMicros(); nTimeReadFromDisk += nTime2 - nTime1;
+    int64_t nTime2 = GetTimeMicros();
+    nTimeReadFromDisk += nTime2 - nTime1;
     int64_t nTime3;
     LogPrint("bench", "  - Load block from disk: %.2fms [%.2fs]\n", (nTime2 - nTime1) * 0.001, nTimeReadFromDisk * 0.000001);
     {
@@ -3463,16 +3465,19 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
             return error("ConnectTip(): ConnectBlock %s failed", pindexNew->GetBlockHash().ToString());
         }
         mapBlockSource.erase(pindexNew->GetBlockHash());
-        nTime3 = GetTimeMicros(); nTimeConnectTotal += nTime3 - nTime2;
+        nTime3 = GetTimeMicros();
+        nTimeConnectTotal += nTime3 - nTime2;
         LogPrint("bench", "  - Connect total: %.2fms [%.2fs]\n", (nTime3 - nTime2) * 0.001, nTimeConnectTotal * 0.000001);
         assert(view.Flush());
     }
-    int64_t nTime4 = GetTimeMicros(); nTimeFlush += nTime4 - nTime3;
+    int64_t nTime4 = GetTimeMicros();
+    nTimeFlush += nTime4 - nTime3;
     LogPrint("bench", "  - Flush: %.2fms [%.2fs]\n", (nTime4 - nTime3) * 0.001, nTimeFlush * 0.000001);
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED))
         return false;
-    int64_t nTime5 = GetTimeMicros(); nTimeChainState += nTime5 - nTime4;
+    int64_t nTime5 = GetTimeMicros();
+    nTimeChainState += nTime5 - nTime4;
     LogPrint("bench", "  - Writing chainstate: %.2fms [%.2fs]\n", (nTime5 - nTime4) * 0.001, nTimeChainState * 0.000001);
     // Remove conflicting transactions from the mempool.
     std::list<CTransaction> txConflicted;
@@ -3495,7 +3500,9 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
 
     EnforceNodeDeprecation(pindexNew->nHeight);
 
-    int64_t nTime6 = GetTimeMicros(); nTimePostConnect += nTime6 - nTime5; nTimeTotal += nTime6 - nTime1;
+    int64_t nTime6 = GetTimeMicros();
+    nTimePostConnect += nTime6 - nTime5;
+    nTimeTotal += nTime6 - nTime1;
     LogPrint("bench", "  - Connect postprocess: %.2fms [%.2fs]\n", (nTime6 - nTime5) * 0.001, nTimePostConnect * 0.000001);
     LogPrint("bench", "- Connect block: %.2fms [%.2fs]\n", (nTime6 - nTime1) * 0.001, nTimeTotal * 0.000001);
     return true;
@@ -3527,13 +3534,15 @@ std::pair<std::map<CBlockIndex*, std::list<CTransaction>>, uint64_t> DrainRecent
     return std::make_pair(txs, recentlyConflictedSequence);
 }
 
-void SetChainNotifiedSequence(const CChainParams& chainparams, uint64_t recentlyConflictedSequence) {
+void SetChainNotifiedSequence(const CChainParams& chainparams, uint64_t recentlyConflictedSequence)
+{
     assert(chainparams.NetworkIDString() == "regtest");
     LOCK(cs_main);
     nNotifiedSequence = recentlyConflictedSequence;
 }
 
-bool ChainIsFullyNotified(const CChainParams& chainparams) {
+bool ChainIsFullyNotified(const CChainParams& chainparams)
+{
     assert(chainparams.NetworkIDString() == "regtest");
     LOCK(cs_main);
     return nRecentlyConflictedSequence == nNotifiedSequence;
@@ -4498,8 +4507,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
 {
     AssertLockHeld(cs_main);
 
-    CBlockIndex *pindexDummy = NULL;
-    CBlockIndex *&pindex = ppindex ? *ppindex : pindexDummy;
+    CBlockIndex* pindexDummy = NULL;
+    CBlockIndex*& pindex = ppindex ? *ppindex : pindexDummy;
 
     if (!AcceptBlockHeader(block, state, chainparams, &pindex))
         return false;
@@ -4824,16 +4833,14 @@ bool static LoadBlockIndexDB()
         return false;
 
     // Calculate nChainWork
-    vector<pair<int, CBlockIndex*> > vSortedByHeight;
+    vector<pair<int, CBlockIndex*>> vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex)
-    {
+    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
     }
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
-    for (const std::pair<int, CBlockIndex*>& item : vSortedByHeight)
-    {
+    for (const std::pair<int, CBlockIndex*>& item : vSortedByHeight) {
         CBlockIndex* pindex = item.second;
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
         // We can link the chain of blocks for which we've received transactions at some point.
@@ -4915,15 +4922,13 @@ bool static LoadBlockIndexDB()
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     set<int> setBlkDataFiles;
-    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex)
-    {
+    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         if (pindex->nStatus & BLOCK_HAVE_DATA) {
             setBlkDataFiles.insert(pindex->nFile);
         }
     }
-    for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++)
-    {
+    for (std::set<int>::iterator it = setBlkDataFiles.begin(); it != setBlkDataFiles.end(); it++) {
         CDiskBlockPos pos(*it, 0);
         if (CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION).IsNull()) {
             return false;
@@ -4938,7 +4943,8 @@ bool static LoadBlockIndexDB()
     // Check whether we need to continue reindexing
     bool fReindexing = false;
     pblocktree->ReadReindexing(fReindexing);
-    if(fReindexing) fReindex = true;
+    if (fReindexing)
+        fReindex = true;
 
     // Check whether we have a transaction index
     pblocktree->ReadFlag("txindex", fTxIndex);
@@ -4956,14 +4962,12 @@ bool static LoadBlockIndexDB()
         fAddressIndex = true;
         fSpentIndex = true;
         fTimestampIndex = true;
-    }
-    else if (fLightWalletd) {
+    } else if (fLightWalletd) {
         fAddressIndex = true;
     }
 
     // Fill in-memory data
-    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex)
-    {
+    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         // - This relationship will always be true even if pprev has multiple
         //   children, because hashSproutAnchor is technically a property of pprev,
@@ -4986,9 +4990,9 @@ bool static LoadBlockIndexDB()
     PruneBlockIndexCandidates();
 
     LogPrintf("%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
-        chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
-        DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-        Checkpoints::GuessVerificationProgress(chainparams.Checkpoints(), chainActive.Tip()));
+              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
+              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
+              Checkpoints::GuessVerificationProgress(chainparams.Checkpoints(), chainActive.Tip()));
 
     EnforceNodeDeprecation(chainActive.Height(), true);
 
@@ -5300,8 +5304,7 @@ bool InitBlockIndex()
         fAddressIndex = true;
         fSpentIndex = true;
         fTimestampIndex = true;
-    }
-    else if (fExperimentalLightWalletd) {
+    } else if (fExperimentalLightWalletd) {
         fAddressIndex = true;
     }
 
@@ -6807,12 +6810,23 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         }
     } else {
         // probably one the extensions
-        mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
-        budget.ProcessMessage(pfrom, strCommand, vRecv);
-        masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
-        ProcessMessageSwiftTX(pfrom, strCommand, vRecv);
-        sporkManager.ProcessSpork(pfrom, strCommand, vRecv);
-        masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
+        bool found = false;
+        const std::vector<std::string>& allMessages = getAllNetMessageTypes();
+        for (const std::string& msg : allMessages) {
+            if (msg == strCommand) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
+            budget.ProcessMessage(pfrom, strCommand, vRecv);
+            masternodePayments.ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
+            ProcessMessageSwiftTX(pfrom, strCommand, vRecv);
+            sporkManager.ProcessSpork(pfrom, strCommand, vRecv);
+            masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
+        }
     }
 
 

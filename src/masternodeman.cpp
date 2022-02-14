@@ -210,7 +210,7 @@ bool CMasternodeMan::Add(CMasternode& mn)
 {
     LOCK(cs);
 
-    if (!mn.IsAvailableState())
+    if (!mn.IsEnabled())
         return false;
 
     CMasternode* pmn = Find(mn.vin);
@@ -254,14 +254,25 @@ void CMasternodeMan::CheckSpentCollaterals(const std::vector<CTransaction>& vtx)
     }
 }
 
+void CMasternodeMan::Check()
+{
+    LOCK(cs);
+
+    for (CMasternode& mn : vMasternodes) {
+        mn.Check();
+    }
+}
+
 void CMasternodeMan::CheckAndRemove(bool forceExpiredRemoval)
 {
+    Check();
+
     LOCK(cs);
 
     // remove inactive and outdated
     vector<CMasternode>::iterator it = vMasternodes.begin();
     while (it != vMasternodes.end()) {
-        auto activeState = (*it).GetActiveState();
+        auto activeState = (*it).activeState;
         if (activeState == CMasternode::MASTERNODE_REMOVE ||
             activeState == CMasternode::MASTERNODE_VIN_SPENT ||
             (forceExpiredRemoval && activeState == CMasternode::MASTERNODE_EXPIRED) ||
@@ -396,6 +407,7 @@ int CMasternodeMan::CountEnabled(int protocolVersion)
     protocolVersion = protocolVersion == -1 ? masternodePayments.GetMinMasternodePaymentsProto() : protocolVersion;
 
     for (CMasternode& mn : vMasternodes) {
+        mn.Check();
         if (mn.protocolVersion < protocolVersion || !mn.IsEnabled())
             continue;
         i++;
