@@ -719,6 +719,7 @@ void SocketSendData(CNode* pnode)
             if (pnode->nSendOffset == data.size()) {
                 pnode->nSendOffset = 0;
                 pnode->nSendSize -= data.size();
+                pnode->fPauseSend = pnode->nSendSize > nSendBufferMaxSize;
                 it++;
             } else {
                 // could not send full message; stop sending more
@@ -2220,6 +2221,9 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     fPingQueued = false;
     nMinPingUsecTime = std::numeric_limits<int64_t>::max();
 
+    fPauseRecv = false;
+    fPauseSend = false;
+    nProcessQueueSize = 0;
     {
         LOCK(cs_nLastNodeId);
         id = nLastNodeId++;

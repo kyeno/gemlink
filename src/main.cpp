@@ -5738,7 +5738,7 @@ void static ProcessGetData(const Consensus::Params& consensusParams, CNode* pfro
 
     while (it != pfrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
+        if (pfrom->fPauseSend)
             break;
 
         const CInv& inv = *it;
@@ -6914,7 +6914,6 @@ bool ProcessMessages(const CChainParams& chainparams, CNode* pfrom, std::atomic<
     }
     CNetMessage& msg(msgs.front());
     msg.SetVersion(pfrom->nRecvVersion);
-    // while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
     {
         // Scan for message start
         if (memcmp(msg.hdr.pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE) != 0) {
