@@ -327,49 +327,6 @@ CWalletTx CreateSproutTxWithNoteData(const libzcash::SproutSpendingKey& sk) {
     return wtx;
 }
 
-double benchmark_increment_sprout_note_witnesses(size_t nTxs)
-{
-    const Consensus::Params& consensusParams = Params().GetConsensus();
-
-    CWallet wallet;
-    SproutMerkleTree sproutTree;
-    SaplingMerkleTree saplingTree;
-
-    auto sproutSpendingKey = libzcash::SproutSpendingKey::random();
-    wallet.AddSproutSpendingKey(sproutSpendingKey);
-
-    // First block
-    CBlock block1;
-    for (int i = 0; i < nTxs; ++i) {
-        auto wtx = CreateSproutTxWithNoteData(sproutSpendingKey);
-        wallet.AddToWallet(wtx, true, NULL);
-        block1.vtx.push_back(wtx);
-    }
-
-    CBlockIndex index1(block1);
-    index1.nHeight = 1;
-
-    // Increment to get transactions witnessed
-    wallet.ChainTip(&index1, &block1, std::make_pair(sproutTree, saplingTree));
-
-    // Second block
-    CBlock block2;
-    block2.hashPrevBlock = block1.GetHash();
-    {
-        auto sproutTx = CreateSproutTxWithNoteData(sproutSpendingKey);
-        wallet.AddToWallet(sproutTx, true, NULL);
-        block2.vtx.push_back(sproutTx);
-    }
-
-    CBlockIndex index2(block2);
-    index2.nHeight = 2;
-
-    struct timeval tv_start;
-    timer_start(tv_start);
-    wallet.ChainTip(&index2, &block2, std::make_pair(sproutTree, saplingTree));
-    return timer_stop(tv_start);
-}
-
 CWalletTx CreateSaplingTxWithNoteData(const Consensus::Params& consensusParams,
                                       CBasicKeyStore& keyStore,
                                       const libzcash::SaplingExtendedSpendingKey &sk) {
@@ -387,49 +344,6 @@ CWalletTx CreateSaplingTxWithNoteData(const Consensus::Params& consensusParams,
     wtx.SetSaplingNoteData(noteDataMap);
 
     return wtx;
-}
-
-double benchmark_increment_sapling_note_witnesses(size_t nTxs)
-{
-    const Consensus::Params& consensusParams = Params().GetConsensus();
-
-    CWallet wallet;
-    SproutMerkleTree sproutTree;
-    SaplingMerkleTree saplingTree;
-
-    auto saplingSpendingKey = GetTestMasterSaplingSpendingKey();
-    wallet.AddSaplingSpendingKey(saplingSpendingKey);
-
-    // First block
-    CBlock block1;
-    for (int i = 0; i < nTxs; ++i) {
-        auto wtx = CreateSaplingTxWithNoteData(consensusParams, wallet, saplingSpendingKey);
-        wallet.AddToWallet(wtx, true, NULL);
-        block1.vtx.push_back(wtx);
-    }
-
-    CBlockIndex index1(block1);
-    index1.nHeight = 1;
-
-    // Increment to get transactions witnessed
-    wallet.ChainTip(&index1, &block1, std::make_pair(sproutTree, saplingTree));
-
-    // Second block
-    CBlock block2;
-    block2.hashPrevBlock = block1.GetHash();
-    {
-        auto saplingTx = CreateSaplingTxWithNoteData(consensusParams, wallet, saplingSpendingKey);
-        wallet.AddToWallet(saplingTx, true, NULL);
-        block1.vtx.push_back(saplingTx);
-    }
-
-    CBlockIndex index2(block2);
-    index2.nHeight = 2;
-
-    struct timeval tv_start;
-    timer_start(tv_start);
-    wallet.ChainTip(&index2, &block2, std::make_pair(sproutTree, saplingTree));
-    return timer_stop(tv_start);
 }
 
 // Fake the input of a given block

@@ -189,7 +189,7 @@ void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
                 SyncWithWallets(tx, NULL, pindexLastTip->nHeight);
             }
             // Update cached incremental witnesses
-            GetMainSignals().ChainTip(pindexLastTip, &block, std::nullopt);
+            GetMainSignals().ChainTip(pindexLastTip, &block, false);
 
             // On to the next block!
             pindexLastTip = pindexLastTip->pprev;
@@ -220,7 +220,7 @@ void ThreadNotifyWallets(CBlockIndex *pindexLastTip)
                 SyncWithWallets(tx, &block, blockData.pindex->nHeight);
             }
             // Update cached incremental witnesses
-            GetMainSignals().ChainTip(blockData.pindex, &block, blockData.oldTrees);
+            GetMainSignals().ChainTip(blockData.pindex, &block, true);
 
             // This block is done!
             pindexLastTip = blockData.pindex;
