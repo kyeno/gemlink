@@ -3276,7 +3276,7 @@ void CWallet::DeleteTransactions(std::vector<uint256>& removeTxs)
 
 void CWallet::DeleteWalletTransactions(const CBlockIndex* pindex)
 {
-    LOCK2(cs_wallet, cs_main);
+    LOCK2(cs_main, cs_wallet);
 
     int nDeleteAfter = (int)fDeleteTransactionsAfterNBlocks;
     bool runCompact = false;

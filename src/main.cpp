@@ -5726,7 +5726,7 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     return true;
 }
 
-void static ProcessGetData(const Consensus::Params& consensusParams, CNode* pfrom)
+void static ProcessGetData(const Consensus::Params& consensusParams, CNode* pfrom, std::atomic<bool>& interruptMsgProc)
 {
     int currentHeight = GetHeight();
 
@@ -5743,7 +5743,8 @@ void static ProcessGetData(const Consensus::Params& consensusParams, CNode* pfro
 
         const CInv& inv = *it;
         {
-            boost::this_thread::interruption_point();
+            if (interruptMsgProc)
+                return;
             it++;
 
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK) {
@@ -5962,7 +5963,7 @@ void static ProcessGetData(const Consensus::Params& consensusParams, CNode* pfro
     }
 }
 
-bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
+bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived, std::atomic<bool>& interruptMsgProc)
 {
     LogPrint("net", "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->id);
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0) {
@@ -5975,6 +5976,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         // Each connection can only send one version message
         if (pfrom->nVersion != 0) {
             pfrom->PushMessage("reject", strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 1);
             return false;
         }
@@ -5983,10 +5985,16 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         CAddress addrMe;
         CAddress addrFrom;
         uint64_t nNonce = 1;
-        vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
-        if (pfrom->nVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
+        std::string strSubVer;
+        std::string cleanSubVer;
+        uint64_t nServiceInt;
+        int nStartingHeight = -1;
+        bool fRelay = true;
+        int nVersion;
+        vRecv >> nVersion >> nServiceInt >> nTime >> addrMe;
+        if (nVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
             // disconnect from peers older than this proto version
-            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater", masternodePayments.GetMinMasternodePaymentsProto()));
             pfrom->fDisconnect = true;
@@ -5996,8 +6004,8 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         // Reject incoming connections from nodes that don't know about the current epoch
         const Consensus::Params& params = Params().GetConsensus();
         auto currentEpoch = CurrentEpoch(GetHeight(), params);
-        if (pfrom->nVersion < params.vUpgrades[currentEpoch].nProtocolVersion) {
-            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+        if (nVersion < params.vUpgrades[currentEpoch].nProtocolVersion) {
+            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater",
                                          params.vUpgrades[currentEpoch].nProtocolVersion));
@@ -6005,20 +6013,18 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
             return false;
         }
 
-        if (pfrom->nVersion == 10300)
-            pfrom->nVersion = 300;
+        if (nVersion == 10300)
+            nVersion = 300;
         if (!vRecv.empty())
             vRecv >> addrFrom >> nNonce;
         if (!vRecv.empty()) {
-            vRecv >> LIMITED_STRING(pfrom->strSubVer, MAX_SUBVERSION_LENGTH);
-            pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
+            vRecv >> LIMITED_STRING(strSubVer, MAX_SUBVERSION_LENGTH);
+            cleanSubVer = SanitizeString(strSubVer);
         }
         if (!vRecv.empty())
-            vRecv >> pfrom->nStartingHeight;
+            vRecv >> nStartingHeight;
         if (!vRecv.empty())
-            vRecv >> pfrom->fRelayTxes; // set to true after we get the first filter* message
-        else
-            pfrom->fRelayTxes = true;
+            vRecv >> fRelay; // set to true after we get the first filter* message
 
         // Disconnect if we connected to ourself
         if (nNonce == nLocalHostNonce && nNonce > 1) {
@@ -6027,19 +6033,33 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
             return true;
         }
 
+        pfrom->nServices = nServiceInt;
         pfrom->addrLocal = addrMe;
         if (pfrom->fInbound && addrMe.IsRoutable()) {
             SeenLocal(addrMe);
         }
-
+        {
+            LOCK(pfrom->cs_SubVer);
+            pfrom->strSubVer = strSubVer;
+            pfrom->cleanSubVer = cleanSubVer;
+        }
+        pfrom->nStartingHeight = nStartingHeight;
+        pfrom->fClient = !(nServiceInt & NODE_NETWORK);
+        {
+            LOCK(pfrom->cs_filter);
+            pfrom->fRelayTxes = fRelay; // set to true after we get the first filter* message
+        }
         // Be shy and don't send version until we hear
         if (pfrom->fInbound)
             pfrom->PushVersion();
 
-        pfrom->fClient = !(pfrom->nServices & NODE_NETWORK);
+        pfrom->nVersion = nVersion;
 
         // Potentially mark this peer as a preferred download peer.
-        UpdatePreferredDownload(pfrom, State(pfrom->GetId()));
+        {
+            LOCK(cs_main);
+            UpdatePreferredDownload(pfrom, State(pfrom->GetId()));
+        }
 
         // Change version
         pfrom->PushMessage("verack");
@@ -6099,6 +6119,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
 
     else if (pfrom->nVersion == 0) {
         // Must have a version message before anything else
+        LOCK(cs_main);
         Misbehaving(pfrom->GetId(), 1);
         return false;
     }
@@ -6136,6 +6157,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         if (pfrom->nVersion < CADDR_TIME_VERSION && addrman.size() > 1000)
             return true;
         if (vAddr.size() > 1000) {
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20);
             return error("message addr size() = %u", vAddr.size());
         }
@@ -6145,7 +6167,8 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         int64_t nNow = GetAdjustedTime();
         int64_t nSince = nNow - 10 * 60;
         for (CAddress& addr : vAddr) {
-            boost::this_thread::interruption_point();
+            if (interruptMsgProc)
+                return true;
 
             if (addr.nTime <= 100000000 || addr.nTime > nNow + 10 * 60)
                 addr.nTime = nNow - 5 * 24 * 60 * 60;
@@ -6195,6 +6218,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20);
             return error("message inv size() = %u", vInv.size());
         }
@@ -6204,9 +6228,9 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         std::vector<CInv> vToFetch;
 
         for (unsigned int nInv = 0; nInv < vInv.size(); nInv++) {
+            if (interruptMsgProc)
+                return true;
             const CInv& inv = vInv[nInv];
-
-            boost::this_thread::interruption_point();
             pfrom->AddInventoryKnown(inv);
 
             bool fAlreadyHave = AlreadyHave(inv);
@@ -6257,6 +6281,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20);
             return error("message getdata size() = %u", vInv.size());
         }
@@ -6268,7 +6293,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
             LogPrint("net", "received getdata for: %s peer=%d\n", vInv[0].ToString(), pfrom->id);
 
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
-        ProcessGetData(chainparams.GetConsensus(), pfrom);
+        ProcessGetData(chainparams.GetConsensus(), pfrom, interruptMsgProc);
     }
 
 
@@ -6489,6 +6514,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         // Bypass the normal CBlock deserialization, as we don't want to risk deserializing 2000 full blocks.
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > MAX_HEADERS_RESULTS) {
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20);
             return error("headers message size = %u", nCount);
         }
@@ -6732,6 +6758,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
              (strCommand == "filterload" ||
               strCommand == "filteradd")) {
         if (pfrom->nVersion >= NO_BLOOM_VERSION) {
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 100);
             return false;
         } else if (GetBoolArg("-enforcenodebloom", false)) {
@@ -6745,9 +6772,11 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         CBloomFilter filter;
         vRecv >> filter;
 
-        if (!filter.IsWithinSizeConstraints())
+        if (!filter.IsWithinSizeConstraints()) {
             // There is no excuse for sending a too-large filter
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 100);
+        }
         else {
             LOCK(pfrom->cs_filter);
             delete pfrom->pfilter;
@@ -6765,6 +6794,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         // Nodes must NEVER send a data item > 520 bytes (the max size for a script data object,
         // and thus, the maximum size any matched object can have) in a filteradd message
         if (vData.size() > MAX_SCRIPT_ELEMENT_SIZE) {
+            LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 100);
         } else {
             LOCK(pfrom->cs_filter);
@@ -6843,7 +6873,7 @@ int ActiveProtocol()
 }
 
 // requires LOCK(cs_vRecvMsg)
-bool ProcessMessages(const CChainParams& chainparams, CNode* pfrom)
+bool ProcessMessages(const CChainParams& chainparams, CNode* pfrom, std::atomic<bool>& interruptMsgProc)
 {
     // if (fDebug)
     //     LogPrintf("%s(%u messages)\n", __func__, pfrom->vRecvMsg.size());
@@ -6856,48 +6886,48 @@ bool ProcessMessages(const CChainParams& chainparams, CNode* pfrom)
     //  (4) checksum
     //  (x) data
     //
-    bool fOk = true;
+    bool fMoreWork = true;
 
     if (!pfrom->vRecvGetData.empty())
-        ProcessGetData(chainparams.GetConsensus(), pfrom);
+        ProcessGetData(chainparams.GetConsensus(), pfrom, interruptMsgProc);
+
+    if (pfrom->fDisconnect)
+        return false;
 
     // this maintains the order of responses
-    if (!pfrom->vRecvGetData.empty())
-        return fOk;
+    if (!pfrom->vRecvGetData.empty()) return true;
 
-    std::deque<CNetMessage>::iterator it = pfrom->vRecvMsg.begin();
-    while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
-        // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
-            break;
+    // Don't bother if send buffer is too full to respond anyway
+    if (pfrom->fPauseSend)
+        return false;
 
-        // get next message
-        CNetMessage& msg = *it;
-
-        // if (fDebug)
-        //     LogPrintf("%s(message %u msgsz, %u bytes, complete:%s)\n", __func__,
-        //             msg.hdr.nMessageSize, msg.vRecv.size(),
-        //             msg.complete() ? "Y" : "N");
-
-        // end, if an incomplete message is found
-        if (!msg.complete())
-            break;
-
-        // at this point, any failure means we can delete the current message
-        it++;
-
+    std::list<CNetMessage> msgs;
+    {
+        LOCK(pfrom->cs_vProcessMsg);
+        if (pfrom->vProcessMsg.empty())
+            return false;
+        // Just take one message
+        msgs.splice(msgs.begin(), pfrom->vProcessMsg, pfrom->vProcessMsg.begin());
+        pfrom->nProcessQueueSize -= msgs.front().vRecv.size() + CMessageHeader::HEADER_SIZE;
+        pfrom->fPauseRecv = pfrom->nProcessQueueSize > nReceiveFloodSize;
+        fMoreWork = !pfrom->vProcessMsg.empty();
+    }
+    CNetMessage& msg(msgs.front());
+    msg.SetVersion(pfrom->nRecvVersion);
+    // while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
+    {
         // Scan for message start
         if (memcmp(msg.hdr.pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE) != 0) {
             LogPrintf("PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n", SanitizeString(msg.hdr.GetCommand()), pfrom->id);
-            fOk = false;
-            break;
+            pfrom->fDisconnect = true;
+            return false;
         }
 
         // Read header
         CMessageHeader& hdr = msg.hdr;
         if (!hdr.IsValid(Params().MessageStart())) {
             LogPrintf("PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n", SanitizeString(hdr.GetCommand()), pfrom->id);
-            continue;
+            return fMoreWork;
         }
         string strCommand = hdr.GetCommand();
 
@@ -6911,14 +6941,17 @@ bool ProcessMessages(const CChainParams& chainparams, CNode* pfrom)
         if (nChecksum != hdr.nChecksum) {
             LogPrintf("%s(%s, %u bytes): CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n", __func__,
                       SanitizeString(strCommand), nMessageSize, nChecksum, hdr.nChecksum);
-            continue;
+            return fMoreWork;
         }
 
         // Process message
         bool fRet = false;
         try {
-            fRet = ProcessMessage(chainparams, pfrom, strCommand, vRecv, msg.nTime);
-            boost::this_thread::interruption_point();
+            fRet = ProcessMessage(chainparams, pfrom, strCommand, vRecv, msg.nTime, interruptMsgProc);
+            if (interruptMsgProc)
+                return false;
+            if (!pfrom->vRecvGetData.empty())
+                fMoreWork = true;
         } catch (const std::ios_base::failure& e) {
             pfrom->PushMessage("reject", strCommand, REJECT_MALFORMED, string("error parsing message"));
             if (strstr(e.what(), "end of data")) {
@@ -6940,21 +6973,18 @@ bool ProcessMessages(const CChainParams& chainparams, CNode* pfrom)
 
         if (!fRet)
             LogPrintf("%s(%s, %u bytes) FAILED peer=%d\n", __func__, SanitizeString(strCommand), nMessageSize, pfrom->id);
-
-        break;
     }
 
-    // In case the connection got shut down, its receive buffer was wiped
-    if (!pfrom->fDisconnect)
-        pfrom->vRecvMsg.erase(pfrom->vRecvMsg.begin(), it);
-
-    return fOk;
+    return fMoreWork;
 }
 
 
-bool SendMessages(const Consensus::Params& consensusParams, CNode* pto, bool fSendTrickle)
+bool SendMessages(const Consensus::Params& consensusParams, CNode* pto, std::atomic<bool>& flagInterruptMsgProc)
 {
     {
+        if (!pto->fSuccessfullyConnected || pto->fDisconnect)
+            return true;
+
         // Don't send anything until we get its version message
         if (pto->nVersion == 0)
             return true;
@@ -6992,26 +7022,20 @@ bool SendMessages(const Consensus::Params& consensusParams, CNode* pto, bool fSe
         if (!lockMain)
             return true;
 
+        int64_t nNow = GetTimeMicros();
         // Address refresh broadcast
         static int64_t nLastRebroadcast;
 
-        if (!IsInitialBlockDownload(consensusParams) && (GetTime() - nLastRebroadcast > 24 * 60 * 60)) {
-            for (CNode* pnode : vNodes) {
-                // Periodically clear addrKnown to allow refresh broadcasts
-                if (nLastRebroadcast)
-                    pnode->addrKnown.reset();
-
-                // Rebroadcast our address
-                AdvertizeLocal(pnode);
-            }
-            if (!vNodes.empty())
-                nLastRebroadcast = GetTime();
+        if (!IsInitialBlockDownload(consensusParams) && pto->nNextLocalAddrSend < nNow) {
+            AdvertizeLocal(pto);
+            pto->nNextLocalAddrSend = PoissonNextSend(nNow, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
         }
 
         //
         // Message: addr
         //
-        if (fSendTrickle) {
+        if (pto->nNextAddrSend < nNow) {
+            pto->nNextAddrSend = PoissonNextSend(nNow, AVG_ADDRESS_BROADCAST_INTERVAL);
             vector<CAddress> vAddr;
             vAddr.reserve(pto->vAddrToSend.size());
             for (const CAddress& addr : pto->vAddrToSend) {
@@ -7077,6 +7101,11 @@ bool SendMessages(const Consensus::Params& consensusParams, CNode* pto, bool fSe
         vector<CInv> vInv;
         vector<CInv> vInvWait;
         {
+            bool fSendTrickle = pto->fWhitelisted;
+            if (pto->nNextInvSend < nNow) {
+                fSendTrickle = true;
+                pto->nNextInvSend = PoissonNextSend(nNow, AVG_INVENTORY_BROADCAST_INTERVAL);
+            }
             LOCK(pto->cs_inventory);
             vInv.reserve(pto->vInventoryToSend.size());
             vInvWait.reserve(pto->vInventoryToSend.size());
@@ -7114,8 +7143,6 @@ bool SendMessages(const Consensus::Params& consensusParams, CNode* pto, bool fSe
         if (!vInv.empty())
             pto->PushMessage("inv", vInv);
 
-        // Detect whether we're stalling
-        int64_t nNow = GetTimeMicros();
         if (!pto->fDisconnect && state.nStallingSince && state.nStallingSince < nNow - 1000000 * BLOCK_STALLING_TIMEOUT) {
             // Stalling only triggers when the block download window cannot move. During normal steady state,
             // the download window should be much larger than the to-be-downloaded set of blocks, so disconnection

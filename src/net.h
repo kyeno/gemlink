@@ -17,6 +17,7 @@
 #include "random.h"
 #include "streams.h"
 #include "sync.h"
+#include "threadinterrupt.h"
 #include "uint256.h"
 #include "utilstrencodings.h"
 
@@ -45,6 +46,8 @@ class thread_group;
 static const int PING_INTERVAL = 2 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
 static const int TIMEOUT_INTERVAL = 20 * 60;
+/** Run the feeler connection loop once every 2 minutes or 120 seconds. **/
+static const int FEELER_INTERVAL = 120;
 /** The maximum number of entries in an 'inv' protocol message */
 static const unsigned int MAX_INV_SZ = 50000;
 /** The maximum number of new addresses to accumulate before announcing. */
@@ -64,6 +67,8 @@ static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS = 125;
 static const unsigned int DEFAULT_MAX_PEER_CONNECTIONS_MASTERNODE = 500;
 /** The period before a network upgrade activates, where connections to upgrading peers are preferred (in blocks). */
 static const int NETWORK_UPGRADE_PEER_PREFERENCE_BLOCK_PERIOD = 24 * 24 * 3;
+static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
+static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
 
 unsigned int ReceiveFloodSize();
 unsigned int SendBufferSize();
@@ -103,8 +108,8 @@ struct CombinerAll {
 // Signals for message handling
 struct CNodeSignals {
     boost::signals2::signal<int()> GetHeight;
-    boost::signals2::signal<bool(const CChainParams&, CNode*), CombinerAll> ProcessMessages;
-    boost::signals2::signal<bool(const Consensus::Params&, CNode*, bool), CombinerAll> SendMessages;
+    boost::signals2::signal<bool(const CChainParams&, CNode*, std::atomic<bool>&), CombinerAll> ProcessMessages;
+    boost::signals2::signal<bool(const Consensus::Params&, CNode*, std::atomic<bool>&), CombinerAll> SendMessages;
     boost::signals2::signal<void(NodeId, const CNode*)> InitializeNode;
     boost::signals2::signal<void(NodeId)> FinalizeNode;
 };
@@ -146,7 +151,8 @@ extern uint64_t nLocalHostNonce;
 extern CAddrMan addrman;
 /** Maximum number of connections to simultaneously allow (aka connection slots) */
 extern int nMaxConnections;
-
+extern unsigned int nSendBufferMaxSize;
+extern unsigned int nReceiveFloodSize;
 extern std::vector<CNode*> vNodes;
 extern CCriticalSection cs_vNodes;
 extern std::map<CInv, CDataStream> mapRelay;
@@ -170,6 +176,7 @@ struct LocalServiceInfo {
 
 extern CCriticalSection cs_mapLocalHost;
 extern std::map<CNetAddr, LocalServiceInfo> mapLocalHost;
+typedef std::map<std::string, uint64_t> mapMsgCmdSize; //command, total bytes
 
 class CNodeStats
 {
@@ -248,10 +255,15 @@ public:
     uint64_t nSendBytes;
     std::deque<CSerializeData> vSendMsg;
     CCriticalSection cs_vSend;
+    CCriticalSection cs_hSocket;
+    CCriticalSection cs_vRecv;
+
+    CCriticalSection cs_vProcessMsg;
+    std::list<CNetMessage> vProcessMsg;
+    size_t nProcessQueueSize;
 
     std::deque<CInv> vRecvGetData;
-    std::deque<CNetMessage> vRecvMsg;
-    CCriticalSection cs_vRecvMsg;
+    std::list<CNetMessage> vRecvMsg;
     uint64_t nRecvBytes;
     int nRecvVersion;
     CCriticalSection cs_sendProcessing;
@@ -269,6 +281,7 @@ public:
     // store the sanitized version in cleanSubVer. The original should be used when dealing with
     // the network or wire types and the cleaned string used when displayed or logged.
     std::string strSubVer, cleanSubVer;
+    CCriticalSection cs_SubVer; // used for both cleanSubVer and strSubVer
     bool fWhitelisted; // This peer can bypass DoS banning.
     bool fOneShot;
     bool fClient;
@@ -287,6 +300,10 @@ public:
     CBloomFilter* pfilter;
     int nRefCount;
     NodeId id;
+
+    
+    std::atomic_bool fPauseRecv;
+    std::atomic_bool fPauseSend;
 
     // Stored so we can pass a pointer to it across the Rust FFI for span.
     std::string idStr;
@@ -317,7 +334,10 @@ public:
     CRollingBloomFilter addrKnown;
     bool fGetAddr;
     std::set<uint256> setKnown;
-
+    int64_t nNextAddrSend;
+    int64_t nNextLocalAddrSend;
+    int64_t nNextInvSend;
+    
     // inventory based relay
     mruset<CInv> setInventoryKnown;
     std::vector<CInv> vInventoryToSend;
@@ -373,7 +393,7 @@ public:
     }
 
     // requires LOCK(cs_vRecvMsg)
-    bool ReceiveMsgBytes(const char* pch, unsigned int nBytes);
+    bool ReceiveMsgBytes(const char* pch, unsigned int nBytes, bool& complete);
 
     // requires LOCK(cs_vRecvMsg)
     void SetRecvVersion(int nVersionIn)
@@ -695,4 +715,8 @@ struct AddedNodeInfo {
 };
 
 std::vector<AddedNodeInfo> GetAddedNodeInfo();
+
+/** Return a timestamp in the future (in microseconds) for exponentially distributed events. */
+int64_t PoissonNextSend(int64_t nNow, int average_interval_seconds);
+
 #endif // BITCOIN_NET_H

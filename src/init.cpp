@@ -992,6 +992,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (fMasterNode) {
         nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS_MASTERNODE;
     }
+    nSendBufferMaxSize = 1000*GetArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
+    nReceiveFloodSize = 1000*GetArg("-maxreceivebuffer", DEFAULT_MAXRECEIVEBUFFER);
     // if using block pruning, then disable txindex
     // also disable the wallet (for now, until SPV support is implemented in wallet)
     if (GetArg("-prune", 0)) {
