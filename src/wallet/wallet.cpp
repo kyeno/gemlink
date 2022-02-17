@@ -1365,8 +1365,12 @@ void CWallet::IncrementNoteWitnesses(const CBlockIndex* pindex,
 
 
 template<typename NoteDataMap>
-void DecrementNoteWitnesses(NoteDataMap& noteDataMap, int indexHeight, int64_t nWitnessCacheSize)
+bool DecrementNoteWitnesses(NoteDataMap& noteDataMap, int indexHeight, int64_t nWitnessCacheSize)
 {
+    bool isDecrementSuccessfully = false;
+    if(noteDataMap.empty()){
+        isDecrementSuccessfully = true;
+    }
     for (auto& item : noteDataMap) {
         auto* nd = &(item.second);
         // Only decrement witnesses that are not above the current height
@@ -1379,7 +1383,8 @@ void DecrementNoteWitnesses(NoteDataMap& noteDataMap, int indexHeight, int64_t n
             // (never incremented or decremented) or equal to the height
             // of the block being removed (indexHeight)
             assert((nd->witnessHeight == -1) || (nd->witnessHeight == indexHeight));
-            if (nd->witnesses.size() > 1) {
+            if (nd->witnesses.size() > 0) {
+                isDecrementSuccessfully = true;
                 nd->witnesses.pop_front();
                 nd->witnessHeight = indexHeight - 1;
             }
@@ -1402,17 +1407,21 @@ void DecrementNoteWitnesses(NoteDataMap& noteDataMap, int indexHeight, int64_t n
             assert((nWitnessCacheSize - 1) >= nd->witnesses.size());
         }
     }
+    return isDecrementSuccessfully;
 }
 
 
 void CWallet::DecrementNoteWitnesses(const CBlockIndex* pindex)
 {
     LOCK(cs_wallet);
+    bool shoulddecrement = true;
     for (std::pair<const uint256, CWalletTx>& wtxItem : mapWallet) {
-        ::DecrementNoteWitnesses(wtxItem.second.mapSproutNoteData, pindex->nHeight, nWitnessCacheSize);
-        ::DecrementNoteWitnesses(wtxItem.second.mapSaplingNoteData, pindex->nHeight, nWitnessCacheSize);
+        shoulddecrement &= ::DecrementNoteWitnesses(wtxItem.second.mapSproutNoteData, pindex->nHeight, nWitnessCacheSize);
+        shoulddecrement &= ::DecrementNoteWitnesses(wtxItem.second.mapSaplingNoteData, pindex->nHeight, nWitnessCacheSize);
     }
-    nWitnessCacheSize -= 1;
+    if(shoulddecrement) {
+        nWitnessCacheSize -= 1;
+    }
     // TODO: If nWitnessCache is zero, we need to regenerate the caches (#1302)
     assert(nWitnessCacheSize > 0);
 
@@ -5566,6 +5575,33 @@ bool CWallet::InitLoadWallet(const CChainParams& params, bool clearWitnessCaches
 
     // Set sapling migration status
     walletInstance->fSaplingMigrationEnabled = GetBoolArg("-migration", false);
+
+    //Set Transaction Deletion Options
+    fTxDeleteEnabled = GetBoolArg("-deletetx", false);
+    fTxConflictDeleteEnabled = GetBoolArg("-deleteconflicttx", true);
+
+    fDeleteInterval = GetArg("-deleteinterval", DEFAULT_TX_DELETE_INTERVAL);
+    if (fDeleteInterval < 1) {
+        LogPrintf("deleteinterval must be greater than 0");
+        return false;
+    }
+
+    fKeepLastNTransactions = GetArg("-keeptxnum", DEFAULT_TX_RETENTION_LASTTX);
+    if (fKeepLastNTransactions < 1) {
+        LogPrintf("keeptxnum must be greater than 0");
+        return false;
+    }
+
+    fDeleteTransactionsAfterNBlocks = GetArg("-keeptxfornblocks", DEFAULT_TX_RETENTION_BLOCKS);
+    if (fDeleteTransactionsAfterNBlocks < 1) {
+        LogPrintf("keeptxfornblocks must be greater than 0");
+        return false;
+    }
+
+    if (fDeleteTransactionsAfterNBlocks < MAX_REORG_LENGTH + 1 ) {
+        LogPrintf("keeptxfornblock is less the MAX_REORG_LENGTH, Setting to %i\n", MAX_REORG_LENGTH + 1);
+        fDeleteTransactionsAfterNBlocks = MAX_REORG_LENGTH + 1;
+    }
 
     if (fFirstRun)
     {
