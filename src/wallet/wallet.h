@@ -269,9 +269,13 @@ public:
     int witnessHeight;
 
     // In Memory Only
-    SproutNoteData() : address(), nullifier(), witnessHeight{-1} {}
-    SproutNoteData(libzcash::SproutPaymentAddress a) : address{a}, nullifier(), witnessHeight{-1} {}
-    SproutNoteData(libzcash::SproutPaymentAddress a, uint256 n) : address{a}, nullifier{n}, witnessHeight{-1} {}
+    bool witnessRootValidated;
+
+    SproutNoteData() : address(), nullifier(), witnessHeight {-1}, witnessRootValidated {false} { }
+    SproutNoteData(libzcash::SproutPaymentAddress a) :
+            address {a}, nullifier(), witnessHeight {-1}, witnessRootValidated {false} { }
+    SproutNoteData(libzcash::SproutPaymentAddress a, uint256 n) :
+            address {a}, nullifier {n}, witnessHeight {-1}, witnessRootValidated {false} { }
 
     ADD_SERIALIZE_METHODS;
 
@@ -308,15 +312,18 @@ public:
      * We initialize the height to -1 for the same reason as we do in SproutNoteData.
      * See the comment in that class for a full description.
      */
-    SaplingNoteData() : witnessHeight{-1}, nullifier() {}
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk{ivk}, witnessHeight{-1}, nullifier() {}
-    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk{ivk}, witnessHeight{-1}, nullifier(n) {}
+    SaplingNoteData() : witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk) : ivk {ivk}, witnessHeight {-1}, nullifier(), witnessRootValidated {false} { }
+    SaplingNoteData(libzcash::SaplingIncomingViewingKey ivk, uint256 n) : ivk {ivk}, witnessHeight {-1}, nullifier(n), witnessRootValidated {false} { }
 
     std::list<SaplingWitness> witnesses;
     int witnessHeight;
     libzcash::SaplingIncomingViewingKey ivk;
     std::optional<uint256> nullifier;
 
+    // In Memory Only
+    bool witnessRootValidated;
+    
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
@@ -883,13 +890,14 @@ public:
     void ClearNoteWitnessCache();
 
 protected:
+    int SproutWitnessMinimumHeight(const uint256& nullifier, int nWitnessHeight, int nMinimumHeight);
+    int SaplingWitnessMinimumHeight(const uint256& nullifier, int nWitnessHeight, int nMinimumHeight);
     /**
      * pindex is the new tip being connected.
      */
-    void IncrementNoteWitnesses(const CBlockIndex* pindex,
-                                const CBlock* pblock,
-                                SproutMerkleTree& sproutTree,
-                                SaplingMerkleTree& saplingTree);
+    int VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessOnly);
+    void BuildWitnessCache(const CBlockIndex* pindex, bool witnessOnly);
+
     /**
      * pindex is the old tip being disconnected.
      */
@@ -1254,8 +1262,9 @@ public:
     void MarkDirty();
     bool UpdateNullifierNoteMap();
     void UpdateNullifierNoteMapWithTx(const CWalletTx& wtx);
+    void UpdateSproutNullifierNoteMapWithTx(CWalletTx& wtx);
     void UpdateSaplingNullifierNoteMapWithTx(CWalletTx& wtx);
-    void UpdateSaplingNullifierNoteMapForBlock(const CBlock* pblock);
+    void UpdateNullifierNoteMapForBlock(const CBlock* pblock);
     bool AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet, CWalletDB* pwalletdb);
     void SyncTransaction(const CTransaction& tx, const CBlock* pblock, const int nHeight);
     bool AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, const int nHeight, bool fUpdate);
@@ -1349,7 +1358,7 @@ public:
     void ChainTip(
         const CBlockIndex *pindex,
         const CBlock *pblock,
-        std::optional<std::pair<SproutMerkleTree, SaplingMerkleTree>> added);
+        bool added);
     void AddPendingSaplingMigrationTx(const CTransaction& tx);
     void RunSaplingMigration(int blockHeight);
     void RunSaplingConsolidation(int blockHeight);
