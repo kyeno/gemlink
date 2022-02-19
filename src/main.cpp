@@ -3595,8 +3595,8 @@ static CBlockIndex* FindMostWorkChain()
                                    "Invalid block hash"
                                    "\n\n") +
                                _("Block details") + ":\n" +
-                               "- " + strprintf(_("Current tip: %s, height %d"), pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight) + "\n" +
-                               "- " + strprintf(_("New tip:     %s, height %d"), pindexTest->phashBlock->GetHex(), pindexTest->nHeight) + "\n";
+                               "- " + strprintf("Current tip: %s, height %d", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight) + "\n" +
+                               "- " + strprintf("New tip:     %s, height %d", pindexTest->phashBlock->GetHex(), pindexTest->nHeight) + "\n";
                     LogPrintf("*** %s\n", msg);
                     fInvalidChain = true;
                 } else {
@@ -3673,16 +3673,16 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     auto reorgLength = pindexOldTip ? pindexOldTip->nHeight - (pindexFork ? pindexFork->nHeight : -1) : 0;
     static_assert(MAX_REORG_LENGTH > 0, "We must be able to reorg some distance");
     if (reorgLength > MAX_REORG_LENGTH && masternodeSync.IsSynced()) {
-        auto msg = strprintf(_(
+        auto msg = strprintf(
                                  "A block chain reorganization has been detected that would roll back %d blocks! "
-                                 "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety."),
+                                 "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
                              reorgLength, MAX_REORG_LENGTH) +
                    "\n\n" +
-                   _("Reorganization details") + ":\n" +
-                   "- " + strprintf(_("Current tip: %s, height %d, work %s"), pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
-                   "- " + strprintf(_("New tip:     %s, height %d, work %s"), pindexMostWork->phashBlock->GetHex(), pindexMostWork->nHeight, pindexMostWork->nChainWork.GetHex()) + "\n" +
-                   "- " + strprintf(_("Fork point:  %s, height %d"), pindexFork->phashBlock->GetHex(), pindexFork->nHeight) + "\n\n" +
-                   _("Please help, human!");
+                   "Reorganization details :\n" +
+                   "- " + strprintf("Current tip: %s, height %d, work %s", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
+                   "- " + strprintf("New tip:     %s, height %d, work %s", pindexMostWork->phashBlock->GetHex(), pindexMostWork->nHeight, pindexMostWork->nChainWork.GetHex()) + "\n" +
+                   "- " + strprintf("Fork point:  %s, height %d", pindexFork->phashBlock->GetHex(), pindexFork->nHeight) + "\n\n" +
+                   "Please help, human!";
         LogPrintf("*** %s\n", msg);
         uiInterface.ThreadSafeMessageBox(msg, "", CClientUIInterface::MSG_ERROR);
         StartShutdown();
@@ -5143,14 +5143,14 @@ bool RewindBlockIndex(const CChainParams& params, bool& clearWitnessCaches)
         if (rewindLength > MAX_REORG_LENGTH && !intendedRewind) {
             auto pindexOldTip = chainActive.Tip();
             auto pindexRewind = chainActive[nHeight - 1];
-            auto msg = strprintf(_(
+            auto msg = strprintf(
                                      "A block chain rewind has been detected that would roll back %d blocks! "
-                                     "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety."),
+                                     "This is larger than the maximum of %d blocks, and so the node is shutting down for your safety.",
                                  rewindLength, MAX_REORG_LENGTH) +
                        "\n\n" +
                        _("Rewind details") + ":\n" +
-                       "- " + strprintf(_("Current tip:   %s, height %d"), pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight) + "\n" +
-                       "- " + strprintf(_("Rewinding to:  %s, height %d"), pindexRewind->phashBlock->GetHex(), pindexRewind->nHeight) + "\n\n" +
+                       "- " + strprintf("Current tip:   %s, height %d", pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight) + "\n" +
+                       "- " + strprintf("Rewinding to:  %s, height %d", pindexRewind->phashBlock->GetHex(), pindexRewind->nHeight) + "\n\n" +
                        _("Please help, human!");
             LogPrintf("*** %s\n", msg);
             uiInterface.ThreadSafeMessageBox(msg, "", CClientUIInterface::MSG_ERROR);
@@ -5986,7 +5986,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
         if (pfrom->nVersion < masternodePayments.GetMinMasternodePaymentsProto()) {
             // disconnect from peers older than this proto version
-            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+            LogPrint("masternode", "peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater", masternodePayments.GetMinMasternodePaymentsProto()));
             pfrom->fDisconnect = true;
@@ -5997,7 +5997,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         const Consensus::Params& params = Params().GetConsensus();
         auto currentEpoch = CurrentEpoch(GetHeight(), params);
         if (pfrom->nVersion < params.vUpgrades[currentEpoch].nProtocolVersion) {
-            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+            LogPrint("masternode","peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater",
                                          params.vUpgrades[currentEpoch].nProtocolVersion));
@@ -6119,7 +6119,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
     // 1. The version message has been received
     // 2. Peer version is below the minimum version for the current epoch
     else if (pfrom->nVersion < chainparams.GetConsensus().vUpgrades[CurrentEpoch(GetHeight(), chainparams.GetConsensus())].nProtocolVersion) {
-        LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+        LogPrint("masternode","peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
         pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                            strprintf("Version must be %d or greater",
                                      chainparams.GetConsensus().vUpgrades[CurrentEpoch(GetHeight(), chainparams.GetConsensus())].nProtocolVersion));
