@@ -1038,11 +1038,11 @@ UniValue getamiinfo(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
-            "getfreyjainfo\n"
+            "getamiinfo\n"
             "Returns an object containing various state info regarding block chain processing.\n"
             "\n"
             "\nExamples:\n" +
-            HelpExampleCli("getfreyjainfo", "") + HelpExampleRpc("getfreyjainfo", ""));
+            HelpExampleCli("getamiinfo", "") + HelpExampleRpc("getamiinfo", ""));
 
     LOCK(cs_main);
 

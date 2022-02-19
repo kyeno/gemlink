@@ -60,12 +60,12 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         }
     }
 
-    if (params.NetworkUpgradeActive(pindexLast->nHeight, Consensus::UPGRADE_WAKANDA) && !CheckBlockTimestamp(pindexLast, pblock)) {
-        LogPrint("pow1", "Return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
-        return nProofOfWorkLimitTop;
-    } else {
-        LogPrint("pow1", "Not return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
-    }
+    // if (params.NetworkUpgradeActive(pindexLast->nHeight, Consensus::UPGRADE_WAKANDA) && !CheckBlockTimestamp(pindexLast, pblock)) {
+    //     LogPrint("pow1", "Return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
+    //     return nProofOfWorkLimitTop;
+    // } else {
+    //     LogPrint("pow1", "Not return limit work, time = %d, pindexlast = %d\n", pblock ? pblock->nTime : GetAdjustedTime(), pindexLast->nTime);
+    // }
 
     // Find the first block in the averaging interval
     const CBlockIndex* pindexFirst = pindexLast;

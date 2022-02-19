@@ -26,6 +26,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
         {"getalldata", 0},
         {"getalldata", 1},
         {"getalldata", 2},
+        {"getamiinfo", 0},
         {"stop", 0},
         {"setmocktime", 0},
         {"getaddednodeinfo", 0},

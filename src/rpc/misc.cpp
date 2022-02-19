@@ -1389,6 +1389,7 @@ static const CRPCCommand commands[] =
         //  category              name                      actor (function)         okSafeMode
         //  --------------------- ------------------------  -----------------------  ----------
         {"control", "getalldata", &getalldata, true},
+        {"control", "getamiinfo", &getamiinfo, true},
         {"control", "getinfo", &getinfo, true},                  /* uses wallet if enabled */
         {"util", "validateaddress", &validateaddress, true},     /* uses wallet if enabled */
         {"util", "z_validateaddress", &z_validateaddress, true}, /* uses wallet if enabled */

@@ -1108,7 +1108,7 @@ bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& 
     // Find possible candidates
     std::vector<COutput> vPossibleCoins;
 
-    AvailableCoins(vPossibleCoins, true, NULL, false, false, true, ONLY_10000);
+    AvailableCoins(vPossibleCoins, true, NULL, false, false, true, 1, ONLY_10000);
     if (vPossibleCoins.empty()) {
         LogPrintf("CWallet::GetMasternodeVinAndKeys -- Could not locate any valid masternode vin\n");
         return false;
@@ -4008,31 +4008,33 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                     continue;
 
 
-                if (IsLockedCoin((*it).first, i) && coin_type != ONLY_10000) {
+                isminetype mine = IsMine(pcoin->vout[i]);
+
+                if (IsSpent(wtxid, i))
+                {
                     continue;
                 }
 
-                const auto& output = pcoin->vout[i];
-                isminetype mine = IsMine(output);
-
-                bool isSpendable = ((mine & ISMINE_SPENDABLE) != ISMINE_NO) ||
-                                    (coinControl && coinControl->fAllowWatchOnly && (mine & ISMINE_WATCH_SOLVABLE) != ISMINE_NO);
-
-                if (fOnlySpendable && !isSpendable)
+                if (mine == ISMINE_NO)
+                {
                     continue;
-
-                // Filter by specific destinations if needed
-                if (onlyFilterByDests && !onlyFilterByDests->empty()) {
-                    CTxDestination address;
-                    if (!ExtractDestination(output.scriptPubKey, address) || onlyFilterByDests->count(address) == 0) {
-                        continue;
-                    }
                 }
 
-                if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
-                    !IsLockedCoin((*it).first, i) && (pcoin->vout[i].nValue > 0 || fIncludeZeroValue) &&
-                    (!coinControl || !coinControl->HasSelected() || coinControl->fAllowOtherInputs || coinControl->IsSelected((*it).first, i)))
-                        vCoins.push_back(COutput(pcoin, i, nDepth, isSpendable, isCoinbase));
+                if (IsLockedCoin((*it).first, i) && coin_type != ONLY_10000)
+                {
+                    continue;
+                }
+
+                if (coinControl && coinControl->HasSelected() && !coinControl->fAllowOtherInputs && !coinControl->IsSelected((*it).first, i))
+                {
+                    continue;
+                }
+
+                bool fIsSpendable = false;
+                if ((mine & ISMINE_SPENDABLE) != ISMINE_NO)
+                    fIsSpendable = true;
+
+                vCoins.emplace_back(COutput(pcoin, i, nDepth, fIsSpendable));
             }
         }
     }

@@ -786,7 +786,7 @@ bool CMasternodePing::CheckAndUpdate(int& nDos, bool fRequireEnabled, bool fChec
 
     // see if we have this Masternode
     if (isMasternodeFound && pmn->protocolVersion >= masternodePayments.GetMinMasternodePaymentsProto()) {
-        if (fRequireEnabled && !pmn->IsEnabled()) {
+        if (fRequireEnabled && !pmn->IsAvailableState()) {
             // nDos = 20;
             return false;
         }
