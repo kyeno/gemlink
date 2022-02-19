@@ -1042,7 +1042,8 @@ UniValue getamiinfo(const UniValue& params, bool fHelp)
             "Returns an object containing various state info regarding block chain processing.\n"
             "\n"
             "\nExamples:\n" +
-            HelpExampleCli("getamiinfo", "") + HelpExampleRpc("getamiinfo", ""));
+            HelpExampleCli("getamiinfo", "") + HelpExampleRpc("getamiinfo", "") + "\n" + 
+            "For more information, go to https://github.com/apps-alis-is/glink.node");
 
     LOCK(cs_main);
 
