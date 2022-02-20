@@ -1084,5 +1084,6 @@ UniValue getamiinfo(const UniValue& params, bool fHelp)
             obj.push_back(Pair("MasternodeStatus", activeMasternode.GetStatusMessage()));
         LogPrintf("Check masternode Vin success");
     }
+    obj.push_back(Pair("info", "https://github.com/apps-alis-is/glink.node"));
     return obj;
 }
