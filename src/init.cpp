@@ -520,6 +520,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-litemode=<n>", strprintf(_("Disable all SnowGem specific functionality (Masternodes, Zerocoin, SwiftX, Budgeting) (0-1, default: %u)"), 0));
 
     strUsage += HelpMessageGroup(_("Masternode options:"));
+    strUsage += HelpMessageOpt("-getamiinfo=", "Returns an object containing various state info regarding block chain processing. For more information, go to https://github.com/apps-alis-is/glink.node");
     strUsage += HelpMessageOpt("-masternode=<n>", strprintf(_("Enable the client to act as a masternode (0-1, default: %u)"), 0));
     strUsage += HelpMessageOpt("-mnconf=<file>", strprintf(_("Specify masternode configuration file (default: %s)"), "masternode.conf"));
     strUsage += HelpMessageOpt("-mnconflock=<n>", strprintf(_("Lock masternodes from masternode configuration file (default: %u)"), 1));
@@ -821,7 +822,7 @@ void InitLogging()
         fLogTimestamps);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Zcash version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
+    LogPrintf("Gemlink version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
 }
 
 [[noreturn]] static void new_handler_terminate()
@@ -1247,8 +1248,8 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());
 #endif
-    // if (GetBoolArg("-shrinkdebugfile", !fDebug))
-    //     ShrinkDebugFile();
+    if (GetBoolArg("-shrinkdebugfile", !fDebug))
+        ShrinkDebugFile();
 
     // if (fPrintToDebugLog)
     //     OpenDebugLog();
