@@ -1485,6 +1485,8 @@ public:
 
     /* Initializes the wallet, returns a new CWallet instance or a null pointer in case of an error */
     static bool InitLoadWallet(const CChainParams& params, bool clearWitnessCaches);
+
+    CTxDestination GetDefaultAddressForChange(const CChainParams& params);
 };
 
 /** A key allocated from the key pool. */

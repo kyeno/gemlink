@@ -350,12 +350,7 @@ bool AsyncRPCOperation_sendmany::main_impl()
             // CTxDestination changeAddr = vchPubKey.GetID();
 
             // send change amount to default address to not generate new address everytime
-            std::map<CKeyID, int64_t> mapKeyBirth;
-            pwalletMain->GetKeyBirthTimes(mapKeyBirth);
-            auto firstAddr = mapKeyBirth.begin();
-            const CKeyID& keyid = firstAddr->first;
-            std::string strAddr = keyIO.EncodeDestination(keyid);
-            CTxDestination destChange = keyIO.DecodeDestination(strAddr);
+            CTxDestination destChange = pwalletMain->GetDefaultAddressForChange(Params());
 
             builder_.SendChangeTo(destChange);
         }

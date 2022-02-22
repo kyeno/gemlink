@@ -4568,12 +4568,14 @@ bool CWallet::CreateTransaction(const vector<CRecipient>& vecSend, CWalletTx& wt
                         //  post-backup change.
 
                         // Reserve a new key pair from key pool
-                        CPubKey vchPubKey;
-                        bool ret;
-                        ret = reservekey.GetReservedKey(vchPubKey);
-                        assert(ret); // should never fail, as we just unlocked
+                        // CPubKey vchPubKey;
+                        // bool ret;
+                        // ret = reservekey.GetReservedKey(vchPubKey);
+                        // assert(ret); // should never fail, as we just unlocked
+                        // scriptChange = GetScriptForDestination(vchPubKey.GetID());
 
-                        scriptChange = GetScriptForDestination(vchPubKey.GetID());
+                        // use default address to not generate new one
+                        scriptChange = GetScriptForDestination(GetDefaultAddressForChange(Params()));
                     }
 
                     CTxOut newTxOut(nChange, scriptChange);
@@ -5917,6 +5919,16 @@ bool CWallet::InitLoadWallet(const CChainParams& params, bool clearWitnessCaches
     return true;
 }
 
+CTxDestination CWallet::GetDefaultAddressForChange(const CChainParams& params)
+{
+    KeyIO keyIO(params);
+    std::map<CKeyID, int64_t> mapKeyBirth;
+    GetKeyBirthTimes(mapKeyBirth);
+    auto firstAddr = mapKeyBirth.begin();
+    const CKeyID& keyid = firstAddr->first;
+    std::string strAddr = keyIO.EncodeDestination(keyid);
+    return keyIO.DecodeDestination(strAddr);
+}
 
 //
 // Shielded key and address generalizations
