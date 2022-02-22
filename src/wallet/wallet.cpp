@@ -3064,16 +3064,23 @@ void CWalletTx::GetAmounts(list<COutputEntry>& listReceived,
     }
 
     // Sent/received.
+    CScript dummyScript;
+    dummyScript << ToByteVector(CPubKey()) << OP_CHECKSIG;
+    CTxOut txDummy = CTxOut(1 * COIN, dummyScript);
     for (unsigned int i = 0; i < vout.size(); ++i) {
         const CTxOut& txout = vout[i];
+
         isminetype fIsMine = pwallet->IsMine(txout);
         // Only need to handle txouts if AT LEAST one of these is true:
         //   1) they debit from us (sent)
         //   2) the output is to us (received)
         if (nDebit > 0) {
             // Don't report 'change' txouts
-            if (pwallet->IsChange(txout))
+            // Don't report only when we have more than 1 outputs
+            if (pwallet->IsChange(txout) && txDummy != txout) {
+                txDummy = txout;
                 continue;
+            }
         } else if (!(fIsMine & filter))
             continue;
 
@@ -5922,11 +5929,25 @@ bool CWallet::InitLoadWallet(const CChainParams& params, bool clearWitnessCaches
 CTxDestination CWallet::GetDefaultAddressForChange(const CChainParams& params)
 {
     KeyIO keyIO(params);
+
     std::map<CKeyID, int64_t> mapKeyBirth;
-    GetKeyBirthTimes(mapKeyBirth);
-    auto firstAddr = mapKeyBirth.begin();
-    const CKeyID& keyid = firstAddr->first;
-    std::string strAddr = keyIO.EncodeDestination(keyid);
+    std::set<CKeyID> setKeyPool;
+    pwalletMain->GetKeyBirthTimes(mapKeyBirth);
+    pwalletMain->GetAllReserveKeys(setKeyPool);
+
+    std::string strAddr = "";
+    
+    for (std::map<CKeyID, int64_t>::const_iterator it = mapKeyBirth.begin(); it != mapKeyBirth.end(); it++) {
+        const CKeyID &keyid = it->first;
+        CKey key;
+        if (pwalletMain->GetKey(keyid, key)) {
+            if (!pwalletMain->mapAddressBook.count(keyid) && !setKeyPool.count(keyid)) {
+                strAddr = keyIO.EncodeDestination(keyid);
+                break;
+            }
+        }
+    }
+
     return keyIO.DecodeDestination(strAddr);
 }
 
