@@ -92,7 +92,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     int nMinDepth = 1;
     CAmount nBalance = getBalanceTaddr("", nMinDepth, true);
-    CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, true);
+    CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, INT_MAX, true);
     CAmount nLockedCoin = pwalletMain->GetLockedCoins();
 
     CAmount nTotalBalance = nBalance + nPrivateBalance + nLockedCoin;
