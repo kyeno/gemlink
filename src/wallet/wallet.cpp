@@ -4034,6 +4034,14 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                 if ((mine & ISMINE_SPENDABLE) != ISMINE_NO)
                     fIsSpendable = true;
 
+                // Filter by specific destinations if needed
+                if (onlyFilterByDests && !onlyFilterByDests->empty()) {
+                    CTxDestination address;
+                    if (!ExtractDestination(pcoin->vout[i].scriptPubKey, address) || onlyFilterByDests->count(address) == 0) {
+                        continue;
+                    }
+                }
+
                 vCoins.emplace_back(COutput(pcoin, i, nDepth, fIsSpendable));
             }
         }
