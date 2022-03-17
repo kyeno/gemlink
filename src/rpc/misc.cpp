@@ -101,13 +101,13 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     returnObj.push_back(Pair("besttime", chainActive.Tip()->GetBlockTime()));
     returnObj.push_back(Pair("blocks", (int)chainActive.Height()));
     returnObj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
-    returnObj.push_back(Pair("transparentbalance", FormatMoney(nBalance)));
-    returnObj.push_back(Pair("privatebalance", FormatMoney(nPrivateBalance)));
-    returnObj.push_back(Pair("lockedbalance", FormatMoney(nLockedCoin)));
-    returnObj.push_back(Pair("totalbalance", FormatMoney(nTotalBalance)));
+    returnObj.push_back(Pair("transparentbalance", ValueFromAmount(nBalance)));
+    returnObj.push_back(Pair("privatebalance", ValueFromAmount(nPrivateBalance)));
+    returnObj.push_back(Pair("lockedbalance", ValueFromAmount(nLockedCoin)));
+    returnObj.push_back(Pair("totalbalance", ValueFromAmount(nTotalBalance)));
     returnObj.push_back(Pair("remainingValue", ValueFromAmount(remainingValue)));
-    returnObj.push_back(Pair("unconfirmedbalance", FormatMoney(pwalletMain->GetUnconfirmedBalance())));
-    returnObj.push_back(Pair("immaturebalance", FormatMoney(pwalletMain->GetImmatureBalance())));
+    returnObj.push_back(Pair("unconfirmedbalance", ValueFromAmount(pwalletMain->GetUnconfirmedBalance())));
+    returnObj.push_back(Pair("immaturebalance", ValueFromAmount(pwalletMain->GetImmatureBalance())));
 
     // get address balance
     nBalance = 0;
@@ -196,6 +196,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
     addressbalance.push_back(addrlist);
     returnObj.push_back(Pair("addressbalance", addressbalance));
+    returnObj.push_back(Pair("addressbalancev2", addrlist));
 
 
     // get transactions
