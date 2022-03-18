@@ -2238,6 +2238,14 @@ UniValue encryptwallet(const UniValue& params, bool fHelp)
     // if (!fEnableWalletEncryption) {
     //     throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Error: wallet encryption is disabled.");
     // }
+
+    std::set<libzcash::SaplingPaymentAddress> addresses;
+    pwalletMain->GetSaplingPaymentAddresses(addresses);
+
+    if(addresses.size() > 0){
+        throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Error: cannot encrypt wallet which contains private address.");
+    }
+
     if (pwalletMain->IsCrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: running with an encrypted wallet, but encryptwallet was called.");
 
@@ -3302,6 +3310,9 @@ UniValue z_getnewaddress(const UniValue& params, bool fHelp)
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
 
+    if(pwalletMain->IsCrypted()){
+        throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Error: cannot generate private address in an encrypted wallet.");
+    }
     std::string defaultType = ADDR_TYPE_SAPLING;
 
     if (fHelp || params.size() > 1)

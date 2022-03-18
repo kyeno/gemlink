@@ -585,6 +585,10 @@ UniValue z_importkey(const UniValue& params, bool fHelp)
     if (fPruneMode)
         throw JSONRPCError(RPC_WALLET_ERROR, "Importing keys is disabled in pruned mode");
 
+    if(pwalletMain->IsCrypted()){
+        throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Error: cannot import private address in an encrypted wallet.");
+    }
+
     LOCK2(cs_main, pwalletMain->cs_wallet);
 
     EnsureWalletIsUnlocked();
