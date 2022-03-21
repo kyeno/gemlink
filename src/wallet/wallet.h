@@ -84,6 +84,8 @@ static const unsigned int DEFAULT_TX_RETENTION_LASTTX = 200;
 // Amount of transactions to delete per run while syncing
 static const int MAX_DELETE_TX_SIZE = 50000;
 
+static const int DEFAULT_KEYPOOL_SIZE = 1000;
+
 static const bool DEFAULT_WALLETBROADCAST = true;
 
 class CBlockIndex;
