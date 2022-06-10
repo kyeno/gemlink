@@ -65,6 +65,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
         connectionCount = (int)vNodes.size();
     }
 
+#ifdef ENABLE_WALLET
     vector<COutput> vecOutputs;
     CAmount remainingValue = 0;
     bool fProtectCoinbase = Params().GetCoinbaseProtected(chainActive.Height() + 1);
@@ -89,18 +90,21 @@ UniValue getalldata(const UniValue& params, bool fHelp)
 
         remainingValue += nValue;
     }
+#endif
 
     int nMinDepth = 1;
+#ifdef ENABLE_WALLET
     CAmount nBalance = getBalanceTaddr("", nMinDepth, true);
     CAmount nPrivateBalance = getBalanceZaddr("", nMinDepth, INT_MAX, true);
     CAmount nLockedCoin = pwalletMain->GetLockedCoins();
-
     CAmount nTotalBalance = nBalance + nPrivateBalance + nLockedCoin;
+#endif
 
     returnObj.push_back(Pair("connectionCount", connectionCount));
     returnObj.push_back(Pair("besttime", chainActive.Tip()->GetBlockTime()));
     returnObj.push_back(Pair("blocks", (int)chainActive.Height()));
     returnObj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
+#ifdef ENABLE_WALLET
     returnObj.push_back(Pair("transparentbalance", ValueFromAmount(nBalance)));
     returnObj.push_back(Pair("privatebalance", ValueFromAmount(nPrivateBalance)));
     returnObj.push_back(Pair("lockedbalance", ValueFromAmount(nLockedCoin)));
@@ -108,6 +112,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     returnObj.push_back(Pair("remainingValue", ValueFromAmount(remainingValue)));
     returnObj.push_back(Pair("unconfirmedbalance", ValueFromAmount(pwalletMain->GetUnconfirmedBalance())));
     returnObj.push_back(Pair("immaturebalance", ValueFromAmount(pwalletMain->GetImmatureBalance())));
+
 
     // get address balance
     nBalance = 0;
@@ -152,6 +157,7 @@ UniValue getalldata(const UniValue& params, bool fHelp)
                 }
             }
         }
+
 
         // get all z address
         // {
@@ -253,6 +259,8 @@ UniValue getalldata(const UniValue& params, bool fHelp)
     returnObj.push_back(Pair("listtransactions", trans));
     returnObj.push_back(Pair("isencrypted", pwalletMain->IsCrypted()));
     returnObj.push_back(Pair("islocked", pwalletMain->IsLocked()));
+#endif
+
     return returnObj;
 }
 

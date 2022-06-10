@@ -43,6 +43,7 @@
 #include <functional>
 #endif
 #include <mutex>
+#include "validationinterface.h"
 
 using namespace std;
 
@@ -785,7 +786,7 @@ void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainpar
 #ifdef ENABLE_WALLET
         minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet, boost::cref(chainparams)));
 #else
-        minerThreads->create_thread(&BitcoinMiner, boost::cref(chainparams));
+        minerThreads->create_thread(boost::bind(&BitcoinMiner, boost::cref(chainparams)));
 #endif
     }
 }
