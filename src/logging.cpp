@@ -39,7 +39,7 @@ std::atomic<bool> fReopenDebugLog(false);
  * the mutex).
  */
 
-static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
+//static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
 
 /**
  * We use boost::call_once() to make sure mutexDebugLog and
@@ -50,7 +50,7 @@ static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
  * the OS/libc. When the shutdown sequence is fully audited and
  * tested, explicit destruction of these objects can be implemented.
  */
-static FILE* fileout = NULL;
+//static FILE* fileout = NULL;
 static boost::mutex* mutexDebugLog = NULL;
 static list<string> *vMsgsBeforeOpenLog;
 

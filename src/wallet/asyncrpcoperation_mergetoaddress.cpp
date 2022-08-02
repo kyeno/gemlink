@@ -224,7 +224,7 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
     bool isPureTaddrOnlyTx = (sproutNoteInputs_.empty() && saplingNoteInputs_.empty() && isToTaddr_);
     CAmount minersFee = fee_;
 
-    size_t numInputs = utxoInputs_.size();
+    //size_t numInputs = utxoInputs_.size();
 
     CAmount t_inputs_total = 0;
     for (MergeToAddressInputUTXO& t : utxoInputs_) {

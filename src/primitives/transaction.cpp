@@ -116,7 +116,8 @@ CTransaction::CTransaction(const CMutableTransaction& tx) : nVersion(tx.nVersion
 // For developer testing only.
 CTransaction::CTransaction(
     const CMutableTransaction& tx,
-    bool evilDeveloperFlag) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
+    //bool evilDeveloperFlag) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
+    bool evilDeveloperFlag) : fOverwintered(tx.fOverwintered), nVersion(tx.nVersion), nVersionGroupId(tx.nVersionGroupId), nExpiryHeight(tx.nExpiryHeight),
                               vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime),
                               valueBalance(tx.valueBalance), vShieldedSpend(tx.vShieldedSpend), vShieldedOutput(tx.vShieldedOutput),
                               vjoinsplit(tx.vjoinsplit), joinSplitPubKey(tx.joinSplitPubKey), joinSplitSig(tx.joinSplitSig),
@@ -125,7 +126,8 @@ CTransaction::CTransaction(
     assert(evilDeveloperFlag);
 }
 
-CTransaction::CTransaction(CMutableTransaction&& tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId),
+//CTransaction::CTransaction(CMutableTransaction&& tx) : nVersion(tx.nVersion), fOverwintered(tx.fOverwintered), nVersionGroupId(tx.nVersionGroupId),
+CTransaction::CTransaction(CMutableTransaction&& tx) : fOverwintered(tx.fOverwintered), nVersion(tx.nVersion), nVersionGroupId(tx.nVersionGroupId),
                                                        vin(std::move(tx.vin)), vout(std::move(tx.vout)), nLockTime(tx.nLockTime), nExpiryHeight(tx.nExpiryHeight),
                                                        valueBalance(tx.valueBalance),
                                                        vShieldedSpend(std::move(tx.vShieldedSpend)), vShieldedOutput(std::move(tx.vShieldedOutput)),

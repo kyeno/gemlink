@@ -3776,6 +3776,7 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
     return true;
 }
 
+/*
 static void NotifyHeaderTip(const Consensus::Params& params)
 {
     bool fNotify = false;
@@ -3798,6 +3799,7 @@ static void NotifyHeaderTip(const Consensus::Params& params)
         uiInterface.NotifyHeaderTip(fInitialBlockDownload, pindexHeader);
     }
 }
+*/
 
 
 /**
@@ -4573,6 +4575,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, const CChainParams& cha
     return true;
 }
 
+/*
 static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams)
 {
     unsigned int nFound = 0;
@@ -4583,6 +4586,7 @@ static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned 
     }
     return (nFound >= nRequired);
 }
+*/
 
 
 bool ProcessNewBlock(CValidationState& state, const CChainParams& chainparams, CNode* pfrom, CBlock* pblock, bool fForceProcessing, CDiskBlockPos* dbp)
@@ -6357,7 +6361,7 @@ bool static ProcessMessage(const CChainParams& chainparams, CNode* pfrom, string
         bool ignoreFees = false;
         CTxIn vin;
         vector<unsigned char> vchSig;
-        int64_t sigTime;
+        //int64_t sigTime;
 
         vRecv >> tx;
 
