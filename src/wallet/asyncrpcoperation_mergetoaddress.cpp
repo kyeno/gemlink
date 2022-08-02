@@ -66,8 +66,9 @@ AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
     MergeToAddressRecipient recipient,
     CAmount fee,
     UniValue contextInfo) :
-    tx_(contextualTx), utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs),
-    saplingNoteInputs_(saplingNoteInputs), recipient_(recipient), fee_(fee), contextinfo_(contextInfo)
+    contextinfo_(contextInfo), fee_(fee), recipient_(recipient),
+    utxoInputs_(utxoInputs), sproutNoteInputs_(sproutNoteInputs), saplingNoteInputs_(saplingNoteInputs),
+    tx_(contextualTx)
 {
     if (fee < 0 || fee > MAX_MONEY) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is out of range");

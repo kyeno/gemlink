@@ -121,7 +121,7 @@ void EraseOrphansFor(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
  * Returns true if there are nRequired or more blocks of minVersion or above
  * in the last Consensus::Params::nMajorityWindow blocks, starting at pstart and going backwards.
  */
-static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams);
+//static bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned nRequired, const Consensus::Params& consensusParams);
 static void CheckBlockIndex();
 
 /** Constant stuff for coinbase transactions we create: */
@@ -1731,7 +1731,7 @@ bool AcceptToMemoryPool(const CChainParams& chainparams, CTxMemPool& pool, CVali
         }
     }
 
-    int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0;
+    //int nHeight = chainActive.Tip() ? chainActive.Tip()->nHeight : 0		// -Wunused-variable, 	// Ky
     // SyncWithWallets(tx, NULL, nHeight);
 
     return true;
@@ -3816,7 +3816,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
         boost::this_thread::interruption_point();
 
         bool fInitialDownload;
-        int nNewHeight;
+        int nNewHeight;		// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
         {
             LOCK(cs_main);
             pindexMostWork = FindMostWorkChain();

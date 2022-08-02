@@ -220,7 +220,7 @@ bool IsIXTXValid(const CTransaction& txCollateral)
 
 int64_t CreateNewLock(CTransaction tx)
 {
-    int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););
+    //int nChainHeight = WITH_LOCK(cs_main, return chainActive.Height(););	// -Wunused-variable
     int64_t nTxAge = 0;
     BOOST_REVERSE_FOREACH (CTxIn i, tx.vin) {
         nTxAge = GetInputAge(i);

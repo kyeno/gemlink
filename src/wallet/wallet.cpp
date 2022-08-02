@@ -1401,7 +1401,7 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
         pcoinsTip->GetSproutAnchorAt(blockRoot, sproutTree);
 
         //Cycle through blocks and transactions building sprout tree until the commitment needed is reached
-        const CBlock* pblock;
+        const CBlock* pblock;	// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
         CBlock block;
         ReadBlockFromDisk(block, pblockindex, Params().GetConsensus());
         pblock = &block;
@@ -1491,7 +1491,7 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
         pcoinsTip->GetSaplingAnchorAt(blockRoot, saplingTree);
 
         //Cycle through blocks and transactions building sapling tree until the commitment needed is reached
-        const CBlock* pblock;
+        const CBlock* pblock;	// ** NOTE: clang compiler will falsly warn about -Wunused-but-set-variable here; this is required // Ky
         CBlock block;
         ReadBlockFromDisk(block, pblockindex, Params().GetConsensus());
         pblock = &block;
